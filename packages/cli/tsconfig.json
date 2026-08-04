@@ -1,0 +1,19 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "rootDir": "../../",
+    "outDir": "dist",
+    "types": ["bun"],
+    "lib": ["ES2023", "DOM"],
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "composite": false,
+    "paths": {
+      "@athena/providers": ["../providers/src/index.ts"],
+      "@athena/agent-core": ["../agent-core/src/index.ts"],
+      "@athena/tools": ["../tools/src/index.ts"],
+      "@athena/tui": ["../tui/src/index.ts"]
+    }
+  },
+  "include": ["src"]
+}

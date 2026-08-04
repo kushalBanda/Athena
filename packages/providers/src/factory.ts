@@ -1,0 +1,38 @@
+import { AnthropicProvider } from "./anthropic/index.js";
+import { AzureOpenAIProvider, type AzureConfig } from "./azure/index.js";
+import { GeminiProvider } from "./gemini/index.js";
+import { OllamaProvider } from "./ollama/index.js";
+import type { LLMProvider } from "./types.js";
+
+export type ProviderName = "anthropic" | "ollama" | "gemini" | "azure";
+
+export interface ProviderConfig {
+  anthropic?: { apiKey: string; model?: string };
+  ollama?: { model?: string; baseUrl?: string; apiKey?: string };
+  gemini?: { apiKey: string; model?: string };
+  azure?: AzureConfig;
+}
+
+export function createProvider(name: ProviderName, config: ProviderConfig): LLMProvider {
+  switch (name) {
+    case "anthropic": {
+      const c = config.anthropic;
+      if (!c) throw new Error("anthropic config missing");
+      return new AnthropicProvider(c.apiKey, c.model);
+    }
+    case "ollama": {
+      const c = config.ollama ?? {};
+      return new OllamaProvider(c.model, c.baseUrl, c.apiKey);
+    }
+    case "gemini": {
+      const c = config.gemini;
+      if (!c) throw new Error("gemini config missing");
+      return new GeminiProvider(c.apiKey, c.model);
+    }
+    case "azure": {
+      const c = config.azure;
+      if (!c) throw new Error("azure config missing");
+      return new AzureOpenAIProvider(c);
+    }
+  }
+}
