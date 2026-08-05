@@ -101,7 +101,7 @@ export function App({ initialState, onUserMessage }: Props) {
   );
 
   return (
-    <Box flexDirection="column" height="100%">
+    <Box flexDirection="column">
       <StatusBar
         model={state.model}
         cwd={state.cwd}
