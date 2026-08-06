@@ -1,11 +1,17 @@
 export type Role = "user" | "assistant" | "system";
 
+export interface DiffLine {
+  type: "add" | "del" | "ctx";
+  text: string;
+}
+
 export interface ToolCall {
   id: string;
   name: string;
   args: string;
   status: "pending" | "ok" | "err";
   summary?: string;
+  diff?: DiffLine[];
 }
 
 export interface Message {

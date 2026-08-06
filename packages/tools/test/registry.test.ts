@@ -16,18 +16,19 @@ describe("ToolRegistry", () => {
     expect(reg.all().length).toBe(2);
   });
 
-  it("createDefaultRegistry includes all 8 tools", () => {
+  it("createDefaultRegistry includes all 9 tools", () => {
     const reg = createDefaultRegistry();
     const names = reg.all().map((t) => t.name);
     expect(names).toContain("read_file");
     expect(names).toContain("write_file");
+    expect(names).toContain("edit_file");
     expect(names).toContain("list_directory");
     expect(names).toContain("grep");
     expect(names).toContain("find");
     expect(names).toContain("shell_exec");
     expect(names).toContain("web_search");
     expect(names).toContain("web_fetch");
-    expect(names.length).toBe(8);
+    expect(names.length).toBe(9);
   });
 
   it("toToolDef() produces valid ToolDef shape", () => {

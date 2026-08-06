@@ -37,6 +37,7 @@ export async function runTool(
       toolCallId: call.id,
       content: result.content,
       isError: result.isError,
+      ...(result.metadata !== undefined ? { metadata: result.metadata } : {}),
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);

@@ -1,5 +1,6 @@
 import type { AgentCallbacks as CoreCallbacks, ActiveToolCall } from "@athena/agent-core";
 import type { AgentCallbacks as TuiCallbacks, Message } from "@athena/tui";
+import { parseUnifiedDiff } from "./diff-parse.js";
 
 export interface AdapterState {
   currentToolCallId: string | null;
@@ -50,15 +51,25 @@ export function createCallbacks(
       tui.addMessage(msg);
     },
 
-    onToolResult: (id: string, result: string, status: "ok" | "err") => {
+    onToolResult: (id: string, result: string, status: "ok" | "err", metadata?: Record<string, unknown>) => {
       state.currentToolCallId = null;
       if (status === "err") {
         tui.setStatus({ kind: "error", message: result.slice(0, 120) });
       }
+      const diffPatch = typeof metadata?.diff === "string" ? metadata.diff : undefined;
       const msg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        toolCalls: [{ id, name: "", args: "", status, summary: result.slice(0, 120) }],
+        toolCalls: [
+          {
+            id,
+            name: "",
+            args: "",
+            status,
+            summary: result.slice(0, 120),
+            ...(diffPatch !== undefined ? { diff: parseUnifiedDiff(diffPatch) } : {}),
+          },
+        ],
       };
       tui.addMessage(msg);
     },

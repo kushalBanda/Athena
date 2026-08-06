@@ -1,6 +1,7 @@
 import type { Tool } from "./types.js";
 import { ReadFileTool } from "./impl/read-file.js";
 import { WriteFileTool } from "./impl/write-file.js";
+import { EditFileTool } from "./impl/edit-file.js";
 import { ListDirectoryTool } from "./impl/list-directory.js";
 import { GrepTool } from "./impl/grep.js";
 import { FindTool } from "./impl/find.js";
@@ -33,6 +34,7 @@ export function createDefaultRegistry(config: DefaultToolsConfig = {}): ToolRegi
   return new ToolRegistry()
     .register(new ReadFileTool())
     .register(new WriteFileTool())
+    .register(new EditFileTool())
     .register(new ListDirectoryTool())
     .register(new GrepTool())
     .register(new FindTool())

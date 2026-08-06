@@ -39,6 +39,7 @@ export interface ToolResult {
   toolCallId: string;
   content: string;
   isError: boolean;
+  metadata?: Record<string, unknown>;
 }
 
 export interface TokenUsage {
@@ -74,7 +75,7 @@ export interface AgentCallbacks {
   onThinking: (active: boolean) => void;
   onAssistantToken: (token: string) => void;
   onToolCall: (toolCall: ActiveToolCall) => void;
-  onToolResult: (id: string, result: string, status: "ok" | "err") => void;
+  onToolResult: (id: string, result: string, status: "ok" | "err", metadata?: Record<string, unknown>) => void;
   onCompacting: () => void;
   onTokenUpdate: (input: number, output: number) => void;
   onPermissionRequest?: (toolName: string, input: unknown) => Promise<boolean>;

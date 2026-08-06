@@ -48,4 +48,36 @@ describe("ToolCallBlock", () => {
     const out = await renderToString(<ToolCallBlock toolCall={makeToolCall()} />);
     expect(out).toContain("│");
   });
+
+  it("does not render a diff block when diff is undefined", async () => {
+    const out = await renderToString(<ToolCallBlock toolCall={makeToolCall()} />);
+    expect(out).not.toContain("+");
+    expect(out).not.toContain("more lines");
+  });
+
+  it("renders add/del/ctx diff lines", async () => {
+    const out = await renderToString(
+      <ToolCallBlock
+        toolCall={makeToolCall({
+          diff: [
+            { type: "ctx", text: "unchanged" },
+            { type: "del", text: "old line" },
+            { type: "add", text: "new line" },
+          ],
+        })}
+      />,
+    );
+    expect(out).toContain("unchanged");
+    expect(out).toContain("old line");
+    expect(out).toContain("new line");
+  });
+
+  it("caps diff rendering at 6 lines and shows a remainder count", async () => {
+    const diff = Array.from({ length: 9 }, (_, i) => ({ type: "add" as const, text: `line${i}` }));
+    const out = await renderToString(<ToolCallBlock toolCall={makeToolCall({ diff })} />);
+    expect(out).toContain("line0");
+    expect(out).toContain("line5");
+    expect(out).not.toContain("line6");
+    expect(out).toContain("[+3 more lines]");
+  });
 });

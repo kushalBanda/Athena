@@ -159,7 +159,7 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
 
       const result = await runTool(call, registry, ctx, callbacks);
 
-      callbacks.onToolResult(call.id, result.content, result.isError ? "err" : "ok");
+      callbacks.onToolResult(call.id, result.content, result.isError ? "err" : "ok", result.metadata);
 
       toolResultBlocks.push({
         type: "tool_result",

@@ -1,12 +1,18 @@
 import { describe, expect, it } from "bun:test";
-import type { AgentCallbacks as TuiCallbacks, AgentStatus } from "@athena/tui";
+import type { AgentCallbacks as TuiCallbacks, AgentStatus, Message } from "@athena/tui";
 import { createCallbacks, type AdapterState } from "../src/adapter.js";
 
-function makeFakeTui(): { tui: TuiCallbacks; statuses: AgentStatus[]; tokenCalls: Array<[number, number]> } {
+function makeFakeTui(): {
+  tui: TuiCallbacks;
+  statuses: AgentStatus[];
+  tokenCalls: Array<[number, number]>;
+  messages: Message[];
+} {
   const statuses: AgentStatus[] = [];
   const tokenCalls: Array<[number, number]> = [];
+  const messages: Message[] = [];
   const tui: TuiCallbacks = {
-    addMessage: () => {},
+    addMessage: (m) => messages.push(m),
     updateMessage: () => {},
     setModel: () => {},
     addTokens: (input, output) => tokenCalls.push([input, output]),
@@ -16,7 +22,7 @@ function makeFakeTui(): { tui: TuiCallbacks; statuses: AgentStatus[]; tokenCalls
     clearMessages: () => {},
     pickFromList: async () => null,
   };
-  return { tui, statuses, tokenCalls };
+  return { tui, statuses, tokenCalls, messages };
 }
 
 function freshState(): AdapterState {
@@ -68,6 +74,34 @@ describe("createCallbacks status mapping", () => {
     cb.onCompacting();
 
     expect(statuses).toEqual([{ kind: "compacting" }]);
+  });
+});
+
+describe("createCallbacks diff metadata", () => {
+  it("populates ToolCall.diff when metadata.diff is a unified diff string", () => {
+    const { tui, messages } = makeFakeTui();
+    const cb = createCallbacks(tui, freshState());
+
+    cb.onToolResult("1", "Edited /tmp/a.txt (+1 -1)", "ok", {
+      diff: "--- a.txt\n+++ a.txt\n@@ -1,1 +1,1 @@\n-old\n+new\n",
+      additions: 1,
+      deletions: 1,
+    });
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]!.toolCalls?.[0]!.diff).toEqual([
+      { type: "del", text: "old" },
+      { type: "add", text: "new" },
+    ]);
+  });
+
+  it("leaves ToolCall.diff undefined when metadata has no diff", () => {
+    const { tui, messages } = makeFakeTui();
+    const cb = createCallbacks(tui, freshState());
+
+    cb.onToolResult("1", "ok result", "ok");
+
+    expect(messages[0]!.toolCalls?.[0]!.diff).toBeUndefined();
   });
 });
 

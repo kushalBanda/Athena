@@ -1,6 +1,6 @@
 export { App } from "./App.js";
 export type { AgentCallbacks } from "./App.js";
-export type { AppState, Message, ToolCall, Role, AgentStatus } from "./types.js";
+export type { AppState, Message, ToolCall, Role, AgentStatus, DiffLine } from "./types.js";
 export { StatusBar } from "./components/StatusBar.js";
 export { TopBar } from "./components/TopBar.js";
 export { Welcome } from "./components/Welcome.js";

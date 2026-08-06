@@ -79,4 +79,18 @@ describe("runTool", () => {
     const result = await runTool({ id: "call-99", name: "t", input: {} }, registry, ctx, callbacks);
     expect(result.toolCallId).toBe("call-99");
   });
+
+  it("forwards metadata when the tool result includes it", async () => {
+    const registry = new Map([
+      ["edit_file", makeTool("edit_file", { content: "Edited", isError: false, metadata: { diff: "x", additions: 1, deletions: 0 } })],
+    ]);
+    const result = await runTool({ id: "1", name: "edit_file", input: {} }, registry, ctx, callbacks);
+    expect(result.metadata).toEqual({ diff: "x", additions: 1, deletions: 0 });
+  });
+
+  it("omits metadata when the tool result has none", async () => {
+    const registry = new Map([["echo", makeTool("echo", { content: "ok", isError: false })]]);
+    const result = await runTool({ id: "1", name: "echo", input: {} }, registry, ctx, callbacks);
+    expect(result.metadata).toBeUndefined();
+  });
 });
