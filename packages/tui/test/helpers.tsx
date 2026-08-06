@@ -45,3 +45,39 @@ export function renderToString(node: React.ReactElement, waitMs = 50): Promise<s
     }, waitMs);
   });
 }
+
+export interface InteractiveHandle {
+  /** Sends raw bytes to the fake stdin, as if typed/pasted by a user. */
+  type: (input: string) => Promise<void>;
+  /** Returns the most recently rendered frame, ANSI stripped. */
+  frame: () => string;
+  unmount: () => void;
+}
+
+// debug:true makes Ink write one full frame per render rather than diffing —
+// each `data` chunk is a complete redraw, so the latest chunk is the current frame.
+export function renderInteractive(node: React.ReactElement): InteractiveHandle {
+  const output = new PassThrough();
+  const chunks: Buffer[] = [];
+  output.on("data", (chunk: Buffer) => chunks.push(chunk));
+
+  const stdin = makeFakeStdin();
+  const { unmount } = render(node, {
+    stdout: makeFakeStdout(output),
+    stdin,
+    debug: true,
+    patchConsole: false,
+  });
+
+  return {
+    type: (input: string) =>
+      new Promise((resolve) => {
+        // Ink reads via the stream's 'readable' event (stdin.read()), not 'data' —
+        // write() pushes into the readable buffer; emit("data", ...) would bypass it.
+        (stdin as unknown as PassThrough).write(Buffer.from(input));
+        setTimeout(resolve, 20);
+      }),
+    frame: () => stripAnsi(chunks[chunks.length - 1]?.toString() ?? ""),
+    unmount,
+  };
+}

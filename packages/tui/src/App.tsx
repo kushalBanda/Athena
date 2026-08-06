@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Box, useApp } from "ink";
 import { StatusBar } from "./components/StatusBar.js";
 import { TopBar } from "./components/TopBar.js";
@@ -7,6 +7,8 @@ import { ChatView } from "./components/ChatView.js";
 import { InputBox } from "./components/InputBox.js";
 import { Picker } from "./components/Picker.js";
 import { getGitInfo } from "./git-info.js";
+import { walkFiles } from "./lib/file-walk.js";
+import { expandMentions } from "./lib/expand-mentions.js";
 import type { AgentStatus, AppState, Message } from "./types.js";
 
 export interface AgentCallbacks {
@@ -49,7 +51,16 @@ export function App({ initialState, onUserMessage }: Props) {
   // freeze intentional rather than an accidental staleness bug (e.g. after /model).
   const [gitInfo] = useState(() => getGitInfo(state.cwd));
   const [initialModel] = useState(() => state.model);
+  const [mentionCandidates, setMentionCandidates] = useState<string[]>([]);
   const pickerResolveRef = useRef<((value: string | null) => void) | null>(null);
+
+  useEffect(() => {
+    walkFiles(state.cwd)
+      .then(setMentionCandidates)
+      .catch(() => setMentionCandidates([]));
+    // Walk once per session; cwd doesn't change after mount.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pickFromList = useCallback((title: string, options: string[]): Promise<string | null> => {
     return new Promise((resolve) => {
@@ -108,13 +119,14 @@ export function App({ initialState, onUserMessage }: Props) {
 
       if (onUserMessage) {
         try {
-          await onUserMessage(text, callbacks);
+          const expanded = isSlash ? text : await expandMentions(text, state.cwd);
+          await onUserMessage(expanded, callbacks);
         } finally {
           setState((s) => (s.status.kind === "ready" ? s : { ...s, status: READY }));
         }
       }
     },
-    [addMessage, onUserMessage, exit],
+    [addMessage, onUserMessage, exit, state.cwd],
   );
 
   const header = (
@@ -135,7 +147,11 @@ export function App({ initialState, onUserMessage }: Props) {
           onCancel={() => resolvePicker(null)}
         />
       )}
-      <InputBox onSubmit={handleSubmit} disabled={state.status.kind !== "ready" || state.picker !== null} />
+      <InputBox
+        onSubmit={handleSubmit}
+        disabled={state.status.kind !== "ready" || state.picker !== null}
+        mentionCandidates={mentionCandidates}
+      />
       <StatusBar
         model={state.model}
         cwd={state.cwd}
