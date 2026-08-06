@@ -48,6 +48,18 @@ function findMentionTrigger(value: string, cursor: number): MentionTrigger | nul
   return null;
 }
 
+/**
+ * Finds the start of the word before `cursor`: skips trailing whitespace,
+ * then skips non-whitespace back to the previous boundary. Mirrors the
+ * word-backward behavior of readline/bash (ctrl+w, alt+backspace).
+ */
+function wordBackwardStart(value: string, cursor: number): number {
+  let i = cursor;
+  while (i > 0 && /\s/.test(value[i - 1]!)) i--;
+  while (i > 0 && !/\s/.test(value[i - 1]!)) i--;
+  return i;
+}
+
 export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }: Props) {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
@@ -100,7 +112,7 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
           setSelectedIdx((i) => (i + 1) % count);
           return;
         }
-        if (key.tab) {
+        if (key.tab || key.return) {
           if (hasSlashSuggestions) applySlashSuggestion();
           else applyMentionSuggestion();
           return;
@@ -123,6 +135,24 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
       }
       if (key.rightArrow) {
         setCursor((c) => Math.min(value.length, c + 1));
+        return;
+      }
+      // Word-backward delete: option/alt+backspace (meta), ctrl+backspace, or ctrl+w —
+      // matches readline/bash conventions across terminals (see opencode's keybind set).
+      if ((key.backspace || key.delete) && key.meta) {
+        if (cursor === 0) return;
+        const from = wordBackwardStart(value, cursor);
+        setValue((v) => v.slice(0, from) + v.slice(cursor));
+        setCursor(from);
+        setSelectedIdx(0);
+        return;
+      }
+      if (key.ctrl && (input === "w" || key.backspace || key.delete)) {
+        if (cursor === 0) return;
+        const from = wordBackwardStart(value, cursor);
+        setValue((v) => v.slice(0, from) + v.slice(cursor));
+        setCursor(from);
+        setSelectedIdx(0);
         return;
       }
       if (key.backspace || key.delete) {

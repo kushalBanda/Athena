@@ -5,6 +5,9 @@ import { renderToString, renderInteractive } from "./helpers.js";
 
 const LEFT = "\x1B[D";
 const BACKSPACE = "\x7F";
+const ALT_BACKSPACE = "\x1B\x7F";
+const CTRL_W = "\x17";
+const ENTER = "\r";
 
 describe("InputBox", () => {
   it("shows ▸ prompt prefix", async () => {
@@ -75,6 +78,60 @@ describe("InputBox", () => {
     const handle = renderInteractive(<InputBox onSubmit={() => {}} />);
     await handle.type("/mod");
     expect(handle.frame()).toContain("/model");
+    handle.unmount();
+  });
+
+  it("Enter applies the highlighted slash suggestion instead of submitting", async () => {
+    const submitted: string[] = [];
+    const handle = renderInteractive(<InputBox onSubmit={(v) => submitted.push(v)} />);
+    await handle.type("/mod");
+    await handle.type(ENTER);
+    expect(handle.frame().replace("█", "")).toContain("/model ");
+    expect(submitted).toEqual([]);
+    handle.unmount();
+  });
+
+  it("Enter applies the highlighted @ mention suggestion instead of submitting", async () => {
+    const submitted: string[] = [];
+    const handle = renderInteractive(
+      <InputBox onSubmit={(v) => submitted.push(v)} mentionCandidates={["src/components/InputBox.tsx"]} />,
+    );
+    await handle.type("@Input");
+    await handle.type(ENTER);
+    expect(handle.frame()).toContain("@src/components/InputBox.tsx");
+    expect(submitted).toEqual([]);
+    handle.unmount();
+  });
+
+  it("alt+backspace deletes the word before the cursor", async () => {
+    const handle = renderInteractive(<InputBox onSubmit={() => {}} />);
+    await handle.type("foo bar");
+    await handle.type(ALT_BACKSPACE);
+    const stripped = handle.frame().replace("█", "");
+    expect(stripped).toContain("foo ");
+    expect(stripped).not.toContain("bar");
+    handle.unmount();
+  });
+
+  it("ctrl+w deletes the word before the cursor", async () => {
+    const handle = renderInteractive(<InputBox onSubmit={() => {}} />);
+    await handle.type("foo bar");
+    await handle.type(CTRL_W);
+    const stripped = handle.frame().replace("█", "");
+    expect(stripped).toContain("foo ");
+    expect(stripped).not.toContain("bar");
+    handle.unmount();
+  });
+
+  it("word-backward delete only removes the word left of the cursor, not the whole line", async () => {
+    const handle = renderInteractive(<InputBox onSubmit={() => {}} />);
+    await handle.type("foo bar baz");
+    await handle.type(LEFT);
+    await handle.type(LEFT);
+    await handle.type(LEFT); // cursor right before "baz"
+    await handle.type(CTRL_W);
+    const stripped = handle.frame().replace("█", "");
+    expect(stripped).toContain("foo baz");
     handle.unmount();
   });
 });
