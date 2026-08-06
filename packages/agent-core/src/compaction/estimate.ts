@@ -1,6 +1,6 @@
 import type { AgentMessage, ContextUsageEstimate, TokenUsage } from "../types.js";
 
-function charsToTokens(chars: number): number {
+export function charsToTokens(chars: number): number {
   return Math.ceil(chars / 4);
 }
 

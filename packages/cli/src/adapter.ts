@@ -6,6 +6,8 @@ export interface AdapterState {
   currentToolCallId: string | null;
   streamingMessageId: string | null;
   streamingContent: string;
+  lastInputTokens: number;
+  lastOutputTokens: number;
 }
 
 export function createCallbacks(
@@ -83,7 +85,11 @@ export function createCallbacks(
       });
     },
 
-    onTokenUpdate: (_input: number, _output: number) => {},
+    onTokenUpdate: (input: number, output: number) => {
+      tui.addTokens(input - state.lastInputTokens, output - state.lastOutputTokens);
+      state.lastInputTokens = input;
+      state.lastOutputTokens = output;
+    },
 
     ...(permissionRequest !== undefined ? { onPermissionRequest: permissionRequest } : {}),
   };

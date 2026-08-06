@@ -22,6 +22,8 @@ const COLORS = {
   error: "#FF5555",
   onError: "#220000",
   badgeReady: "#333344",
+  tokenUp: "#4ADE80",
+  tokenDown: "#FF6B6B",
 } as const;
 
 function formatCost(usd: number): string {
@@ -104,10 +106,13 @@ export function StatusBar({ model, cwd, inputTokens, outputTokens, status, conte
       <Box paddingLeft={1}>{hint && <Text color={COLORS.muted}>{hint}</Text>}</Box>
       <Box flexGrow={1} />
       <Text color={COLORS.text}>
-        {inputTokens.toLocaleString()} ↑{pct !== undefined ? ` (${pct}%)` : ""}
+        {inputTokens.toLocaleString()} <Text color={COLORS.tokenUp}>↑</Text>
+        {pct !== undefined ? ` (${pct}%)` : ""}
       </Text>
       <Text color={COLORS.muted}> · </Text>
-      <Text color={COLORS.text}>{outputTokens.toLocaleString()} ↓</Text>
+      <Text color={COLORS.text}>
+        {outputTokens.toLocaleString()} <Text color={COLORS.tokenDown}>↓</Text>
+      </Text>
       {contextLimit !== undefined && (
         <>
           <Text color={COLORS.muted}> · </Text>

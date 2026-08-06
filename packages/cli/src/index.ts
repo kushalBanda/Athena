@@ -315,6 +315,8 @@ async function main() {
       currentToolCallId: null,
       streamingMessageId: null,
       streamingContent: "",
+      lastInputTokens: 0,
+      lastOutputTokens: 0,
     };
     const requestPermission = async (toolName: string, input: unknown): Promise<boolean> => {
       const summary = JSON.stringify(input).slice(0, 200);
@@ -326,7 +328,6 @@ async function main() {
     const agentSession = await runAgent(msg, { provider: session.provider, tools, cwd, callbacks });
 
     finalizeStream(tui, adapterState);
-    tui.addTokens(agentSession.tokenUsage.input, agentSession.tokenUsage.output);
     if (agentSession.tokenUsage.costUsd !== undefined) {
       tui.addCost(agentSession.tokenUsage.costUsd);
     }

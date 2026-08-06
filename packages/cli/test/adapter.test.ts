@@ -26,7 +26,13 @@ function makeFakeTui(): {
 }
 
 function freshState(): AdapterState {
-  return { currentToolCallId: null, streamingMessageId: null, streamingContent: "" };
+  return {
+    currentToolCallId: null,
+    streamingMessageId: null,
+    streamingContent: "",
+    lastInputTokens: 0,
+    lastOutputTokens: 0,
+  };
 }
 
 describe("createCallbacks status mapping", () => {
@@ -105,14 +111,18 @@ describe("createCallbacks diff metadata", () => {
   });
 });
 
-describe("createCallbacks token double-counting fix", () => {
-  it("onTokenUpdate does not call tui.addTokens (accumulation happens once, in index.ts, after runAgent resolves)", () => {
+describe("createCallbacks live token updates", () => {
+  it("onTokenUpdate reports per-turn deltas from cumulative totals, so the status bar updates as the agent streams", () => {
     const { tui, tokenCalls } = makeFakeTui();
-    const cb = createCallbacks(tui, freshState());
+    const state = freshState();
+    const cb = createCallbacks(tui, state);
 
     cb.onTokenUpdate(12, 5);
-    cb.onTokenUpdate(20, 9); // simulates a second internal turn's cumulative total
+    cb.onTokenUpdate(20, 9); // second internal turn's cumulative total
 
-    expect(tokenCalls).toEqual([]);
+    expect(tokenCalls).toEqual([
+      [12, 5],
+      [8, 4],
+    ]);
   });
 });

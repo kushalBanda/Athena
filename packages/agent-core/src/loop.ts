@@ -10,7 +10,7 @@ import type {
   ToolCall,
 } from "./types.js";
 import { DEFAULT_COMPACTION_SETTINGS, compact, shouldCompact } from "./compaction/index.js";
-import { estimateContextTokens } from "./compaction/estimate.js";
+import { estimateContextTokens, charsToTokens } from "./compaction/estimate.js";
 import { runTool } from "./tool-runner.js";
 import { toProviderMessages, toToolDefs, newId } from "./session.js";
 
@@ -75,6 +75,9 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
 
     const providerMessages = toProviderMessages(messages);
 
+    const turnInputEstimate = tokens;
+    callbacks.onTokenUpdate(totalUsage.input + turnInputEstimate, totalUsage.output);
+
     try {
       for await (const delta of provider.chat(providerMessages, toolDefs)) {
         if (signal?.aborted) break;
@@ -82,6 +85,10 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
         if (delta.type === "text") {
           assistantText += delta.text;
           callbacks.onAssistantToken(delta.text);
+          callbacks.onTokenUpdate(
+            totalUsage.input + turnInputEstimate,
+            totalUsage.output + charsToTokens(assistantText.length),
+          );
         } else if (delta.type === "tool_call") {
           let pending = pendingToolCalls.find((p) => p.id === delta.id);
           if (!pending) {
