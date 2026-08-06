@@ -7,11 +7,11 @@ import type { AgentStatus } from "../src/types.js";
 const READY: AgentStatus = { kind: "ready" };
 
 describe("StatusBar", () => {
-  it("renders model name", async () => {
+  it("renders cwd", async () => {
     const out = await renderToString(
       <StatusBar model="claude-opus-5" cwd="/tmp/project" inputTokens={0} outputTokens={0} status={READY} />,
     );
-    expect(out).toContain("claude-opus-5");
+    expect(out).toContain("/tmp/project");
   });
 
   it("substitutes HOME with ~", async () => {
@@ -30,11 +30,12 @@ describe("StatusBar", () => {
     expect(out).toContain("/var/log");
   });
 
-  it("sums input and output tokens", async () => {
+  it("shows input and output tokens separately", async () => {
     const out = await renderToString(
       <StatusBar model="m" cwd="/tmp" inputTokens={1200} outputTokens={800} status={READY} />,
     );
-    expect(out).toContain("2,000 tok");
+    expect(out).toContain("1,200 ↑");
+    expect(out).toContain("800 ↓");
   });
 
   it("shows READY badge and exit hint when idle", async () => {
@@ -99,7 +100,8 @@ describe("StatusBar", () => {
         contextLimit={200_000}
       />,
     );
-    expect(out).toContain("100,000 tok (50%)");
+    expect(out).toContain("50,000 ↑ (50%)");
+    expect(out).toContain("100,000/200,000");
   });
 
   it("prefers a real costUsd over the static pricing table", async () => {

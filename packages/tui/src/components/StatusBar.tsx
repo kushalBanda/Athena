@@ -30,6 +30,7 @@ function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
+
 function hintFor(status: AgentStatus): string {
   switch (status.kind) {
     case "ready":
@@ -103,13 +104,21 @@ export function StatusBar({ model, cwd, inputTokens, outputTokens, status, conte
       <Box paddingLeft={1}>{hint && <Text color={COLORS.muted}>{hint}</Text>}</Box>
       <Box flexGrow={1} />
       <Text color={COLORS.text}>
-        {tokens.toLocaleString()} tok{pct !== undefined ? ` (${pct}%)` : ""}
+        {inputTokens.toLocaleString()} ↑{pct !== undefined ? ` (${pct}%)` : ""}
       </Text>
+      <Text color={COLORS.muted}> · </Text>
+      <Text color={COLORS.text}>{outputTokens.toLocaleString()} ↓</Text>
+      {contextLimit !== undefined && (
+        <>
+          <Text color={COLORS.muted}> · </Text>
+          <Text color={COLORS.muted}>
+            {tokens.toLocaleString()}/{contextLimit.toLocaleString()}
+          </Text>
+        </>
+      )}
       {resolvedCost !== undefined && resolvedCost > 0 && (
         <Text color={COLORS.muted}> · {formatCost(resolvedCost)}</Text>
       )}
-      <Text color={COLORS.muted}>  ·  </Text>
-      <Text color={COLORS.text}>{model}</Text>
       <Text color={COLORS.muted}>  ·  </Text>
       <Text color={COLORS.muted}>{displayCwd}</Text>
     </Box>
