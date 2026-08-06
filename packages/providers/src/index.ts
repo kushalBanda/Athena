@@ -11,6 +11,9 @@ export type {
   LLMProvider,
 } from "./types.js";
 
+export { estimateCost } from "./pricing.js";
+export type { ModelPricing } from "./pricing.js";
+
 export { AnthropicProvider } from "./anthropic/index.js";
 export { OllamaProvider } from "./ollama/index.js";
 export { GeminiProvider } from "./gemini/index.js";

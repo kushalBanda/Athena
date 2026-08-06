@@ -47,6 +47,7 @@ export interface TokenUsage {
   cacheRead: number;
   cacheWrite: number;
   totalTokens: number;
+  costUsd?: number;
 }
 
 export interface CompactionSettings {

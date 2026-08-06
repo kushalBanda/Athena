@@ -31,6 +31,7 @@ export interface UsageDelta {
   outputTokens: number;
   cacheReadTokens: number;
   cacheWriteTokens: number;
+  costUsd?: number; // only set if the provider's API response includes it
 }
 
 export type Delta =
@@ -47,6 +48,7 @@ export interface ToolDef {
 
 export interface LLMProvider {
   readonly name: string;
+  readonly model: string;
   readonly contextLimit: number;
   chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta>;
   countTokens(messages: Message[]): Promise<number>;

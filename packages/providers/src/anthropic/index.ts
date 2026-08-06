@@ -5,9 +5,9 @@ import { toAnthropicMessages, toAnthropicTools } from "./transform.js";
 export class AnthropicProvider implements LLMProvider {
   readonly name = "anthropic";
   readonly contextLimit: number;
+  readonly model: string;
 
   private client: Anthropic;
-  private model: string;
 
   constructor(apiKey: string, model = "claude-sonnet-4-6", contextLimit = 200_000) {
     this.client = new Anthropic({ apiKey });

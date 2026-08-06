@@ -13,7 +13,9 @@ export function createCallbacks(
   permissionRequest?: (toolName: string, input: unknown) => Promise<boolean>,
 ): CoreCallbacks {
   return {
-    onThinking: (_active: boolean) => {},
+    onThinking: (active: boolean) => {
+      tui.setStatus({ kind: active ? "thinking" : "ready" });
+    },
 
     onAssistantToken: (token: string) => {
       if (state.streamingMessageId === null) {
@@ -39,6 +41,7 @@ export function createCallbacks(
         state.streamingContent = "";
       }
       state.currentToolCallId = call.id;
+      tui.setStatus({ kind: "tool", name: call.name });
       const msg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -49,6 +52,9 @@ export function createCallbacks(
 
     onToolResult: (id: string, result: string, status: "ok" | "err") => {
       state.currentToolCallId = null;
+      if (status === "err") {
+        tui.setStatus({ kind: "error", message: result.slice(0, 120) });
+      }
       const msg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -58,6 +64,7 @@ export function createCallbacks(
     },
 
     onCompacting: () => {
+      tui.setStatus({ kind: "compacting" });
       tui.addMessage({
         id: crypto.randomUUID(),
         role: "assistant",
@@ -65,9 +72,7 @@ export function createCallbacks(
       });
     },
 
-    onTokenUpdate: (input: number, output: number) => {
-      tui.addTokens(input, output);
-    },
+    onTokenUpdate: (_input: number, _output: number) => {},
 
     ...(permissionRequest !== undefined ? { onPermissionRequest: permissionRequest } : {}),
   };

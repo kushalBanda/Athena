@@ -6,9 +6,9 @@ import { estimateCharsAsTokens } from "../token-estimate.js";
 export class OllamaProvider implements LLMProvider {
   readonly name = "ollama";
   readonly contextLimit: number;
+  readonly model: string;
 
   private client: OpenAI;
-  private model: string;
 
   constructor(
     model = "llama3.1",

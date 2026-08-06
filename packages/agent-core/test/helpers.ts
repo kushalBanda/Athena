@@ -7,6 +7,7 @@ export function makeMockProvider(
 ): LLMProvider {
   return {
     name: "mock",
+    model: "mock",
     contextLimit: 200_000,
     async *chat(messages: Message[], _tools: ToolDef[]): AsyncIterable<Delta> {
       onChat?.(messages);
@@ -22,6 +23,7 @@ export function makeSequentialProvider(sequence: Delta[][]): LLMProvider {
   let call = 0;
   return {
     name: "mock",
+    model: "mock",
     contextLimit: 200_000,
     async *chat(_messages: Message[], _tools: ToolDef[]): AsyncIterable<Delta> {
       const deltas = sequence[call] ?? [{ type: "done" as const }];

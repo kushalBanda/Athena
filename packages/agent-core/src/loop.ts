@@ -96,6 +96,7 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
             cacheRead: delta.usage.cacheReadTokens,
             cacheWrite: delta.usage.cacheWriteTokens,
             totalTokens: delta.usage.inputTokens + delta.usage.outputTokens,
+            ...(delta.usage.costUsd !== undefined ? { costUsd: delta.usage.costUsd } : {}),
           };
         } else if (delta.type === "done") {
           break;
@@ -141,6 +142,9 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
       totalUsage.cacheRead += lastUsage.cacheRead;
       totalUsage.cacheWrite += lastUsage.cacheWrite;
       totalUsage.totalTokens += lastUsage.totalTokens;
+      if (lastUsage.costUsd !== undefined) {
+        totalUsage.costUsd = (totalUsage.costUsd ?? 0) + lastUsage.costUsd;
+      }
       callbacks.onTokenUpdate(totalUsage.input, totalUsage.output);
     }
 

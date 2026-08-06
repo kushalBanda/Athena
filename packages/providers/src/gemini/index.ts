@@ -4,9 +4,9 @@ import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 export class GeminiProvider implements LLMProvider {
   readonly name = "gemini";
   readonly contextLimit = 1_000_000;
+  readonly model: string;
 
   private client: GoogleGenAI;
-  private model: string;
 
   constructor(apiKey: string, model = "gemini-2.5-pro") {
     this.client = new GoogleGenAI({ apiKey });

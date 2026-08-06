@@ -246,6 +246,7 @@ async function main() {
           },
         };
         session.provider = createProvider(provName, session.cfg.providerConfig);
+        tui.setContextLimit(session.provider.contextLimit);
         saveConfig({ provider: provName, model: modelId });
         tui.setModel(modelId);
         sysMsg(tui, `model → ${modelId}`);
@@ -263,9 +264,10 @@ async function main() {
         }
         try {
           session.provider = createProvider(pName, session.cfg.providerConfig);
+          tui.setContextLimit(session.provider.contextLimit);
           session.cfg = { ...session.cfg, provider: pName };
           saveConfig({ provider: pName });
-          tui.setModel(session.provider.name);
+          tui.setModel(session.provider.model);
           sysMsg(tui, `provider → ${pName}`);
         } catch {
           sysMsg(tui, `unknown provider: ${pName}`);
@@ -292,6 +294,7 @@ async function main() {
           prov as Parameters<typeof createProvider>[0],
           session.cfg.providerConfig,
         );
+        tui.setContextLimit(session.provider.contextLimit);
       }
       sysMsg(tui, `saved ${prov} key to auth.json`);
       return true;
@@ -324,11 +327,14 @@ async function main() {
 
     finalizeStream(tui, adapterState);
     tui.addTokens(agentSession.tokenUsage.input, agentSession.tokenUsage.output);
+    if (agentSession.tokenUsage.costUsd !== undefined) {
+      tui.addCost(agentSession.tokenUsage.costUsd);
+    }
   };
 
   const { waitUntilExit } = render(
     React.createElement(App, {
-      initialState: { model: session.provider.name, cwd },
+      initialState: { model: session.provider.model, cwd, contextLimit: session.provider.contextLimit },
       onUserMessage: handleUserMessage,
     }),
   );

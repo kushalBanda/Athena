@@ -19,6 +19,12 @@ function makeFakeStdin() {
   return stdin;
 }
 
+function makeFakeStdout(output: PassThrough): NodeJS.WriteStream {
+  const s = output as unknown as Record<string, unknown>;
+  s.columns = 200;
+  return output as unknown as NodeJS.WriteStream;
+}
+
 export function renderToString(node: React.ReactElement, waitMs = 50): Promise<string> {
   return new Promise((resolve, reject) => {
     const output = new PassThrough();
@@ -27,7 +33,7 @@ export function renderToString(node: React.ReactElement, waitMs = 50): Promise<s
     output.on("error", reject);
 
     const { unmount } = render(node, {
-      stdout: output as unknown as NodeJS.WriteStream,
+      stdout: makeFakeStdout(output),
       stdin: makeFakeStdin(),
       debug: true,
       patchConsole: false,

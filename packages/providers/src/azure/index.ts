@@ -13,6 +13,7 @@ export interface AzureConfig {
 export class AzureOpenAIProvider implements LLMProvider {
   readonly name = "azure";
   readonly contextLimit = 128_000;
+  readonly model: string;
 
   private client: AzureOpenAI;
   private deployment: string;
@@ -25,6 +26,7 @@ export class AzureOpenAIProvider implements LLMProvider {
       apiVersion: config.apiVersion ?? "2025-01-01-preview",
     });
     this.deployment = config.deployment;
+    this.model = config.deployment;
   }
 
   async *chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta> {

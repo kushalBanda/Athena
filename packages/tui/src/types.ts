@@ -21,12 +21,21 @@ export interface PickerState {
   options: string[];
 }
 
+export type AgentStatus =
+  | { readonly kind: "ready" }
+  | { readonly kind: "thinking" }
+  | { readonly kind: "tool"; readonly name: string }
+  | { readonly kind: "compacting" }
+  | { readonly kind: "error"; readonly message: string };
+
 export interface AppState {
   messages: Message[];
-  thinking: boolean;
+  status: AgentStatus;
   model: string;
   cwd: string;
   inputTokens: number;
   outputTokens: number;
+  contextLimit?: number;
+  costUsd?: number;
   picker: PickerState | null;
 }

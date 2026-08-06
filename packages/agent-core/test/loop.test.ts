@@ -2,7 +2,7 @@ import { describe, expect, it } from "bun:test";
 import type { ToolDef } from "@athena/providers";
 import type { Tool, ToolContext, ToolResult as ToolExecResult } from "@athena/tools";
 import { runAgent } from "../src/index.js";
-import { makeNoopCallbacks, makeSequentialProvider } from "./helpers.js";
+import { makeMockProvider, makeNoopCallbacks, makeSequentialProvider } from "./helpers.js";
 
 const noopCallbacks = makeNoopCallbacks();
 
@@ -39,6 +39,45 @@ describe("runAgent - single turn, no tools", () => {
     const content = assistantMsgs[0].content;
     const text = Array.isArray(content) ? content.find((b) => b.type === "text") : null;
     expect(text && "text" in text ? text.text : "").toBe("Hello there");
+  });
+});
+
+describe("runAgent - cost propagation", () => {
+  it("propagates costUsd from a provider usage delta onto tokenUsage", async () => {
+    const provider = makeMockProvider([
+      { type: "text", text: "hi" },
+      {
+        type: "usage",
+        usage: { inputTokens: 10, outputTokens: 5, cacheReadTokens: 0, cacheWriteTokens: 0, costUsd: 0.0042 },
+      },
+      { type: "done" },
+    ]);
+
+    const session = await runAgent("hello", {
+      provider,
+      tools: [],
+      cwd: "/tmp",
+      callbacks: noopCallbacks,
+    });
+
+    expect(session.tokenUsage.costUsd).toBeCloseTo(0.0042, 6);
+  });
+
+  it("leaves costUsd undefined when the provider doesn't report one", async () => {
+    const provider = makeMockProvider([
+      { type: "text", text: "hi" },
+      { type: "usage", usage: { inputTokens: 10, outputTokens: 5, cacheReadTokens: 0, cacheWriteTokens: 0 } },
+      { type: "done" },
+    ]);
+
+    const session = await runAgent("hello", {
+      provider,
+      tools: [],
+      cwd: "/tmp",
+      callbacks: noopCallbacks,
+    });
+
+    expect(session.tokenUsage.costUsd).toBeUndefined();
   });
 });
 
