@@ -1,33 +1,61 @@
-# @athena/cli
-
-> A terminal-based AI coding agent that runs interactively or non-interactively from your command line, powered by Anthropic, Gemini, Ollama, or Azure.
+<p align="center">Athena — The open source AI coding agent.</p>
 
 ---
 
-## Features
+## Quickstart
 
-- 🖥️ **Interactive TUI** — a full terminal UI built with [Ink](https://github.com/vadimdemedes/ink) for a rich chat experience
-- ⚡ **Non-interactive mode** — pipe output with `-p "task"` for scripting and CI workflows
-- 🔌 **Multi-provider** — supports Anthropic (Claude), Google Gemini, Ollama (local), and Azure OpenAI
-- 🔑 **Key management** — securely store and manage API keys via `athena auth`
-- 🛠️ **Tool use** — built-in agentic tools (file read/write, shell, diff, and more)
-- 🔀 **In-session switching** — swap provider or model on the fly with `/provider` and `/model` slash commands
+### Installing and running Athena
 
----
+Athena can be installed via the following package managers:
 
-## Installation
+```shell
+# Install using npm
+npm install -g @athena/cli
+```
 
-```bash
-# From the monorepo root
+```shell
+# Run without installing
+npx @athena/cli
+bunx @athena/cli
+```
+
+> [!NOTE]
+> A `curl | bash` installer and Homebrew tap are planned but not published yet — npm is the only distribution channel today.
+
+Then simply run `athena` to get started.
+
+<details>
+<summary>Building from source (monorepo)</summary>
+
+```shell
 bun install
 bun run --cwd packages/cli dev
 ```
 
----
+</details>
+
+### Using Athena with a provider
+
+Run `athena` and, on first launch, if no API key is configured, Athena will guide you through interactive setup:
+
+```shell
+athena setup
+```
+
+You can also configure keys directly:
+
+```shell
+athena auth set anthropic sk-...
+athena auth set gemini AIza...
+athena auth list
+athena status
+```
+
+Config is stored at `~/.config/athena/config.json`, keys at `~/.config/athena/auth.json`.
 
 ## Usage
 
-```bash
+```shell
 # Launch interactive TUI
 athena
 
@@ -38,41 +66,10 @@ athena -p "Refactor src/index.ts to use async/await"
 athena --provider gemini --model gemini-1.5-pro
 ```
 
----
-
-## First-Run Setup
-
-On first launch, if no API key is configured, Athena will guide you through an interactive setup:
-
-```bash
-athena setup
-```
-
----
-
-## Auth & Config
-
-```bash
-# Store an API key
-athena auth set anthropic sk-...
-athena auth set gemini AIza...
-
-# List configured providers
-athena auth list
-
-# Show current config, provider, and stored keys
-athena status
-```
-
-Config is stored at `~/.config/athena/config.json`  
-Keys are stored at `~/.config/athena/auth.json`
-
----
-
-## Slash Commands (TUI)
+### Slash commands (TUI)
 
 | Command | Description |
-|---|---|
+| --- | --- |
 | `/help` | Show all available slash commands |
 | `/model [id]` | Switch model (opens picker if no id given) |
 | `/provider [name]` | Switch provider (opens picker if no name given) |
@@ -81,20 +78,16 @@ Keys are stored at `~/.config/athena/auth.json`
 | `/clear` | Clear chat history |
 | `/exit` or `/quit` | Quit Athena |
 
----
+### Supported providers
 
-## Supported Providers
-
-| Provider | Flag Name | Notes |
-|---|---|---|
+| Provider | Flag name | Notes |
+| --- | --- | --- |
 | Anthropic | `anthropic` | Claude models; requires `ANTHROPIC_API_KEY` or stored key |
 | Google Gemini | `gemini` | Requires `GEMINI_API_KEY` or stored key |
 | Ollama | `ollama` | Local models; no API key needed |
 | Azure OpenAI | `azure` | Requires endpoint, deployment, and API key |
 
----
-
-## Options
+### Options
 
 ```
 athena [options] [message]
@@ -106,8 +99,4 @@ Options:
   -h, --help         Show help
 ```
 
----
-
-## License
-
-MIT
+This package is part of the Athena monorepo, licensed under the MIT License.

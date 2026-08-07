@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { SessionManager, diffNewMessages, runAgent } from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
