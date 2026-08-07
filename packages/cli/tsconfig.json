@@ -12,7 +12,8 @@
       "@athena/providers": ["../providers/src/index.ts"],
       "@athena/agent-core": ["../agent-core/src/index.ts"],
       "@athena/tools": ["../tools/src/index.ts"],
-      "@athena/tui": ["../tui/src/index.ts"]
+      "@athena/tui": ["../tui/src/index.ts"],
+      "@athena/observability": ["../observability/src/index.ts"]
     }
   },
   "include": ["src"]

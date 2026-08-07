@@ -18,6 +18,7 @@
   "references": [
     { "path": "./packages/providers" },
     { "path": "./packages/tools" },
+    { "path": "./packages/observability" },
     { "path": "./packages/agent-core" },
     { "path": "./packages/tui" }
   ]

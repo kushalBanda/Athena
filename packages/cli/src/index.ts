@@ -1,20 +1,29 @@
 #!/usr/bin/env bun
-import React from "react";
-import { render } from "ink";
-import { runAgent, SessionManager, diffNewMessages } from "@athena/agent-core";
+import { SessionManager, diffNewMessages, runAgent } from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
-import { createDefaultRegistry } from "@athena/tools";
+import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { createProvider } from "@athena/providers";
 import type { ProviderName } from "@athena/providers";
+import { createDefaultRegistry } from "@athena/tools";
 import { App } from "@athena/tui";
 import type { AgentCallbacks as TuiCallbacks } from "@athena/tui";
-import { loadConfig, saveConfig } from "./config.js";
-import { createCallbacks, finalizeStream, agentMessagesToTuiMessages } from "./adapter.js";
+import { SpanKind } from "@opentelemetry/api";
+import { render } from "ink";
+import React from "react";
+import { agentMessagesToTuiMessages, createCallbacks, finalizeStream } from "./adapter.js";
 import type { AdapterState } from "./adapter.js";
-import { setApiKey, getApiKey, listKeys, getConfiguredProviders, autoDetectProvider } from "./auth.js";
+import {
+  autoDetectProvider,
+  getApiKey,
+  getConfiguredProviders,
+  getOtlpHeaders,
+  listKeys,
+  setApiKey,
+} from "./auth.js";
+import { loadConfig, loadObservabilityConfig, saveConfig } from "./config.js";
+import { MODEL_CATALOG, PROVIDER_CATALOG } from "./models.js";
 import { runSetup } from "./setup.js";
 import type { SetupResult } from "./setup.js";
-import { MODEL_CATALOG, PROVIDER_CATALOG } from "./models.js";
 
 interface CliArgs {
   print: boolean;
@@ -152,6 +161,36 @@ async function main() {
     return;
   }
 
+  // auth/setup/status never run the agent loop, so telemetry isn't needed for them.
+  const obsConfig = loadObservabilityConfig();
+  const otlpHeaders = getOtlpHeaders();
+  initTelemetry({
+    enabled: obsConfig.enabled,
+    ...(obsConfig.otlpEndpoint !== undefined ? { otlpEndpoint: obsConfig.otlpEndpoint } : {}),
+    ...(otlpHeaders !== undefined ? { otlpHeaders } : {}),
+  });
+
+  // kind: SERVER required for New Relic's APM & Services view (golden signals need span.kind = SERVER/CONSUMER root spans).
+  const sessionSpan = getTracer().startSpan("athena.session", {
+    kind: SpanKind.SERVER,
+    attributes: { "athena.version": "0.1.0" },
+  });
+
+  let shuttingDown = false;
+  async function shutdown(): Promise<void> {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    sessionSpan.end();
+    await shutdownTelemetry();
+  }
+
+  process.once("SIGINT", () => {
+    void shutdown().then(() => process.exit(130));
+  });
+  process.once("SIGTERM", () => {
+    void shutdown().then(() => process.exit(143));
+  });
+
   let cfg = loadConfig();
   let providerName = resolveProvider(args, cfg) as Parameters<typeof createProvider>[0];
 
@@ -161,11 +200,17 @@ async function main() {
   if (needsKey && !hasKey) {
     // -p mode: can't show ink UI, hard exit with hint
     if (args.print) {
-      console.error(`athena: no API key for "${providerName}". Run: athena auth set ${providerName} <key>`);
+      console.error(
+        `athena: no API key for "${providerName}". Run: athena auth set ${providerName} <key>`,
+      );
+      await shutdown();
       process.exit(1);
     }
     const result: SetupResult = await runSetup();
-    if (result.cancelled) process.exit(0);
+    if (result.cancelled) {
+      await shutdown();
+      process.exit(0);
+    }
     // reload config after setup stored the key
     cfg = loadConfig();
     providerName = result.provider as Parameters<typeof createProvider>[0];
@@ -185,10 +230,14 @@ async function main() {
     const message = args.message ?? "";
     if (!message) {
       console.error("athena: -p requires a message");
+      await shutdown();
       process.exit(1);
     }
 
-    const printSession = args.continueSession ? SessionManager.continueRecent(cwd) : SessionManager.create(cwd);
+    const printSession = args.continueSession
+      ? SessionManager.continueRecent(cwd)
+      : SessionManager.create(cwd);
+    sessionSpan.setAttribute("session.id", printSession.getSessionId());
     const printHistory = printSession.buildSessionContext().messages;
 
     const printResult = await runAgent(message, {
@@ -215,11 +264,15 @@ async function main() {
     }
 
     process.stdout.write("\n");
+    await shutdown();
     return;
   }
 
   // Session persistence: JSONL under ~/.config/athena/sessions/, one per cwd.
-  let sessionManager = args.continueSession ? SessionManager.continueRecent(cwd) : SessionManager.create(cwd);
+  let sessionManager = args.continueSession
+    ? SessionManager.continueRecent(cwd)
+    : SessionManager.create(cwd);
+  sessionSpan.setAttribute("session.id", sessionManager.getSessionId());
   let history: AgentMessage[] = sessionManager.buildSessionContext().messages;
 
   function sysMsg(tui: TuiCallbacks, content: string) {
@@ -231,15 +284,18 @@ async function main() {
     const cmd = parts[0]?.toLowerCase();
 
     if (cmd === "help") {
-      sysMsg(tui, [
-        "/model [id]              switch model (opens picker if no id given)",
-        "/provider [name]         switch provider (opens picker if no name given)",
-        "/key <provider> <key>    store API key in auth.json",
-        "/status                  show current provider + model",
-        "/clear                   clear chat history, start a new session",
-        "/resume                  pick a previous session to resume",
-        "/exit  /quit             quit athena",
-      ].join("\n"));
+      sysMsg(
+        tui,
+        [
+          "/model [id]              switch model (opens picker if no id given)",
+          "/provider [name]         switch provider (opens picker if no name given)",
+          "/key <provider> <key>    store API key in auth.json",
+          "/status                  show current provider + model",
+          "/clear                   clear chat history, start a new session",
+          "/resume                  pick a previous session to resume",
+          "/exit  /quit             quit athena",
+        ].join("\n"),
+      );
       return true;
     }
 
@@ -280,11 +336,14 @@ async function main() {
 
     if (cmd === "status") {
       const configured = getConfiguredProviders();
-      sysMsg(tui, [
-        `provider : ${session.provider.name}`,
-        `model    : ${session.cfg.model ?? "(default)"}`,
-        `keys     : ${configured.length === 0 ? "none" : configured.join(", ")}`,
-      ].join("\n"));
+      sysMsg(
+        tui,
+        [
+          `provider : ${session.provider.name}`,
+          `model    : ${session.cfg.model ?? "(default)"}`,
+          `keys     : ${configured.length === 0 ? "none" : configured.join(", ")}`,
+        ].join("\n"),
+      );
       return true;
     }
 
@@ -339,7 +398,10 @@ async function main() {
     if (cmd === "key") {
       const prov = parts[1];
       const key = parts[2];
-      if (!prov || !key) { sysMsg(tui, "usage: /key <provider> <api-key>"); return true; }
+      if (!prov || !key) {
+        sysMsg(tui, "usage: /key <provider> <api-key>");
+        return true;
+      }
       setApiKey(prov, key);
       const provKey = prov as keyof typeof session.cfg.providerConfig;
       session.cfg = {
@@ -425,9 +487,11 @@ async function main() {
   );
 
   await waitUntilExit();
+  await shutdown();
 }
 
-main().catch((e: unknown) => {
+main().catch(async (e: unknown) => {
   console.error(e);
+  await shutdownTelemetry();
   process.exit(1);
 });

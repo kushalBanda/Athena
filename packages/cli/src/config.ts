@@ -1,10 +1,16 @@
-import { readFileSync, writeFileSync, mkdirSync, existsSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, dirname } from "node:path";
-import type { ProviderName, ProviderConfig } from "@athena/providers";
+import { dirname, join } from "node:path";
+import type { ProviderConfig, ProviderName } from "@athena/providers";
 import { getApiKey } from "./auth.js";
 
-const CONFIG_PATH = join(homedir(), ".config", "athena", "config.json");
+function configDir(): string {
+  return process.env.ATHENA_CONFIG_DIR ?? join(homedir(), ".config", "athena");
+}
+
+function configPath(): string {
+  return join(configDir(), "config.json");
+}
 
 export interface AthenaConfig {
   provider: ProviderName;
@@ -24,11 +30,16 @@ interface ConfigFile {
     deploymentName: string;
     apiVersion?: string;
   };
+  observability?: {
+    enabled?: boolean;
+    otlpEndpoint?: string;
+    backendPreset?: "new-relic" | "custom";
+  };
 }
 
 function readConfigFile(): ConfigFile {
   try {
-    return JSON.parse(readFileSync(CONFIG_PATH, "utf8")) as ConfigFile;
+    return JSON.parse(readFileSync(configPath(), "utf8")) as ConfigFile;
   } catch {
     return {};
   }
@@ -36,7 +47,7 @@ function readConfigFile(): ConfigFile {
 
 /** Persists provider + per-provider model choice so it survives restarts. */
 export function saveConfig(patch: { provider?: ProviderName; model?: string }): void {
-  const dir = dirname(CONFIG_PATH);
+  const dir = dirname(configPath());
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
 
   const file = readConfigFile();
@@ -57,7 +68,44 @@ export function saveConfig(patch: { provider?: ProviderName; model?: string }): 
     }
   }
 
-  writeFileSync(CONFIG_PATH, JSON.stringify(file, null, 2), "utf8");
+  writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
+}
+
+export interface ObservabilitySettings {
+  enabled: boolean;
+  otlpEndpoint?: string;
+  backendPreset?: "new-relic" | "custom";
+}
+
+export function loadObservabilityConfig(): ObservabilitySettings {
+  const file = readConfigFile();
+  return {
+    enabled: file.observability?.enabled ?? false,
+    ...(file.observability?.otlpEndpoint !== undefined
+      ? { otlpEndpoint: file.observability.otlpEndpoint }
+      : {}),
+    ...(file.observability?.backendPreset !== undefined
+      ? { backendPreset: file.observability.backendPreset }
+      : {}),
+  };
+}
+
+export function saveObservabilityConfig(patch: {
+  enabled?: boolean;
+  otlpEndpoint?: string;
+  backendPreset?: "new-relic" | "custom";
+}): void {
+  const dir = dirname(configPath());
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
+
+  const file = readConfigFile();
+  const observability = { ...file.observability };
+  if (patch.enabled !== undefined) observability.enabled = patch.enabled;
+  if (patch.otlpEndpoint !== undefined) observability.otlpEndpoint = patch.otlpEndpoint;
+  if (patch.backendPreset !== undefined) observability.backendPreset = patch.backendPreset;
+  file.observability = observability;
+
+  writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
 }
 
 export function loadConfig(): AthenaConfig {

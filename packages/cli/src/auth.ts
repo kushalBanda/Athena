@@ -1,10 +1,31 @@
-import { readFileSync, writeFileSync, mkdirSync, chmodSync, existsSync } from "node:fs";
+import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
-import { join, dirname } from "node:path";
+import { dirname, join } from "node:path";
 
-type AuthData = Record<string, { type: "api_key"; key: string }>;
+type AuthEntry = { type: "api_key"; key: string };
+type AuthData = Record<string, AuthEntry>;
 
-const AUTH_FILE = join(homedir(), ".config", "athena", "auth.json");
+interface RawAuthFile {
+  otlpHeaders?: Record<string, string>;
+  [key: string]: unknown;
+}
+
+function isAuthEntry(value: unknown): value is AuthEntry {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    (value as { type?: unknown }).type === "api_key" &&
+    typeof (value as { key?: unknown }).key === "string"
+  );
+}
+
+function authDir(): string {
+  return process.env.ATHENA_CONFIG_DIR ?? join(homedir(), ".config", "athena");
+}
+
+function authFilePath(): string {
+  return join(authDir(), "auth.json");
+}
 
 const ENV_VARS: Record<string, string[]> = {
   anthropic: ["ANTHROPIC_API_KEY", "ANTHROPIC_AUTH_TOKEN"],
@@ -13,16 +34,38 @@ const ENV_VARS: Record<string, string[]> = {
   azure: ["AZURE_OPENAI_API_KEY"],
 };
 
-function readAuthFile(): AuthData {
+function readRawAuthFile(): RawAuthFile {
   try {
-    return JSON.parse(readFileSync(AUTH_FILE, "utf8")) as AuthData;
+    return JSON.parse(readFileSync(authFilePath(), "utf8")) as RawAuthFile;
   } catch {
     return {};
   }
 }
 
+/** Provider-keyed entries only, strictly typed — otlpHeaders is excluded and read separately. */
+function readAuthData(): AuthData {
+  const raw = readRawAuthFile();
+  const data: AuthData = {};
+  for (const [key, value] of Object.entries(raw)) {
+    if (key === "otlpHeaders") continue;
+    if (isAuthEntry(value)) data[key] = value;
+  }
+  return data;
+}
+
+function writeRawAuthFile(mutate: (raw: RawAuthFile) => void): void {
+  const dir = dirname(authFilePath());
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
+
+  const raw = readRawAuthFile();
+  mutate(raw);
+
+  writeFileSync(authFilePath(), JSON.stringify(raw, null, 2), { encoding: "utf8", mode: 0o600 });
+  chmodSync(authFilePath(), 0o600);
+}
+
 export function getApiKey(provider: string): string | undefined {
-  const data = readAuthFile();
+  const data = readAuthData();
   const stored = data[provider];
   if (stored?.type === "api_key" && stored.key) return stored.key;
 
@@ -36,22 +79,17 @@ export function getApiKey(provider: string): string | undefined {
 }
 
 export function setApiKey(provider: string, key: string): void {
-  const dir = dirname(AUTH_FILE);
-  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
-
-  const data = readAuthFile();
-  data[provider] = { type: "api_key", key };
-
-  writeFileSync(AUTH_FILE, JSON.stringify(data, null, 2), { encoding: "utf8", mode: 0o600 });
-  chmodSync(AUTH_FILE, 0o600);
-  console.log(`Saved ${provider} API key to ${AUTH_FILE}`);
+  writeRawAuthFile((raw) => {
+    raw[provider] = { type: "api_key", key } satisfies AuthEntry;
+  });
+  console.log(`Saved ${provider} API key to ${authFilePath()}`);
 }
 
 export function listKeys(): void {
-  const data = readAuthFile();
+  const data = readAuthData();
   const entries = Object.entries(data);
   if (entries.length === 0) {
-    console.log(`No keys stored in ${AUTH_FILE}`);
+    console.log(`No keys stored in ${authFilePath()}`);
     return;
   }
   for (const [provider, cred] of entries) {
@@ -61,9 +99,9 @@ export function listKeys(): void {
 }
 
 export function getConfiguredProviders(): string[] {
-  const data = readAuthFile();
+  const data = readAuthData();
   const fromFile = Object.entries(data)
-    .filter(([, cred]) => cred.type === "api_key" && cred.key)
+    .filter(([, cred]) => !!cred.key)
     .map(([p]) => p);
 
   const fromEnv = Object.entries(ENV_VARS)
@@ -76,4 +114,15 @@ export function getConfiguredProviders(): string[] {
 export function autoDetectProvider(): string | undefined {
   const configured = getConfiguredProviders();
   return configured[0];
+}
+
+export function getOtlpHeaders(): Record<string, string> | undefined {
+  return readRawAuthFile().otlpHeaders;
+}
+
+export function setOtlpHeaders(headers: Record<string, string>): void {
+  writeRawAuthFile((raw) => {
+    raw.otlpHeaders = headers;
+  });
+  console.log(`Saved OTLP headers to ${authFilePath()}`);
 }

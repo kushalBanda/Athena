@@ -11,9 +11,11 @@
   },
   "dependencies": {
     "@athena/agent-core": "workspace:*",
+    "@athena/observability": "workspace:*",
     "@athena/providers": "workspace:*",
     "@athena/tools": "workspace:*",
     "@athena/tui": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
     "ink": "^5.0.0",
     "ink-text-input": "^6.0.0",
     "react": "^18.3.0"

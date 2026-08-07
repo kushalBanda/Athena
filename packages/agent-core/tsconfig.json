@@ -6,7 +6,8 @@
   },
   "references": [
     { "path": "../providers" },
-    { "path": "../tools" }
+    { "path": "../tools" },
+    { "path": "../observability" }
   ],
   "include": ["src", "test"]
 }
