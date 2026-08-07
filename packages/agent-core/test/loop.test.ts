@@ -121,6 +121,41 @@ describe("runAgent - abort signal", () => {
 
     expect(session.messages.length).toBeGreaterThanOrEqual(1);
   });
+
+  it("keeps partial assistant text when aborted mid-stream (SIGINT-during-turn path)", async () => {
+    const controller = new AbortController();
+    const provider = {
+      name: "mock",
+      model: "mock",
+      contextLimit: 200_000,
+      async *chat() {
+        yield { type: "text" as const, text: "partial" };
+        // Abort lands between deltas — mirrors a SIGINT arriving mid-stream.
+        // loop.ts checks signal.aborted before processing each delta, so the
+        // already-yielded "partial" text must survive but " more" must not.
+        controller.abort();
+        yield { type: "text" as const, text: " more" };
+        yield { type: "done" as const };
+      },
+      async countTokens(): Promise<number> {
+        return 0;
+      },
+    };
+
+    const session = await runAgent("task", {
+      provider,
+      tools: [],
+      cwd: "/tmp",
+      callbacks: noopCallbacks,
+      signal: controller.signal,
+    });
+
+    const assistantMsgs = session.messages.filter((m) => m.role === "assistant");
+    expect(assistantMsgs.length).toBe(1);
+    const content = assistantMsgs[0]?.content;
+    const text = Array.isArray(content) ? content.find((b) => b.type === "text") : null;
+    expect(text && "text" in text ? text.text : null).toBe("partial");
+  });
 });
 
 describe("runAgent - token usage", () => {

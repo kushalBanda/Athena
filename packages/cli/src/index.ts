@@ -45,7 +45,6 @@ function parseArgs(argv: string[]): CliArgs {
     continueSession: false,
   };
 
-  // detect top-level subcommand
   const first = args[0];
   if (first === "auth" || first === "setup" || first === "status") {
     result.subcommand = first;
@@ -138,9 +137,8 @@ function handleStatusCommand() {
 }
 
 function resolveProvider(args: CliArgs, cfg: ReturnType<typeof loadConfig>): string {
-  // priority: CLI flag > config file > auto-detect from stored keys > default
   if (args.provider) return args.provider;
-  if (cfg.provider !== "anthropic") return cfg.provider; // explicit in config file
+  if (cfg.provider !== "anthropic") return cfg.provider;
   const detected = autoDetectProvider();
   return detected ?? cfg.provider;
 }
@@ -161,7 +159,6 @@ async function main() {
     return;
   }
 
-  // auth/setup/status never run the agent loop, so telemetry isn't needed for them.
   const obsConfig = loadObservabilityConfig();
   const otlpHeaders = getOtlpHeaders();
   initTelemetry({
@@ -170,7 +167,6 @@ async function main() {
     ...(otlpHeaders !== undefined ? { otlpHeaders } : {}),
   });
 
-  // kind: SERVER required for New Relic's APM & Services view (golden signals need span.kind = SERVER/CONSUMER root spans).
   const sessionSpan = getTracer().startSpan("athena.session", {
     kind: SpanKind.SERVER,
     attributes: { "athena.version": "0.1.0" },
@@ -184,21 +180,25 @@ async function main() {
     await shutdownTelemetry();
   }
 
-  process.once("SIGINT", () => {
-    void shutdown().then(() => process.exit(130));
-  });
-  process.once("SIGTERM", () => {
-    void shutdown().then(() => process.exit(143));
-  });
+  let currentTurnAbort: AbortController | null = null;
+
+  function handleTerminationSignal(exitCode: number): void {
+    if (currentTurnAbort) {
+      currentTurnAbort.abort();
+      return;
+    }
+    void shutdown().then(() => process.exit(exitCode));
+  }
+
+  process.on("SIGINT", () => handleTerminationSignal(130));
+  process.on("SIGTERM", () => handleTerminationSignal(143));
 
   let cfg = loadConfig();
   let providerName = resolveProvider(args, cfg) as Parameters<typeof createProvider>[0];
 
-  // first-run gate: no key configured → inline setup instead of hard exit
   const needsKey = providerName !== "ollama";
   const hasKey = (cfg.providerConfig as Record<string, { apiKey?: string }>)[providerName]?.apiKey;
   if (needsKey && !hasKey) {
-    // -p mode: can't show ink UI, hard exit with hint
     if (args.print) {
       console.error(
         `athena: no API key for "${providerName}". Run: athena auth set ${providerName} <key>`,
@@ -211,12 +211,10 @@ async function main() {
       await shutdown();
       process.exit(0);
     }
-    // reload config after setup stored the key
     cfg = loadConfig();
     providerName = result.provider as Parameters<typeof createProvider>[0];
   }
 
-  // mutable session state — slash commands can swap provider/model in-session
   const session = {
     provider: createProvider(providerName, cfg.providerConfig),
     cfg,
@@ -240,11 +238,15 @@ async function main() {
     sessionSpan.setAttribute("session.id", printSession.getSessionId());
     const printHistory = printSession.buildSessionContext().messages;
 
+    const printAbort = new AbortController();
+    currentTurnAbort = printAbort;
+
     const printResult = await runAgent(message, {
       provider: session.provider,
       tools,
       cwd,
       sessionHistory: printHistory,
+      signal: printAbort.signal,
       callbacks: {
         onThinking: () => {},
         onAssistantToken: (t: string) => process.stdout.write(t),
@@ -254,21 +256,24 @@ async function main() {
         },
         onCompacting: () => console.error("[compacting]"),
         onTokenUpdate: () => {},
-        // -p is non-interactive: no TUI to prompt through, so tools are auto-allowed.
         onPermissionRequest: async () => true,
       },
     });
+    const printWasAborted = printAbort.signal.aborted;
+    currentTurnAbort = null;
 
     for (const m of diffNewMessages(printHistory, printResult.messages)) {
       printSession.appendMessage(m);
     }
 
     process.stdout.write("\n");
+    if (printWasAborted) {
+      console.error("athena: cancelled (ctrl+c) — partial turn saved to session");
+    }
     await shutdown();
-    return;
+    process.exit(printWasAborted ? 130 : 0);
   }
 
-  // Session persistence: JSONL under ~/.config/athena/sessions/, one per cwd.
   let sessionManager = args.continueSession
     ? SessionManager.continueRecent(cwd)
     : SessionManager.create(cwd);
@@ -314,8 +319,6 @@ async function main() {
           sysMsg(tui, "no saved sessions for this directory");
           return;
         }
-        // Suffix with the session id so otherwise-identical labels (same first message,
-        // same rounded timestamp — e.g. two empty sessions) still resolve unambiguously.
         const labels = sessions.map(
           (s) =>
             `${s.name ?? s.firstMessage.slice(0, 60)} (${s.messageCount} msgs, ${s.modified.toLocaleString()}) [${s.id.slice(0, 8)}]`,
@@ -426,7 +429,6 @@ async function main() {
     return true;
   }
 
-  // Interactive TUI
   const handleUserMessage = async (msg: string, tui: TuiCallbacks): Promise<void> => {
     if (msg.startsWith("/")) {
       handleSlashCommand(msg, tui);
@@ -448,6 +450,8 @@ async function main() {
     const callbacks = createCallbacks(tui, adapterState, requestPermission);
 
     const priorHistory = history;
+    const abortController = new AbortController();
+    currentTurnAbort = abortController;
     let agentSession;
     try {
       agentSession = await runAgent(msg, {
@@ -456,12 +460,16 @@ async function main() {
         cwd,
         callbacks,
         sessionHistory: history,
+        signal: abortController.signal,
       });
     } catch (err) {
+      currentTurnAbort = null;
       finalizeStream(tui, adapterState);
       sysMsg(tui, `error: ${err instanceof Error ? err.message : String(err)}`);
       return;
     }
+    const wasAborted = abortController.signal.aborted;
+    currentTurnAbort = null;
 
     history = agentSession.messages;
     for (const newMsg of diffNewMessages(priorHistory, history)) {
@@ -471,6 +479,9 @@ async function main() {
     finalizeStream(tui, adapterState);
     if (agentSession.tokenUsage.costUsd !== undefined) {
       tui.addCost(agentSession.tokenUsage.costUsd);
+    }
+    if (wasAborted) {
+      sysMsg(tui, "cancelled (ctrl+c) — partial turn saved, press ctrl+c again to quit");
     }
   };
 
