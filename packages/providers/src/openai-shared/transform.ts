@@ -70,10 +70,14 @@ export async function* yieldOpenAIStream(
   model: string,
   messages: Message[],
   tools: ToolDef[],
+  systemPrompt?: string,
 ): AsyncIterable<Delta> {
+  const openaiMessages = toOpenAIMessages(messages);
   const stream = await client.chat.completions.create({
     model,
-    messages: toOpenAIMessages(messages),
+    messages: systemPrompt
+      ? [{ role: "system", content: systemPrompt }, ...openaiMessages]
+      : openaiMessages,
     ...(tools.length > 0 ? { tools: toOpenAITools(tools) } : {}),
     stream: true,
     stream_options: { include_usage: true },

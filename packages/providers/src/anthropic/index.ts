@@ -15,11 +15,12 @@ export class AnthropicProvider implements LLMProvider {
     this.contextLimit = contextLimit;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta> {
+  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
     const stream = await this.client.messages.stream({
       model: this.model,
       max_tokens: 8096,
       messages: toAnthropicMessages(messages),
+      ...(systemPrompt ? { system: systemPrompt } : {}),
       ...(tools.length > 0 ? { tools: toAnthropicTools(tools) } : {}),
     });
 

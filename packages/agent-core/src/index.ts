@@ -8,6 +8,8 @@ import { DEFAULT_COMPACTION_SETTINGS } from "./compaction/index.js";
 
 export type { AgentCallbacks, AgentMessage, AgentSession, CompactionSettings, ActiveToolCall, TokenUsage } from "./types.js";
 export { DEFAULT_COMPACTION_SETTINGS } from "./compaction/index.js";
+export { SessionManager, getDefaultSessionDir, diffNewMessages } from "./session-manager.js";
+export type { SessionInfo, SessionContext } from "./session-manager.js";
 
 export interface AgentRunOptions {
   provider: LLMProvider;

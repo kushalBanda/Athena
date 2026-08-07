@@ -50,6 +50,6 @@ export interface LLMProvider {
   readonly name: string;
   readonly model: string;
   readonly contextLimit: number;
-  chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta>;
+  chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta>;
   countTokens(messages: Message[]): Promise<number>;
 }

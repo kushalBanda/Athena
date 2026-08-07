@@ -79,7 +79,7 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
     callbacks.onTokenUpdate(totalUsage.input + turnInputEstimate, totalUsage.output);
 
     try {
-      for await (const delta of provider.chat(providerMessages, toolDefs)) {
+      for await (const delta of provider.chat(providerMessages, toolDefs, systemPrompt)) {
         if (signal?.aborted) break;
 
         if (delta.type === "text") {

@@ -13,8 +13,8 @@ export class GeminiProvider implements LLMProvider {
     this.model = model;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta> {
-    const geminiContents = toGeminiContents(messages);
+  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+    const geminiContents = toGeminiContents(messages, systemPrompt);
 
     const stream = await this.client.models.generateContentStream({
       model: this.model,
@@ -83,16 +83,10 @@ type GeminiContents =
   | { contents: { role: string; parts: Part[] }[]; systemInstruction: string }
   | { contents: { role: string; parts: Part[] }[] };
 
-function toGeminiContents(messages: Message[]): GeminiContents {
-  let systemInstruction: string | undefined;
+function toGeminiContents(messages: Message[], systemInstruction?: string): GeminiContents {
   const contents: { role: string; parts: Part[] }[] = [];
 
   for (const msg of messages) {
-    if (msg.role === "user" && msg.content[0]?.type === "text" && contents.length === 0) {
-      systemInstruction = msg.content[0].text;
-      continue;
-    }
-
     const parts: Part[] = msg.content.map((c): Part => {
       if (c.type === "text") return { text: c.text };
       if (c.type === "tool_call") {

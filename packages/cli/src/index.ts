@@ -1,15 +1,15 @@
 #!/usr/bin/env bun
 import React from "react";
 import { render } from "ink";
-import { runAgent } from "@athena/agent-core";
-import type { ActiveToolCall } from "@athena/agent-core";
+import { runAgent, SessionManager, diffNewMessages } from "@athena/agent-core";
+import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
 import { createDefaultRegistry } from "@athena/tools";
 import { createProvider } from "@athena/providers";
 import type { ProviderName } from "@athena/providers";
 import { App } from "@athena/tui";
 import type { AgentCallbacks as TuiCallbacks } from "@athena/tui";
 import { loadConfig, saveConfig } from "./config.js";
-import { createCallbacks, finalizeStream } from "./adapter.js";
+import { createCallbacks, finalizeStream, agentMessagesToTuiMessages } from "./adapter.js";
 import type { AdapterState } from "./adapter.js";
 import { setApiKey, getApiKey, listKeys, getConfiguredProviders, autoDetectProvider } from "./auth.js";
 import { runSetup } from "./setup.js";
@@ -22,11 +22,19 @@ interface CliArgs {
   provider: string | null;
   model: string | null;
   subcommand: string | null;
+  continueSession: boolean;
 }
 
 function parseArgs(argv: string[]): CliArgs {
   const args = argv.slice(2);
-  const result: CliArgs = { print: false, message: null, provider: null, model: null, subcommand: null };
+  const result: CliArgs = {
+    print: false,
+    message: null,
+    provider: null,
+    model: null,
+    subcommand: null,
+    continueSession: false,
+  };
 
   // detect top-level subcommand
   const first = args[0];
@@ -48,6 +56,8 @@ function parseArgs(argv: string[]): CliArgs {
       result.provider = args[++i] ?? null;
     } else if (a === "--model" && args[i + 1]) {
       result.model = args[++i] ?? null;
+    } else if (a === "--continue" || a === "-c") {
+      result.continueSession = true;
     } else if (a === "--help" || a === "-h") {
       printHelp();
       process.exit(0);
@@ -65,6 +75,8 @@ function printHelp() {
 Usage:
   athena                              interactive TUI
   athena -p "task"                    non-interactive, print to stdout and exit
+  athena --continue, -c               resume the most recent session for this directory
+                                       (also works with -p, to continue a scripted session)
   athena --provider <name>            override provider: anthropic|ollama|gemini|azure
   athena --model <id>                 override model id
 
@@ -176,10 +188,14 @@ async function main() {
       process.exit(1);
     }
 
-    await runAgent(message, {
+    const printSession = args.continueSession ? SessionManager.continueRecent(cwd) : SessionManager.create(cwd);
+    const printHistory = printSession.buildSessionContext().messages;
+
+    const printResult = await runAgent(message, {
       provider: session.provider,
       tools,
       cwd,
+      sessionHistory: printHistory,
       callbacks: {
         onThinking: () => {},
         onAssistantToken: (t: string) => process.stdout.write(t),
@@ -194,9 +210,17 @@ async function main() {
       },
     });
 
+    for (const m of diffNewMessages(printHistory, printResult.messages)) {
+      printSession.appendMessage(m);
+    }
+
     process.stdout.write("\n");
     return;
   }
+
+  // Session persistence: JSONL under ~/.config/athena/sessions/, one per cwd.
+  let sessionManager = args.continueSession ? SessionManager.continueRecent(cwd) : SessionManager.create(cwd);
+  let history: AgentMessage[] = sessionManager.buildSessionContext().messages;
 
   function sysMsg(tui: TuiCallbacks, content: string) {
     tui.addMessage({ id: crypto.randomUUID(), role: "system", content });
@@ -212,9 +236,45 @@ async function main() {
         "/provider [name]         switch provider (opens picker if no name given)",
         "/key <provider> <key>    store API key in auth.json",
         "/status                  show current provider + model",
-        "/clear                   clear chat history",
+        "/clear                   clear chat history, start a new session",
+        "/resume                  pick a previous session to resume",
         "/exit  /quit             quit athena",
       ].join("\n"));
+      return true;
+    }
+
+    if (cmd === "clear") {
+      history = [];
+      sessionManager.newSession();
+      tui.clearMessages();
+      sysMsg(tui, "history cleared, started new session");
+      return true;
+    }
+
+    if (cmd === "resume") {
+      (async () => {
+        const sessions = SessionManager.list(cwd);
+        if (sessions.length === 0) {
+          sysMsg(tui, "no saved sessions for this directory");
+          return;
+        }
+        // Suffix with the session id so otherwise-identical labels (same first message,
+        // same rounded timestamp — e.g. two empty sessions) still resolve unambiguously.
+        const labels = sessions.map(
+          (s) =>
+            `${s.name ?? s.firstMessage.slice(0, 60)} (${s.messageCount} msgs, ${s.modified.toLocaleString()}) [${s.id.slice(0, 8)}]`,
+        );
+        const picked = await tui.pickFromList("resume session", labels);
+        if (!picked) return;
+        const index = labels.indexOf(picked);
+        const target = sessions[index];
+        if (!target) return;
+        sessionManager = SessionManager.open(target.path);
+        history = sessionManager.buildSessionContext().messages;
+        tui.clearMessages();
+        for (const m of agentMessagesToTuiMessages(history)) tui.addMessage(m);
+        sysMsg(tui, `resumed session ${target.id} (${target.messageCount} msgs)`);
+      })();
       return true;
     }
 
@@ -325,7 +385,26 @@ async function main() {
     };
     const callbacks = createCallbacks(tui, adapterState, requestPermission);
 
-    const agentSession = await runAgent(msg, { provider: session.provider, tools, cwd, callbacks });
+    const priorHistory = history;
+    let agentSession;
+    try {
+      agentSession = await runAgent(msg, {
+        provider: session.provider,
+        tools,
+        cwd,
+        callbacks,
+        sessionHistory: history,
+      });
+    } catch (err) {
+      finalizeStream(tui, adapterState);
+      sysMsg(tui, `error: ${err instanceof Error ? err.message : String(err)}`);
+      return;
+    }
+
+    history = agentSession.messages;
+    for (const newMsg of diffNewMessages(priorHistory, history)) {
+      sessionManager.appendMessage(newMsg);
+    }
 
     finalizeStream(tui, adapterState);
     if (agentSession.tokenUsage.costUsd !== undefined) {
@@ -335,7 +414,12 @@ async function main() {
 
   const { waitUntilExit } = render(
     React.createElement(App, {
-      initialState: { model: session.provider.model, cwd, contextLimit: session.provider.contextLimit },
+      initialState: {
+        model: session.provider.model,
+        cwd,
+        contextLimit: session.provider.contextLimit,
+        messages: agentMessagesToTuiMessages(history),
+      },
       onUserMessage: handleUserMessage,
     }),
   );

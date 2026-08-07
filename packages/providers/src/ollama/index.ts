@@ -21,8 +21,8 @@ export class OllamaProvider implements LLMProvider {
     this.contextLimit = contextLimit;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta> {
-    yield* yieldOpenAIStream(this.client, this.model, messages, tools);
+  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+    yield* yieldOpenAIStream(this.client, this.model, messages, tools, systemPrompt);
   }
 
   async countTokens(messages: Message[]): Promise<number> {

@@ -44,11 +44,6 @@ const DEFAULT_STATE: AppState = {
 export function App({ initialState, onUserMessage }: Props) {
   const { exit } = useApp();
   const [state, setState] = useState<AppState>({ ...DEFAULT_STATE, ...initialState });
-  // Session-start snapshots for the welcome header: ChatView paints its "header"
-  // Static item exactly once, on the first commit, so anything read from live
-  // `state` here would silently freeze at whatever it was on that first render.
-  // Reading a dedicated snapshot instead of `state.model`/`state.cwd` makes that
-  // freeze intentional rather than an accidental staleness bug (e.g. after /model).
   const [gitInfo] = useState(() => getGitInfo(state.cwd));
   const [initialModel] = useState(() => state.model);
   const [mentionCandidates, setMentionCandidates] = useState<string[]>([]);
@@ -58,8 +53,6 @@ export function App({ initialState, onUserMessage }: Props) {
     walkFiles(state.cwd)
       .then(setMentionCandidates)
       .catch(() => setMentionCandidates([]));
-    // Walk once per session; cwd doesn't change after mount.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const pickFromList = useCallback((title: string, options: string[]): Promise<string | null> => {
@@ -106,12 +99,6 @@ export function App({ initialState, onUserMessage }: Props) {
         exit();
         return;
       }
-      if (text === "/clear") {
-        setState((s) => ({ ...s, messages: [] }));
-        return;
-      }
-
-      // show user message for non-slash or slash commands (slash cmds show their own system reply)
       const isSlash = text.startsWith("/");
       if (!isSlash) {
         addMessage({ id: crypto.randomUUID(), role: "user", content: text });

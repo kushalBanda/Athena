@@ -29,8 +29,8 @@ export class AzureOpenAIProvider implements LLMProvider {
     this.model = config.deployment;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[]): AsyncIterable<Delta> {
-    yield* yieldOpenAIStream(this.client, this.deployment, messages, tools);
+  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+    yield* yieldOpenAIStream(this.client, this.deployment, messages, tools, systemPrompt);
   }
 
   async countTokens(messages: Message[]): Promise<number> {
