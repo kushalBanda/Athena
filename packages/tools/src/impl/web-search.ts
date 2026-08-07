@@ -91,7 +91,6 @@ function safeParseExaText(text: string): ExaResult[] {
     const parsed = JSON.parse(text);
     if (Array.isArray(parsed)) return parsed as ExaResult[];
   } catch {
-    // not JSON — Exa returned pre-formatted text
   }
   return [{ snippet: text }];
 }

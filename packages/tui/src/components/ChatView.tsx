@@ -12,18 +12,8 @@ interface Props {
 
 type StaticItem = { kind: "header" } | { kind: "message"; message: Message };
 
-/** Minimum interval between repaints of the still-streaming message. */
 const STREAM_REPAINT_MS = 80;
 
-/**
- * Coalesces rapid updates to the in-flight streaming message so it repaints
- * at most once per `STREAM_REPAINT_MS`, instead of once per token. Ink's
- * dynamic (non-`Static`) region redraws in full on every change, which was
- * fighting manual terminal scroll (and, under fast token bursts, leaving
- * duplicate stale frames) when it redrew dozens of times a second. Once the
- * message stops streaming it is read straight from `messages` (see below),
- * so throttling never drops or truncates the final content.
- */
 function useThrottledActiveMessage(activeMessage: Message | undefined): Message | undefined {
   const [displayed, setDisplayed] = useState(activeMessage);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -59,14 +49,7 @@ function useThrottledActiveMessage(activeMessage: Message | undefined): Message 
   return displayed;
 }
 
-/**
- * Finalized messages (and the header) are flushed once via <Static> so they
- * land in the terminal's real scrollback instead of being repainted (and
- * clipped by the fixed-height frame) on every streaming token — that repaint
- * is what broke manual scrolling while a response was still streaming in.
- * The header is item zero so it stays pinned above the message log forever,
- * instead of being redrawn underneath it every frame.
- */
+
 export function ChatView({ header, messages, thinking }: Props) {
   const lastMessage = messages[messages.length - 1];
   const activeMessage = lastMessage?.streaming ? lastMessage : undefined;

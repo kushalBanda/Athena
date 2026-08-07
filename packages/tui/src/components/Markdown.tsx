@@ -8,7 +8,6 @@ const TEXT = "#DDDDEE";
 const CODE = "#7EE787";
 const INLINE_CODE = "#FFB86C";
 
-/** marked's Token union doesn't expose a common shape; this covers the fields we read. */
 type TextLike = { text?: string; tokens?: Token[] };
 
 interface Props {

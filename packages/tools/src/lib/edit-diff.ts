@@ -1,9 +1,3 @@
-/**
- * Text-matching and diff utilities backing the edit_file tool. Faithful port of
- * pi's edit-diff.ts matching/apply pipeline (uniform match-space, overlap
- * detection, line-preserving overlay), extended with replaceAll support and
- * opencode's disproportionate-match guard.
- */
 import * as Diff from "diff";
 
 export function detectLineEnding(content: string): "\r\n" | "\n" {

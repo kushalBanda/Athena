@@ -21,20 +21,14 @@ const SLASH_COMMANDS: SlashCommand[] = [
 interface Props {
   onSubmit: (value: string) => void;
   disabled?: boolean;
-  /** Candidate file paths (relative to cwd) offered by @ mention autocomplete. */
   mentionCandidates?: string[];
 }
 
 interface MentionTrigger {
-  /** Index of the "@" character in `value`. */
   start: number;
   query: string;
 }
 
-/**
- * Finds an active @ mention trigger ending at `cursor`: the last "@" at position 0
- * or preceded by whitespace, with no whitespace between it and the cursor.
- */
 function findMentionTrigger(value: string, cursor: number): MentionTrigger | null {
   let i = cursor - 1;
   while (i >= 0 && !/\s/.test(value[i]!)) {
@@ -48,11 +42,6 @@ function findMentionTrigger(value: string, cursor: number): MentionTrigger | nul
   return null;
 }
 
-/**
- * Finds the start of the word before `cursor`: skips trailing whitespace,
- * then skips non-whitespace back to the previous boundary. Mirrors the
- * word-backward behavior of readline/bash (ctrl+w, alt+backspace).
- */
 function wordBackwardStart(value: string, cursor: number): number {
   let i = cursor;
   while (i > 0 && /\s/.test(value[i - 1]!)) i--;
@@ -137,8 +126,6 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
         setCursor((c) => Math.min(value.length, c + 1));
         return;
       }
-      // Word-backward delete: option/alt+backspace (meta), ctrl+backspace, or ctrl+w —
-      // matches readline/bash conventions across terminals (see opencode's keybind set).
       if ((key.backspace || key.delete) && key.meta) {
         if (cursor === 0) return;
         const from = wordBackwardStart(value, cursor);

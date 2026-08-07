@@ -20,7 +20,6 @@ export interface AgentCallbacks {
   setContextLimit: (limit: number) => void;
   addCost: (usd: number) => void;
   clearMessages: () => void;
-  /** Opens a fuzzy-searchable picker; resolves to the chosen option, or null if cancelled. */
   pickFromList: (title: string, options: string[]) => Promise<string | null>;
 }
 

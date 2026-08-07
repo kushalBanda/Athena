@@ -8,7 +8,6 @@ interface Props {
   onCancel: () => void;
 }
 
-/** Fuzzy match: all query chars appear in order (case-insensitive). Ranks tighter matches first. */
 function fuzzyScore(query: string, target: string): number | null {
   if (query === "") return 0;
   const q = query.toLowerCase();
@@ -23,8 +22,8 @@ function fuzzyScore(query: string, target: string): number | null {
       qi++;
     }
   }
-  if (qi < q.length) return null; // not all query chars found
-  return lastMatch - firstMatch; // smaller span = tighter match = better
+  if (qi < q.length) return null;
+  return lastMatch - firstMatch;
 }
 
 export function Picker({ title, options, onSelect, onCancel }: Props) {

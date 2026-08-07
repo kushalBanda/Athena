@@ -10,7 +10,6 @@ import { type ObservabilityConfig, isTelemetryConfigured } from "./config.js";
 const TRACER_NAME = "athena";
 const SERVICE_NAME = "athena-cli";
 
-// service.instance.id required alongside service.name for New Relic's APM & Services view.
 const SERVICE_INSTANCE_ID = crypto.randomUUID();
 
 let activeProvider: NodeTracerProvider | undefined;

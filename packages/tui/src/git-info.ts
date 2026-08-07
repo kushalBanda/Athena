@@ -21,7 +21,6 @@ function parseShortstat(text: string): { added: number; removed: number } {
   };
 }
 
-/** Reads branch name and working-tree diffstat (staged + unstaged) synchronously. Returns null outside a git repo. */
 export function getGitInfo(cwd: string): GitInfo | null {
   const branch = run(["rev-parse", "--abbrev-ref", "HEAD"], cwd);
   if (branch === null) return null;

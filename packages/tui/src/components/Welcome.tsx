@@ -14,7 +14,7 @@ const COLORS = {
 } as const;
 
 const TIPS = [
-  "Ask in plain language — Athena reads and edits files, runs commands, and searches the repo for you.",
+  "Ask in plain language Athena reads and edits files, runs commands, and searches the repo for you.",
   "/model switches the active model; /provider switches the active provider.",
   "/clear wipes the visible conversation without touching your files.",
   "ctrl+c cancels a running turn without quitting Athena.",

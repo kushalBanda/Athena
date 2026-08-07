@@ -3,7 +3,6 @@ import path from "node:path";
 
 const EXCLUDED_DIRS = new Set(["node_modules", ".git", "dist"]);
 
-/** Recursively lists files under `root`, returning paths relative to `root`. */
 export async function walkFiles(root: string): Promise<string[]> {
   const results: string[] = [];
 

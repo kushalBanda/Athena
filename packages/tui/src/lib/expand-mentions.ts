@@ -3,11 +3,6 @@ import path from "node:path";
 const MENTION_PATTERN = /@(\S+)/g;
 const MAX_CONTENT_CHARS = 100_000;
 
-/**
- * Expands @path tokens in `text` into <file> content blocks prepended before
- * the original text. Mentions that don't resolve to a real file are left as
- * literal text — we can't distinguish a picked mention from a typed "@word".
- */
 export async function expandMentions(text: string, cwd: string): Promise<string> {
   const seen = new Set<string>();
   const blocks: string[] = [];

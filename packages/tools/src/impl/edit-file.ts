@@ -58,8 +58,6 @@ export class EditFileTool extends BaseTool<typeof Schema> {
       return err(`File not found: ${resolved}`);
     }
 
-    // Bun.file(...).text() silently strips a UTF-8 BOM during decode; decode raw
-    // bytes ourselves so an existing BOM can be detected and reattached on write.
     const rawContent = new TextDecoder("utf-8", { ignoreBOM: true }).decode(await file.arrayBuffer());
     const { bom, text } = stripBom(rawContent);
     const lineEnding = detectLineEnding(text);

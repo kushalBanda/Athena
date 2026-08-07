@@ -16,11 +16,6 @@ const COLORS = {
   clock: "#8B93A6",
 } as const;
 
-/**
- * This bar is printed once (as the first entry in ChatView's <Static> list)
- * and never redrawn, so the timestamp reflects session start, not "now" —
- * a live clock here would freeze at whatever it read on that single render.
- */
 function sessionStartTime(): string {
   return new Date().toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" });
 }
