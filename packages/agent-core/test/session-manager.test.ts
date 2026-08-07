@@ -142,4 +142,21 @@ describe("SessionManager", () => {
     expect(sessions[0]?.messageCount).toBe(1);
     expect(sessions[0]?.firstMessage).toBe("hello world");
   });
+
+  it("findById() resolves a full id or an unambiguous short-id prefix", () => {
+    const sm = SessionManager.create("/tmp/proj", dir);
+    sm.appendMessage(userMsg("1", "hello world"));
+    const fullId = sm.getSessionId();
+
+    const byFullId = SessionManager.findById("/tmp/proj", fullId, dir);
+    expect(byFullId?.getSessionId()).toBe(fullId);
+
+    const byPrefix = SessionManager.findById("/tmp/proj", fullId.slice(0, 8), dir);
+    expect(byPrefix?.getSessionId()).toBe(fullId);
+  });
+
+  it("findById() returns null for an id that matches no session", () => {
+    SessionManager.create("/tmp/proj", dir);
+    expect(SessionManager.findById("/tmp/proj", "no-such-id", dir)).toBeNull();
+  });
 });

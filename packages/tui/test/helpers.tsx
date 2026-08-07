@@ -2,13 +2,11 @@ import React from "react";
 import { render } from "ink";
 import { PassThrough } from "stream";
 
-// Strip ANSI escape codes so assertions can match plain text
 export function stripAnsi(str: string): string {
   // eslint-disable-next-line no-control-regex
   return str.replace(/\x1B\[[0-9;]*[mGKHF]/g, "");
 }
 
-// Fake stdin that satisfies Ink's raw-mode check without a real TTY
 function makeFakeStdin() {
   const stdin = new PassThrough() as unknown as NodeJS.ReadStream;
   const s = stdin as unknown as Record<string, unknown>;
@@ -19,13 +17,21 @@ function makeFakeStdin() {
   return stdin;
 }
 
-function makeFakeStdout(output: PassThrough): NodeJS.WriteStream {
+function makeFakeStdout(output: PassThrough, columns = 200): NodeJS.WriteStream {
   const s = output as unknown as Record<string, unknown>;
-  s.columns = 200;
+  s.columns = columns;
   return output as unknown as NodeJS.WriteStream;
 }
 
 export function renderToString(node: React.ReactElement, waitMs = 50): Promise<string> {
+  return renderToStringAtWidth(node, 200, waitMs);
+}
+
+export function renderToStringAtWidth(
+  node: React.ReactElement,
+  columns: number,
+  waitMs = 50,
+): Promise<string> {
   return new Promise((resolve, reject) => {
     const output = new PassThrough();
     const chunks: Buffer[] = [];
@@ -33,7 +39,7 @@ export function renderToString(node: React.ReactElement, waitMs = 50): Promise<s
     output.on("error", reject);
 
     const { unmount } = render(node, {
-      stdout: makeFakeStdout(output),
+      stdout: makeFakeStdout(output, columns),
       stdin: makeFakeStdin(),
       debug: true,
       patchConsole: false,
@@ -54,8 +60,6 @@ export interface InteractiveHandle {
   unmount: () => void;
 }
 
-// debug:true makes Ink write one full frame per render rather than diffing —
-// each `data` chunk is a complete redraw, so the latest chunk is the current frame.
 export function renderInteractive(node: React.ReactElement): InteractiveHandle {
   const output = new PassThrough();
   const chunks: Buffer[] = [];
@@ -72,8 +76,6 @@ export function renderInteractive(node: React.ReactElement): InteractiveHandle {
   return {
     type: (input: string) =>
       new Promise((resolve) => {
-        // Ink reads via the stream's 'readable' event (stdin.read()), not 'data' —
-        // write() pushes into the readable buffer; emit("data", ...) would bypass it.
         (stdin as unknown as PassThrough).write(Buffer.from(input));
         setTimeout(resolve, 20);
       }),

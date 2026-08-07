@@ -4,11 +4,18 @@ import { App } from "../src/App.js";
 import { renderToString } from "./helpers.js";
 
 describe("App status wiring", () => {
-  it("defaults to READY with the exit hint and a visible input cursor", async () => {
-    const out = await renderToString(<App />);
-    expect(out).toContain("READY");
-    expect(out).toContain("ctrl+c exit");
+  it("defaults to showing the model badge, no status-bar ctrl+c hint, and a visible input cursor", async () => {
+    const out = await renderToString(<App initialState={{ model: "claude-opus-5" }} />);
+    expect(out).toContain("claude-opus-5");
+    // Welcome's static tips text still legitimately mentions ctrl+c (cancelling a turn);
+    // what's gone is the StatusBar's old always-on "ctrl+c exit" hint for the idle state.
+    expect(out).not.toContain("ctrl+c exit");
     expect(out).toContain("█");
+  });
+
+  it("shows the 'press again to exit' hint only once ctrlCArmed is set", async () => {
+    const out = await renderToString(<App initialState={{ ctrlCArmed: true }} />);
+    expect(out).toContain("Press Ctrl-C again to exit");
   });
 
   it("a busy initialState.status hides the input cursor and shows the tool badge", async () => {

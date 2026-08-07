@@ -1,7 +1,7 @@
 import { describe, it, expect } from "bun:test";
 import React from "react";
 import { StatusBar } from "../src/components/StatusBar.js";
-import { renderToString } from "./helpers.js";
+import { renderToString, renderToStringAtWidth } from "./helpers.js";
 import type { AgentStatus } from "../src/types.js";
 
 const READY: AgentStatus = { kind: "ready" };
@@ -38,12 +38,24 @@ describe("StatusBar", () => {
     expect(out).toContain("800 ↓");
   });
 
-  it("shows READY badge and exit hint when idle", async () => {
+  it("shows the model name as the badge and no ctrl+c hint when idle", async () => {
     const out = await renderToString(
-      <StatusBar model="m" cwd="/tmp" inputTokens={0} outputTokens={0} status={READY} />,
+      <StatusBar model="claude-sonnet-5" cwd="/tmp" inputTokens={0} outputTokens={0} status={READY} />,
     );
-    expect(out).toContain("READY");
-    expect(out).toContain("ctrl+c exit");
+    expect(out).toContain("claude-sonnet-5");
+    expect(out).not.toContain("ctrl+c");
+  });
+
+  it("shows the 'press again to exit' hint only when ctrlCArmed", async () => {
+    const notArmed = await renderToString(
+      <StatusBar model="m" cwd="/tmp" inputTokens={0} outputTokens={0} status={READY} ctrlCArmed={false} />,
+    );
+    expect(notArmed).not.toContain("Press Ctrl-C again");
+
+    const armed = await renderToString(
+      <StatusBar model="m" cwd="/tmp" inputTokens={0} outputTokens={0} status={READY} ctrlCArmed={true} />,
+    );
+    expect(armed).toContain("Press Ctrl-C again to exit");
   });
 
   it("shows THINKING badge and cancel hint when busy", async () => {
@@ -130,5 +142,25 @@ describe("StatusBar", () => {
       <StatusBar model="some-local-model" cwd="/tmp" inputTokens={1_000_000} outputTokens={0} status={READY} />,
     );
     expect(out).not.toContain("$");
+  });
+
+  it("wraps onto multiple lines instead of dropping content on a narrow terminal", async () => {
+    // Regression: the row previously had no flexWrap, so on a terminal narrow enough
+    // that the badge+hint alone filled the available width, Yoga computed zero width
+    // for every segment after the flexGrow spacer — tokens/cost/cwd all silently
+    // vanished rather than wrapping or truncating.
+    const out = await renderToStringAtWidth(
+      <StatusBar
+        model="claude-sonnet-5"
+        cwd="/Users/test/some/deep/project/path"
+        inputTokens={1234}
+        outputTokens={567}
+        status={READY}
+        contextLimit={200_000}
+      />,
+      30,
+    );
+    expect(out).toContain("claude-sonnet-5");
+    expect(out).toContain("1,234");
   });
 });

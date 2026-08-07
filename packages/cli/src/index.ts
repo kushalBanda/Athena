@@ -32,6 +32,7 @@ interface CliArgs {
   model: string | null;
   subcommand: string | null;
   continueSession: boolean;
+  resumeSessionId: string | null;
 }
 
 function parseArgs(argv: string[]): CliArgs {
@@ -43,6 +44,7 @@ function parseArgs(argv: string[]): CliArgs {
     model: null,
     subcommand: null,
     continueSession: false,
+    resumeSessionId: null,
   };
 
   const first = args[0];
@@ -66,6 +68,8 @@ function parseArgs(argv: string[]): CliArgs {
       result.model = args[++i] ?? null;
     } else if (a === "--continue" || a === "-c") {
       result.continueSession = true;
+    } else if (a === "--resume" && args[i + 1]) {
+      result.resumeSessionId = args[++i] ?? null;
     } else if (a === "--help" || a === "-h") {
       printHelp();
       process.exit(0);
@@ -85,6 +89,7 @@ Usage:
   athena -p "task"                    non-interactive, print to stdout and exit
   athena --continue, -c               resume the most recent session for this directory
                                        (also works with -p, to continue a scripted session)
+  athena --resume <session-id>        resume a specific session by id (printed on exit)
   athena --provider <name>            override provider: anthropic|ollama|gemini|azure
   athena --model <id>                 override model id
 
@@ -181,17 +186,59 @@ async function main() {
   }
 
   let currentTurnAbort: AbortController | null = null;
+  let liveTui: TuiCallbacks | null = null;
+  let unmountApp: (() => void) | null = null;
 
-  function handleTerminationSignal(exitCode: number): void {
+  const CTRL_C_EXIT_WINDOW_MS = 2000;
+  let ctrlCArmedAt: number | null = null;
+  let ctrlCArmedTimer: ReturnType<typeof setTimeout> | null = null;
+
+  function disarmCtrlC(): void {
+    ctrlCArmedAt = null;
+    if (ctrlCArmedTimer) {
+      clearTimeout(ctrlCArmedTimer);
+      ctrlCArmedTimer = null;
+    }
+    liveTui?.setCtrlCArmed(false);
+  }
+
+  function exitGracefully(sessionId: string | undefined): void {
+    unmountApp?.();
+    void shutdown().then(() => {
+      if (sessionId) {
+        process.stdout.write(`\nTo resume this session:\n  athena --resume ${sessionId}\n`);
+      }
+      process.exit(0);
+    });
+  }
+
+  function handleSigint(): void {
     if (currentTurnAbort) {
       currentTurnAbort.abort();
       return;
     }
-    void shutdown().then(() => process.exit(exitCode));
+    const now = Date.now();
+    if (ctrlCArmedAt !== null && now - ctrlCArmedAt < CTRL_C_EXIT_WINDOW_MS) {
+      if (ctrlCArmedTimer) clearTimeout(ctrlCArmedTimer);
+      exitGracefully(sessionManager?.getSessionId());
+      return;
+    }
+    ctrlCArmedAt = now;
+    liveTui?.setCtrlCArmed(true);
+    ctrlCArmedTimer = setTimeout(disarmCtrlC, CTRL_C_EXIT_WINDOW_MS);
   }
 
-  process.on("SIGINT", () => handleTerminationSignal(130));
-  process.on("SIGTERM", () => handleTerminationSignal(143));
+  function handleSigterm(): void {
+    if (currentTurnAbort) {
+      currentTurnAbort.abort();
+      return;
+    }
+    unmountApp?.();
+    void shutdown().then(() => process.exit(0));
+  }
+
+  process.on("SIGINT", handleSigint);
+  process.on("SIGTERM", handleSigterm);
 
   let cfg = loadConfig();
   let providerName = resolveProvider(args, cfg) as Parameters<typeof createProvider>[0];
@@ -274,9 +321,14 @@ async function main() {
     process.exit(printWasAborted ? 130 : 0);
   }
 
-  let sessionManager = args.continueSession
-    ? SessionManager.continueRecent(cwd)
-    : SessionManager.create(cwd);
+  let sessionManager = args.resumeSessionId
+    ? (SessionManager.findById(cwd, args.resumeSessionId) ?? SessionManager.create(cwd))
+    : args.continueSession
+      ? SessionManager.continueRecent(cwd)
+      : SessionManager.create(cwd);
+  if (args.resumeSessionId && !sessionManager.getSessionId().startsWith(args.resumeSessionId)) {
+    console.error(`athena: no session found matching "${args.resumeSessionId}" — started a new session instead`);
+  }
   sessionSpan.setAttribute("session.id", sessionManager.getSessionId());
   let history: AgentMessage[] = sessionManager.buildSessionContext().messages;
 
@@ -481,11 +533,11 @@ async function main() {
       tui.addCost(agentSession.tokenUsage.costUsd);
     }
     if (wasAborted) {
-      sysMsg(tui, "cancelled (ctrl+c) — partial turn saved, press ctrl+c again to quit");
+      sysMsg(tui, "cancelled (ctrl+c) — partial turn saved");
     }
   };
 
-  const { waitUntilExit } = render(
+  const { waitUntilExit, unmount } = render(
     React.createElement(App, {
       initialState: {
         model: session.provider.model,
@@ -494,8 +546,12 @@ async function main() {
         messages: agentMessagesToTuiMessages(history),
       },
       onUserMessage: handleUserMessage,
+      onReady: (callbacks: TuiCallbacks) => {
+        liveTui = callbacks;
+      },
     }),
   );
+  unmountApp = unmount;
 
   await waitUntilExit();
   await shutdown();

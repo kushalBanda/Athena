@@ -12,6 +12,7 @@ interface Props {
   status: AgentStatus;
   contextLimit?: number;
   costUsd?: number;
+  ctrlCArmed?: boolean;
 }
 
 const COLORS = {
@@ -24,6 +25,7 @@ const COLORS = {
   badgeReady: "#333344",
   tokenUp: "#4ADE80",
   tokenDown: "#FF6B6B",
+  warning: "#FBBF24",
 } as const;
 
 function formatCost(usd: number): string {
@@ -32,11 +34,9 @@ function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
-
 function hintFor(status: AgentStatus): string {
   switch (status.kind) {
     case "ready":
-      return "ctrl+c exit";
     case "error":
       return "";
     case "thinking":
@@ -50,7 +50,7 @@ function hintFor(status: AgentStatus): string {
   }
 }
 
-function Badge({ status }: { status: AgentStatus }) {
+function Badge({ status, model }: { status: AgentStatus; model: string }) {
   switch (status.kind) {
     case "thinking":
       return (
@@ -82,7 +82,7 @@ function Badge({ status }: { status: AgentStatus }) {
     case "ready":
       return (
         <Box paddingX={1}>
-          <Text bold backgroundColor={COLORS.badgeReady} color={COLORS.text}> READY </Text>
+          <Text bold backgroundColor={COLORS.badgeReady} color={COLORS.text}> {model} </Text>
         </Box>
       );
     default: {
@@ -92,7 +92,16 @@ function Badge({ status }: { status: AgentStatus }) {
   }
 }
 
-export function StatusBar({ model, cwd, inputTokens, outputTokens, status, contextLimit, costUsd }: Props) {
+export function StatusBar({
+  model,
+  cwd,
+  inputTokens,
+  outputTokens,
+  status,
+  contextLimit,
+  costUsd,
+  ctrlCArmed,
+}: Props) {
   const home = process.env.HOME ?? "";
   const displayCwd = cwd.startsWith(home) ? `~${cwd.slice(home.length)}` : cwd;
   const tokens = inputTokens + outputTokens;
@@ -101,31 +110,40 @@ export function StatusBar({ model, cwd, inputTokens, outputTokens, status, conte
   const hint = hintFor(status);
 
   return (
-    <Box flexDirection="row" width="100%">
-      <Badge status={status} />
-      <Box paddingLeft={1}>{hint && <Text color={COLORS.muted}>{hint}</Text>}</Box>
-      <Box flexGrow={1} />
-      <Text color={COLORS.text}>
-        {inputTokens.toLocaleString()} <Text color={COLORS.tokenUp}>↑</Text>
-        {pct !== undefined ? ` (${pct}%)` : ""}
-      </Text>
-      <Text color={COLORS.muted}> · </Text>
-      <Text color={COLORS.text}>
-        {outputTokens.toLocaleString()} <Text color={COLORS.tokenDown}>↓</Text>
-      </Text>
-      {contextLimit !== undefined && (
-        <>
-          <Text color={COLORS.muted}> · </Text>
-          <Text color={COLORS.muted}>
-            {tokens.toLocaleString()}/{contextLimit.toLocaleString()}
-          </Text>
-        </>
+    <Box flexDirection="column" width="100%">
+      <Box flexDirection="row" flexWrap="wrap" width="100%">
+        <Box flexDirection="row">
+          <Badge status={status} model={model} />
+          <Box paddingLeft={1}>{hint && <Text color={COLORS.muted}>{hint}</Text>}</Box>
+        </Box>
+        <Box flexGrow={1} />
+        <Text color={COLORS.text}>
+          {inputTokens.toLocaleString()} <Text color={COLORS.tokenUp}>↑</Text>
+          {pct !== undefined ? ` (${pct}%)` : ""}
+        </Text>
+        <Text color={COLORS.muted}> · </Text>
+        <Text color={COLORS.text}>
+          {outputTokens.toLocaleString()} <Text color={COLORS.tokenDown}>↓</Text>
+        </Text>
+        {contextLimit !== undefined && (
+          <>
+            <Text color={COLORS.muted}> · </Text>
+            <Text color={COLORS.muted}>
+              {tokens.toLocaleString()}/{contextLimit.toLocaleString()}
+            </Text>
+          </>
+        )}
+        {resolvedCost !== undefined && resolvedCost > 0 && (
+          <Text color={COLORS.muted}> · {formatCost(resolvedCost)}</Text>
+        )}
+        <Text color={COLORS.muted}>  ·  </Text>
+        <Text color={COLORS.muted}>{displayCwd}</Text>
+      </Box>
+      {ctrlCArmed && (
+        <Box paddingLeft={1}>
+          <Text color={COLORS.warning}>Press Ctrl-C again to exit</Text>
+        </Box>
       )}
-      {resolvedCost !== undefined && resolvedCost > 0 && (
-        <Text color={COLORS.muted}> · {formatCost(resolvedCost)}</Text>
-      )}
-      <Text color={COLORS.muted}>  ·  </Text>
-      <Text color={COLORS.muted}>{displayCwd}</Text>
     </Box>
   );
 }

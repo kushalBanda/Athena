@@ -44,4 +44,5 @@ export interface AppState {
   contextLimit?: number;
   costUsd?: number;
   picker: PickerState | null;
+  ctrlCArmed: boolean;
 }

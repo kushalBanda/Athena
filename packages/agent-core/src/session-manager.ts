@@ -507,6 +507,11 @@ export class SessionManager {
     return listSessionsFromDir(dir).filter((s) => !sessionDir || sessionCwdMatches(s.cwd, resolvedCwd));
   }
 
+  static findById(cwd: string, id: string, sessionDir?: string): SessionManager | null {
+    const match = SessionManager.list(cwd, sessionDir).find((s) => s.id === id || s.id.startsWith(id));
+    return match ? SessionManager.open(match.path, sessionDir) : null;
+  }
+
   static listAll(): SessionInfo[] {
     const sessionsDir = getSessionsDir();
     if (!existsSync(sessionsDir)) return [];

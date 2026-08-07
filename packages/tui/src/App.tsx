@@ -20,12 +20,14 @@ export interface AgentCallbacks {
   setContextLimit: (limit: number) => void;
   addCost: (usd: number) => void;
   clearMessages: () => void;
+  setCtrlCArmed: (armed: boolean) => void;
   pickFromList: (title: string, options: string[]) => Promise<string | null>;
 }
 
 interface Props {
   initialState?: Partial<AppState>;
   onUserMessage?: (msg: string, callbacks: AgentCallbacks) => Promise<void>;
+  onReady?: (callbacks: AgentCallbacks) => void;
 }
 
 const READY: AgentStatus = { kind: "ready" };
@@ -38,9 +40,10 @@ const DEFAULT_STATE: AppState = {
   inputTokens: 0,
   outputTokens: 0,
   picker: null,
+  ctrlCArmed: false,
 };
 
-export function App({ initialState, onUserMessage }: Props) {
+export function App({ initialState, onUserMessage, onReady }: Props) {
   const { exit } = useApp();
   const [state, setState] = useState<AppState>({ ...DEFAULT_STATE, ...initialState });
   const [gitInfo] = useState(() => getGitInfo(state.cwd));
@@ -89,8 +92,13 @@ export function App({ initialState, onUserMessage }: Props) {
     setContextLimit: (limit) => setState((s) => ({ ...s, contextLimit: limit })),
     addCost: (usd) => setState((s) => ({ ...s, costUsd: (s.costUsd ?? 0) + usd })),
     clearMessages: () => setState((s) => ({ ...s, messages: [] })),
+    setCtrlCArmed: (armed) => setState((s) => ({ ...s, ctrlCArmed: armed })),
     pickFromList,
   };
+
+  useEffect(() => {
+    onReady?.(callbacks);
+  }, []);
 
   const handleSubmit = useCallback(
     async (text: string) => {
@@ -144,6 +152,7 @@ export function App({ initialState, onUserMessage }: Props) {
         inputTokens={state.inputTokens}
         outputTokens={state.outputTokens}
         status={state.status}
+        ctrlCArmed={state.ctrlCArmed}
         {...(state.contextLimit !== undefined ? { contextLimit: state.contextLimit } : {})}
         {...(state.costUsd !== undefined ? { costUsd: state.costUsd } : {})}
       />
