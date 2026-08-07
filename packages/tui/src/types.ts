@@ -1,4 +1,4 @@
-export type Role = "user" | "assistant" | "system";
+export type Role = "user" | "assistant" | "system" | "timing";
 
 export interface DiffLine {
   type: "add" | "del" | "ctx";

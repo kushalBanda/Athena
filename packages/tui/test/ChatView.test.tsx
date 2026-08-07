@@ -31,9 +31,10 @@ describe("ChatView", () => {
 
   it("renders messages in order", async () => {
     const out = await renderToString(<ChatView header={header} messages={msgs} thinking={false} />);
-    const youIdx = out.indexOf("you");
-    const athenaIdx = out.indexOf("athena");
-    expect(youIdx).toBeLessThan(athenaIdx);
+    const userIdx = out.indexOf("what is 2+2?");
+    const assistantIdx = out.indexOf("● 4");
+    expect(userIdx).toBeGreaterThanOrEqual(0);
+    expect(userIdx).toBeLessThan(assistantIdx);
   });
 
   it("renders the header above the messages", async () => {

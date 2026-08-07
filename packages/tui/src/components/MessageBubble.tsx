@@ -8,11 +8,16 @@ interface Props {
   message: Message;
 }
 
+const COLORS = {
+  marker: "#DDDDEE",
+  muted: "#888899",
+} as const;
+
 export function MessageBubble({ message }: Props) {
   if (message.role === "system") {
     return (
       <Box marginBottom={1}>
-        <Text color="#888899" dimColor>
+        <Text color={COLORS.muted} dimColor>
           {"  "}
           {message.content}
         </Text>
@@ -20,18 +25,28 @@ export function MessageBubble({ message }: Props) {
     );
   }
 
-  const label = message.role === "user" ? "you" : "athena";
+  if (message.role === "timing") {
+    return (
+      <Box marginBottom={1}>
+        <Text color={COLORS.muted}>* {message.content}</Text>
+      </Box>
+    );
+  }
+
+  const marker = message.role === "user" ? ">" : "●";
 
   return (
     <Box flexDirection="column" marginBottom={1}>
-      <Text bold color="#00D9FF">
-        {label}
-      </Text>
-      {message.content ? <Markdown content={message.content} /> : null}
+      <Box>
+        <Text color={COLORS.marker}>{marker} </Text>
+        <Box flexGrow={1} flexDirection="column">
+          {message.content ? <Markdown content={message.content} /> : null}
+          {message.streaming && !message.content && <ThinkingDot />}
+        </Box>
+      </Box>
       {message.toolCalls?.map((tc) => (
         <ToolCallBlock key={tc.id} toolCall={tc} />
       ))}
-      {message.streaming && !message.content && <ThinkingDot />}
     </Box>
   );
 }

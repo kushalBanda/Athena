@@ -34,6 +34,13 @@ function formatCost(usd: number): string {
   return `$${usd.toFixed(2)}`;
 }
 
+/** Green/amber/red resource-meter coding — same convention a disk/memory gauge would use. */
+function ctxColor(pct: number): string {
+  if (pct >= 80) return COLORS.tokenDown;
+  if (pct >= 50) return COLORS.warning;
+  return COLORS.tokenUp;
+}
+
 function hintFor(status: AgentStatus): string {
   switch (status.kind) {
     case "ready":
@@ -114,12 +121,17 @@ export function StatusBar({
       <Box flexDirection="row" flexWrap="wrap" width="100%">
         <Box flexDirection="row">
           <Badge status={status} model={model} />
+          {pct !== undefined && (
+            <Box paddingLeft={1}>
+              <Text color={COLORS.muted}>· ctx:</Text>
+              <Text color={ctxColor(pct)}>{pct}%</Text>
+            </Box>
+          )}
           <Box paddingLeft={1}>{hint && <Text color={COLORS.muted}>{hint}</Text>}</Box>
         </Box>
         <Box flexGrow={1} />
         <Text color={COLORS.text}>
           {inputTokens.toLocaleString()} <Text color={COLORS.tokenUp}>↑</Text>
-          {pct !== undefined ? ` (${pct}%)` : ""}
         </Text>
         <Text color={COLORS.muted}> · </Text>
         <Text color={COLORS.text}>

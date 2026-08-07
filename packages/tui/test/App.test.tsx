@@ -35,7 +35,8 @@ describe("App status wiring", () => {
         }}
       />,
     );
-    expect(out).toContain("50,000 ↑ (50%)");
+    expect(out).toContain("ctx:50%");
+    expect(out).toContain("50,000 ↑");
     expect(out).toContain("100,000/200,000");
     expect(out).toContain("$1.50");
   });

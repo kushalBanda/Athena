@@ -3,7 +3,6 @@ import { render } from "ink";
 import { PassThrough } from "stream";
 
 export function stripAnsi(str: string): string {
-  // eslint-disable-next-line no-control-regex
   return str.replace(/\x1B\[[0-9;]*[mGKHF]/g, "");
 }
 

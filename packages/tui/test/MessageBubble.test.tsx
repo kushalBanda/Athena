@@ -9,14 +9,19 @@ function msg(overrides: Partial<Message>): Message {
 }
 
 describe("MessageBubble", () => {
-  it("labels user messages as 'you'", async () => {
+  it("marks user messages with '>'", async () => {
     const out = await renderToString(<MessageBubble message={msg({ role: "user", content: "hello" })} />);
-    expect(out).toContain("you");
+    expect(out).toContain("> hello");
   });
 
-  it("labels assistant messages as 'athena'", async () => {
+  it("marks assistant messages with '●'", async () => {
     const out = await renderToString(<MessageBubble message={msg({ role: "assistant", content: "hi" })} />);
-    expect(out).toContain("athena");
+    expect(out).toContain("● hi");
+  });
+
+  it("renders a standalone timing line", async () => {
+    const out = await renderToString(<MessageBubble message={msg({ role: "timing", content: "Crunched for 3s" })} />);
+    expect(out).toContain("* Crunched for 3s");
   });
 
   it("renders message content", async () => {

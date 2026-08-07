@@ -502,6 +502,7 @@ async function main() {
     const callbacks = createCallbacks(tui, adapterState, requestPermission);
 
     const priorHistory = history;
+    const turnStartedAt = Date.now();
     const abortController = new AbortController();
     currentTurnAbort = abortController;
     let agentSession;
@@ -534,6 +535,9 @@ async function main() {
     }
     if (wasAborted) {
       sysMsg(tui, "cancelled (ctrl+c) — partial turn saved");
+    } else {
+      const elapsedS = Math.round((Date.now() - turnStartedAt) / 1000);
+      tui.addMessage({ id: crypto.randomUUID(), role: "timing", content: `Crunched for ${elapsedS}s` });
     }
   };
 

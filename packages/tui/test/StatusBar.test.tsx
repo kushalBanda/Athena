@@ -112,8 +112,28 @@ describe("StatusBar", () => {
         contextLimit={200_000}
       />,
     );
-    expect(out).toContain("50,000 ↑ (50%)");
+    expect(out).toContain("ctx:50%");
+    expect(out).toContain("50,000 ↑");
     expect(out).toContain("100,000/200,000");
+  });
+
+  it("color-codes the ctx percentage as a resource meter (green/amber/red)", async () => {
+    const low = await renderToString(
+      <StatusBar model="m" cwd="/tmp" inputTokens={10_000} outputTokens={0} status={READY} contextLimit={200_000} />,
+    );
+    expect(low).toContain("ctx:5%");
+
+    const high = await renderToString(
+      <StatusBar model="m" cwd="/tmp" inputTokens={190_000} outputTokens={0} status={READY} contextLimit={200_000} />,
+    );
+    expect(high).toContain("ctx:95%");
+  });
+
+  it("hides the ctx segment when no contextLimit is given", async () => {
+    const out = await renderToString(
+      <StatusBar model="m" cwd="/tmp" inputTokens={0} outputTokens={0} status={READY} />,
+    );
+    expect(out).not.toContain("ctx:");
   });
 
   it("prefers a real costUsd over the static pricing table", async () => {
