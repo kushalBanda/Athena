@@ -2,7 +2,6 @@ import type { AgentCallbacks as CoreCallbacks, ActiveToolCall, AgentMessage } fr
 import type { AgentCallbacks as TuiCallbacks, Message } from "@athena/tui";
 import { parseUnifiedDiff } from "./diff-parse.js";
 
-/** Renders a persisted/resumed AgentMessage[] as TUI chat messages (no live streaming state). */
 export function agentMessagesToTuiMessages(messages: AgentMessage[]): Message[] {
   const out: Message[] = [];
   for (const msg of messages) {
@@ -80,7 +79,6 @@ export function createCallbacks(
 
     onAssistantToken: (token: string) => {
       if (state.streamingMessageId === null) {
-        // first token: create streaming message
         const id = crypto.randomUUID();
         state.streamingMessageId = id;
         state.streamingContent = token;
@@ -95,7 +93,6 @@ export function createCallbacks(
     },
 
     onToolCall: (call: ActiveToolCall) => {
-      // finalize any in-progress stream before showing tool call
       if (state.streamingMessageId !== null) {
         tui.updateMessage(state.streamingMessageId, { streaming: false });
         state.streamingMessageId = null;

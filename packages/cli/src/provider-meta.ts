@@ -6,7 +6,6 @@ export interface ProviderMeta {
   readonly needsKey: boolean;
 }
 
-/** Single source of truth for provider display names + key requirement, shared by `setup.tsx` and `/provider`. */
 export const PROVIDER_META: readonly ProviderMeta[] = [
   { id: "anthropic", label: "Anthropic (Claude)", needsKey: true },
   { id: "gemini", label: "Google Gemini", needsKey: true },

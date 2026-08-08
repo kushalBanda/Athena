@@ -89,7 +89,7 @@ Usage:
   athena                              interactive TUI
   athena -p "task"                    non-interactive, print to stdout and exit
   athena --continue, -c               resume the most recent session for this directory
-                                       (also works with -p, to continue a scripted session)
+                                      (also works with -p, to continue a scripted session)
   athena --resume <session-id>        resume a specific session by id (printed on exit)
   athena --provider <name>            override provider: anthropic|ollama|gemini|azure|bedrock
   athena --model <id>                 override model id

@@ -46,7 +46,6 @@ function readConfigFile(): ConfigFile {
   }
 }
 
-/** Persists provider + per-provider model choice so it survives restarts. */
 export function saveConfig(patch: { provider?: ProviderName; model?: string }): void {
   const dir = dirname(configPath());
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
@@ -68,7 +67,7 @@ export function saveConfig(patch: { provider?: ProviderName; model?: string }): 
         file.bedrock = { ...file.bedrock, model: patch.model };
         break;
       default:
-        break; // azure model lives in deploymentName, not settable via /model
+        break;
     }
   }
 

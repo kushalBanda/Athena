@@ -1,11 +1,5 @@
 import type { DiffLine } from "@athena/tui";
 
-/**
- * Parses a unified diff string (as produced by the `diff` npm package's
- * createTwoFilesPatch) into flat DiffLine[] for TUI rendering. Skips file
- * headers (---/+++), hunk headers (@@), and the Index: line; keeps only
- * content lines.
- */
 export function parseUnifiedDiff(patch: string): DiffLine[] {
   const lines: DiffLine[] = [];
 

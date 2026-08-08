@@ -43,7 +43,6 @@ function readRawAuthFile(): RawAuthFile {
   }
 }
 
-/** Provider-keyed entries only, strictly typed — otlpHeaders is excluded and read separately. */
 function readAuthData(): AuthData {
   const raw = readRawAuthFile();
   const data: AuthData = {};
