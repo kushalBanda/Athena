@@ -6,21 +6,11 @@
 
 ### Installing and running Athena
 
-Athena can be installed via the following package managers:
+Run the following to install Athena:
 
 ```shell
-# Install using npm
-npm install -g @athena/cli
+curl -fsSL https://raw.githubusercontent.com/kushalBanda/Athena/main/scripts/install.sh | bash
 ```
-
-```shell
-# Run without installing
-npx @athena/cli
-bunx @athena/cli
-```
-
-> [!NOTE]
-> A `curl | bash` installer and Homebrew tap are planned but not published yet — npm is the only distribution channel today.
 
 Then simply run `athena` to get started.
 
