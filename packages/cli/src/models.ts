@@ -1,4 +1,4 @@
-import type { ProviderName } from "@athena/providers";
+import { BEDROCK_MODEL_IDS, type ProviderName } from "@athena/providers";
 
 export const MODEL_CATALOG: Record<ProviderName, string[]> = {
   anthropic: [
@@ -11,6 +11,13 @@ export const MODEL_CATALOG: Record<ProviderName, string[]> = {
   gemini: ["gemini-2.5-pro", "gemini-2.5-flash"],
   ollama: ["llama3.1", "qwen2.5-coder", "deepseek-coder-v2", "mistral"],
   azure: [],
+  bedrock: [...BEDROCK_MODEL_IDS],
 };
 
-export const PROVIDER_CATALOG: ProviderName[] = ["anthropic", "gemini", "azure", "ollama"];
+export const PROVIDER_CATALOG: ProviderName[] = [
+  "anthropic",
+  "gemini",
+  "azure",
+  "ollama",
+  "bedrock",
+];

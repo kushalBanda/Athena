@@ -21,7 +21,8 @@ import {
   setApiKey,
 } from "./auth.js";
 import { loadConfig, loadObservabilityConfig, saveConfig } from "./config.js";
-import { MODEL_CATALOG, PROVIDER_CATALOG } from "./models.js";
+import { MODEL_CATALOG } from "./models.js";
+import { PROVIDER_META, getProviderMeta } from "./provider-meta.js";
 import { runSetup } from "./setup.js";
 import type { SetupResult } from "./setup.js";
 
@@ -90,7 +91,7 @@ Usage:
   athena --continue, -c               resume the most recent session for this directory
                                        (also works with -p, to continue a scripted session)
   athena --resume <session-id>        resume a specific session by id (printed on exit)
-  athena --provider <name>            override provider: anthropic|ollama|gemini|azure
+  athena --provider <name>            override provider: anthropic|ollama|gemini|azure|bedrock
   athena --model <id>                 override model id
 
   athena setup                        interactive first-run setup (choose provider + key)
@@ -327,7 +328,9 @@ async function main() {
       ? SessionManager.continueRecent(cwd)
       : SessionManager.create(cwd);
   if (args.resumeSessionId && !sessionManager.getSessionId().startsWith(args.resumeSessionId)) {
-    console.error(`athena: no session found matching "${args.resumeSessionId}" — started a new session instead`);
+    console.error(
+      `athena: no session found matching "${args.resumeSessionId}" — started a new session instead`,
+    );
   }
   sessionSpan.setAttribute("session.id", sessionManager.getSessionId());
   let history: AgentMessage[] = sessionManager.buildSessionContext().messages;
@@ -345,7 +348,7 @@ async function main() {
         tui,
         [
           "/model [id]              switch model (opens picker if no id given)",
-          "/provider [name]         switch provider (opens picker if no name given)",
+          "/provider                switch provider (opens picker)",
           "/key <provider> <key>    store API key in auth.json",
           "/status                  show current provider + model",
           "/clear                   clear chat history, start a new session",
@@ -432,10 +435,32 @@ async function main() {
       void (async () => {
         let pName = parts[1] as ProviderName | undefined;
         if (!pName) {
-          const picked = await tui.pickFromList("provider", PROVIDER_CATALOG);
+          const options = PROVIDER_META.map((p) => ({
+            label: `${p.label}${p.needsKey ? (getApiKey(p.id) ? " ✓" : " — needs key") : ""}`,
+            value: p.id,
+          }));
+          const picked = await tui.pickFromList("provider", options);
           if (!picked) return;
           pName = picked as ProviderName;
         }
+
+        const meta = getProviderMeta(pName);
+        if (meta.needsKey && !getApiKey(pName)) {
+          const key = await tui.promptForText(`${meta.label} — API key`, { mask: true });
+          if (!key) {
+            sysMsg(tui, "provider switch cancelled");
+            return;
+          }
+          setApiKey(pName, key);
+          session.cfg = {
+            ...session.cfg,
+            providerConfig: {
+              ...session.cfg.providerConfig,
+              [pName]: { ...session.cfg.providerConfig[pName], apiKey: key },
+            },
+          };
+        }
+
         try {
           session.provider = createProvider(pName, session.cfg.providerConfig);
           tui.setContextLimit(session.provider.contextLimit);
@@ -537,7 +562,11 @@ async function main() {
       sysMsg(tui, "cancelled (ctrl+c) — partial turn saved");
     } else {
       const elapsedS = Math.round((Date.now() - turnStartedAt) / 1000);
-      tui.addMessage({ id: crypto.randomUUID(), role: "timing", content: `Crunched for ${elapsedS}s` });
+      tui.addMessage({
+        id: crypto.randomUUID(),
+        role: "timing",
+        content: `Crunched for ${elapsedS}s`,
+      });
     }
   };
 

@@ -32,6 +32,7 @@ const ENV_VARS: Record<string, string[]> = {
   ollama: [],
   gemini: ["GEMINI_API_KEY"],
   azure: ["AZURE_OPENAI_API_KEY"],
+  bedrock: ["AWS_BEARER_TOKEN_BEDROCK"],
 };
 
 function readRawAuthFile(): RawAuthFile {

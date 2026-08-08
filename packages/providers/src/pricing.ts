@@ -17,6 +17,10 @@ const PRICING: readonly PricingEntry[] = [
   { match: "gpt-4o", pricing: { inputPerM: 2.5, outputPerM: 10 } },
   { match: "gemini-2.5-pro", pricing: { inputPerM: 1.25, outputPerM: 10 } },
   { match: "gemini-2.5-flash", pricing: { inputPerM: 0.3, outputPerM: 2.5 } },
+  // Bedrock model ids (e.g. "anthropic.claude-sonnet-4-6-v1") match the existing
+  // claude-* entries above via substring — AWS docs: pricing is identical
+  // across bedrock-mantle/-runtime and native Anthropic per-token price.
+  { match: "claude-sonnet-4-6", pricing: { inputPerM: 3, outputPerM: 15 } },
 ];
 
 export function estimateCost(

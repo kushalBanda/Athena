@@ -3,13 +3,9 @@ import TextInput from "ink-text-input";
 import React, { useState } from "react";
 import { setApiKey, setOtlpHeaders } from "./auth.js";
 import { saveObservabilityConfig } from "./config.js";
+import { PROVIDER_META } from "./provider-meta.js";
 
-const PROVIDERS = [
-  { id: "anthropic", label: "Anthropic (Claude)", needsKey: true },
-  { id: "gemini", label: "Google Gemini", needsKey: true },
-  { id: "azure", label: "Azure OpenAI", needsKey: true },
-  { id: "ollama", label: "Ollama (local, no key)", needsKey: false },
-] as const;
+const PROVIDERS = PROVIDER_META;
 
 type ProviderId = (typeof PROVIDERS)[number]["id"];
 

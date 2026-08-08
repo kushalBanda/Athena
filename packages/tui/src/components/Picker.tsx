@@ -1,11 +1,16 @@
 import React, { useMemo, useState } from "react";
 import { Box, Text, useInput } from "ink";
+import type { PickerOption } from "../types.js";
 
 interface Props {
   title: string;
-  options: string[];
+  options: readonly (string | PickerOption)[];
   onSelect: (value: string) => void;
   onCancel: () => void;
+}
+
+function toOption(opt: string | PickerOption): PickerOption {
+  return typeof opt === "string" ? { label: opt, value: opt } : opt;
 }
 
 function fuzzyScore(query: string, target: string): number | null {
@@ -30,13 +35,15 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
   const [query, setQuery] = useState("");
   const [idx, setIdx] = useState(0);
 
+  const normalized = useMemo(() => options.map(toOption), [options]);
+
   const filtered = useMemo(() => {
-    const scored = options
-      .map((opt) => ({ opt, score: fuzzyScore(query, opt) }))
-      .filter((r): r is { opt: string; score: number } => r.score !== null);
+    const scored = normalized
+      .map((opt) => ({ opt, score: fuzzyScore(query, opt.label) }))
+      .filter((r): r is { opt: PickerOption; score: number } => r.score !== null);
     scored.sort((a, b) => a.score - b.score);
     return scored.map((r) => r.opt);
-  }, [options, query]);
+  }, [normalized, query]);
 
   const clampedIdx = Math.min(idx, Math.max(filtered.length - 1, 0));
 
@@ -47,7 +54,7 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
     }
     if (key.return) {
       const picked = filtered[clampedIdx];
-      if (picked) onSelect(picked);
+      if (picked) onSelect(picked.value);
       return;
     }
     if (key.upArrow) {
@@ -78,9 +85,9 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
       <Box flexDirection="column">
         {filtered.length === 0 && <Text color="#888899">no matches</Text>}
         {filtered.slice(0, 8).map((opt, i) => (
-          <Text key={opt} color={i === clampedIdx ? "green" : "#888899"} bold={i === clampedIdx}>
+          <Text key={opt.value} color={i === clampedIdx ? "green" : "#888899"} bold={i === clampedIdx}>
             {i === clampedIdx ? "▶ " : "  "}
-            {opt}
+            {opt.label}
           </Text>
         ))}
       </Box>

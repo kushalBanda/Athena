@@ -1,16 +1,18 @@
 import { AnthropicProvider } from "./anthropic/index.js";
 import { AzureOpenAIProvider, type AzureConfig } from "./azure/index.js";
+import { BedrockProvider, type BedrockConfig } from "./bedrock/index.js";
 import { GeminiProvider } from "./gemini/index.js";
 import { OllamaProvider } from "./ollama/index.js";
 import type { LLMProvider } from "./types.js";
 
-export type ProviderName = "anthropic" | "ollama" | "gemini" | "azure";
+export type ProviderName = "anthropic" | "ollama" | "gemini" | "azure" | "bedrock";
 
 export interface ProviderConfig {
   anthropic?: { apiKey: string; model?: string };
   ollama?: { model?: string; baseUrl?: string; apiKey?: string };
   gemini?: { apiKey: string; model?: string };
   azure?: AzureConfig;
+  bedrock?: BedrockConfig;
 }
 
 export function createProvider(name: ProviderName, config: ProviderConfig): LLMProvider {
@@ -33,6 +35,11 @@ export function createProvider(name: ProviderName, config: ProviderConfig): LLMP
       const c = config.azure;
       if (!c) throw new Error("azure config missing");
       return new AzureOpenAIProvider(c);
+    }
+    case "bedrock": {
+      const c = config.bedrock;
+      if (!c) throw new Error("bedrock config missing");
+      return new BedrockProvider(c);
     }
   }
 }

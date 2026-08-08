@@ -30,6 +30,7 @@ interface ConfigFile {
     deploymentName: string;
     apiVersion?: string;
   };
+  bedrock?: { model?: string; region?: string };
   observability?: {
     enabled?: boolean;
     otlpEndpoint?: string;
@@ -62,6 +63,9 @@ export function saveConfig(patch: { provider?: ProviderName; model?: string }): 
         break;
       case "ollama":
         file.ollama = { ...file.ollama, model: patch.model };
+        break;
+      case "bedrock":
+        file.bedrock = { ...file.bedrock, model: patch.model };
         break;
       default:
         break; // azure model lives in deploymentName, not settable via /model
@@ -129,6 +133,11 @@ export function loadConfig(): AthenaConfig {
     gemini: {
       apiKey: getApiKey("gemini") ?? "",
       ...(geminiModel !== undefined ? { model: geminiModel } : {}),
+    },
+    bedrock: {
+      apiKey: getApiKey("bedrock") ?? "",
+      ...(file.bedrock?.model !== undefined ? { model: file.bedrock.model } : {}),
+      ...(file.bedrock?.region !== undefined ? { region: file.bedrock.region } : {}),
     },
   };
 

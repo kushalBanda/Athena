@@ -22,9 +22,19 @@ export interface Message {
   streaming?: boolean;
 }
 
+export interface PickerOption {
+  readonly label: string;
+  readonly value: string;
+}
+
 export interface PickerState {
   title: string;
-  options: string[];
+  options: readonly (string | PickerOption)[];
+}
+
+export interface TextPromptState {
+  title: string;
+  mask: boolean;
 }
 
 export type AgentStatus =
@@ -44,5 +54,6 @@ export interface AppState {
   contextLimit?: number;
   costUsd?: number;
   picker: PickerState | null;
+  textPrompt: TextPromptState | null;
   ctrlCArmed: boolean;
 }

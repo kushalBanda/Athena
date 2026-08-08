@@ -6,10 +6,11 @@ import { Welcome } from "./components/Welcome.js";
 import { ChatView } from "./components/ChatView.js";
 import { InputBox } from "./components/InputBox.js";
 import { Picker } from "./components/Picker.js";
+import { TextPrompt } from "./components/TextPrompt.js";
 import { getGitInfo } from "./git-info.js";
 import { walkFiles } from "./lib/file-walk.js";
 import { expandMentions } from "./lib/expand-mentions.js";
-import type { AgentStatus, AppState, Message } from "./types.js";
+import type { AgentStatus, AppState, Message, PickerOption } from "./types.js";
 
 export interface AgentCallbacks {
   addMessage: (m: Message) => void;
@@ -21,7 +22,11 @@ export interface AgentCallbacks {
   addCost: (usd: number) => void;
   clearMessages: () => void;
   setCtrlCArmed: (armed: boolean) => void;
-  pickFromList: (title: string, options: string[]) => Promise<string | null>;
+  pickFromList: (
+    title: string,
+    options: readonly (string | PickerOption)[],
+  ) => Promise<string | null>;
+  promptForText: (title: string, opts?: { mask?: boolean }) => Promise<string | null>;
 }
 
 interface Props {
@@ -40,6 +45,7 @@ const DEFAULT_STATE: AppState = {
   inputTokens: 0,
   outputTokens: 0,
   picker: null,
+  textPrompt: null,
   ctrlCArmed: false,
 };
 
@@ -50,6 +56,7 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
   const [initialModel] = useState(() => state.model);
   const [mentionCandidates, setMentionCandidates] = useState<string[]>([]);
   const pickerResolveRef = useRef<((value: string | null) => void) | null>(null);
+  const textPromptResolveRef = useRef<((value: string | null) => void) | null>(null);
 
   useEffect(() => {
     walkFiles(state.cwd)
@@ -57,17 +64,37 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
       .catch(() => setMentionCandidates([]));
   }, []);
 
-  const pickFromList = useCallback((title: string, options: string[]): Promise<string | null> => {
-    return new Promise((resolve) => {
-      pickerResolveRef.current = resolve;
-      setState((s) => ({ ...s, picker: { title, options } }));
-    });
-  }, []);
+  const pickFromList = useCallback(
+    (title: string, options: readonly (string | PickerOption)[]): Promise<string | null> => {
+      return new Promise((resolve) => {
+        pickerResolveRef.current = resolve;
+        setState((s) => ({ ...s, picker: { title, options } }));
+      });
+    },
+    [],
+  );
 
   const resolvePicker = useCallback((value: string | null) => {
     const resolve = pickerResolveRef.current;
     pickerResolveRef.current = null;
     setState((s) => ({ ...s, picker: null }));
+    resolve?.(value);
+  }, []);
+
+  const promptForText = useCallback(
+    (title: string, opts?: { mask?: boolean }): Promise<string | null> => {
+      return new Promise((resolve) => {
+        textPromptResolveRef.current = resolve;
+        setState((s) => ({ ...s, textPrompt: { title, mask: opts?.mask ?? false } }));
+      });
+    },
+    [],
+  );
+
+  const resolveTextPrompt = useCallback((value: string | null) => {
+    const resolve = textPromptResolveRef.current;
+    textPromptResolveRef.current = null;
+    setState((s) => ({ ...s, textPrompt: null }));
     resolve?.(value);
   }, []);
 
@@ -87,13 +114,18 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
     updateMessage,
     setModel: (model) => setState((s) => ({ ...s, model })),
     addTokens: (input, output) =>
-      setState((s) => ({ ...s, inputTokens: s.inputTokens + input, outputTokens: s.outputTokens + output })),
+      setState((s) => ({
+        ...s,
+        inputTokens: s.inputTokens + input,
+        outputTokens: s.outputTokens + output,
+      })),
     setStatus: (status) => setState((s) => ({ ...s, status })),
     setContextLimit: (limit) => setState((s) => ({ ...s, contextLimit: limit })),
     addCost: (usd) => setState((s) => ({ ...s, costUsd: (s.costUsd ?? 0) + usd })),
     clearMessages: () => setState((s) => ({ ...s, messages: [] })),
     setCtrlCArmed: (armed) => setState((s) => ({ ...s, ctrlCArmed: armed })),
     pickFromList,
+    promptForText,
   };
 
   useEffect(() => {
@@ -132,7 +164,11 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
 
   return (
     <Box flexDirection="column">
-      <ChatView header={header} messages={state.messages} thinking={state.status.kind !== "ready"} />
+      <ChatView
+        header={header}
+        messages={state.messages}
+        thinking={state.status.kind !== "ready"}
+      />
       {state.picker && (
         <Picker
           title={state.picker.title}
@@ -141,9 +177,19 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
           onCancel={() => resolvePicker(null)}
         />
       )}
+      {state.textPrompt && (
+        <TextPrompt
+          title={state.textPrompt.title}
+          mask={state.textPrompt.mask}
+          onSubmit={(value) => resolveTextPrompt(value)}
+          onCancel={() => resolveTextPrompt(null)}
+        />
+      )}
       <InputBox
         onSubmit={handleSubmit}
-        disabled={state.status.kind !== "ready" || state.picker !== null}
+        disabled={
+          state.status.kind !== "ready" || state.picker !== null || state.textPrompt !== null
+        }
         mentionCandidates={mentionCandidates}
       />
       <StatusBar
