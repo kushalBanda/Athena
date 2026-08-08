@@ -146,4 +146,5 @@ vite.config.ts.timestamp-*
 .claude/
 .codegraph/
 docs/
+scripts/
 CLAUDE.md
