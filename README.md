@@ -1,4 +1,4 @@
-<p align="center">Athena — The open source AI coding agent.</p>
+Athena — The open source AI coding agent.
 
 ---
 
@@ -14,15 +14,14 @@ curl -fsSL https://raw.githubusercontent.com/kushalBanda/Athena/main/scripts/ins
 
 Then simply run `athena` to get started.
 
-<details>
-<summary>Building from source (monorepo)</summary>
+Building from source
 
 ```shell
 bun install
 bun run --cwd packages/cli dev
 ```
 
-</details>
+
 
 ### Using Athena with a provider
 
@@ -56,26 +55,36 @@ athena -p "Refactor src/index.ts to use async/await"
 athena --provider gemini --model gemini-1.5-pro
 ```
 
+
+
 ### Slash commands (TUI)
 
-| Command | Description |
-| --- | --- |
-| `/help` | Show all available slash commands |
-| `/model [id]` | Switch model (opens picker if no id given) |
-| `/provider [name]` | Switch provider (opens picker if no name given) |
-| `/key <provider> <key>` | Store an API key without leaving the TUI |
-| `/status` | Display current provider, model, and stored keys |
-| `/clear` | Clear chat history |
-| `/exit` or `/quit` | Quit Athena |
+
+| Command                 | Description                                      |
+| ----------------------- | ------------------------------------------------ |
+| `/help`                 | Show all available slash commands                |
+| `/model [id]`           | Switch model (opens picker if no id given)       |
+| `/provider [name]`      | Switch provider (opens picker if no name given)  |
+| `/key <provider> <key>` | Store an API key without leaving the TUI         |
+| `/status`               | Display current provider, model, and stored keys |
+| `/clear`                | Clear chat history                               |
+| `/exit` or `/quit`      | Quit Athena                                      |
+
+
+
 
 ### Supported providers
 
-| Provider | Flag name | Notes |
-| --- | --- | --- |
-| Anthropic | `anthropic` | Claude models; requires `ANTHROPIC_API_KEY` or stored key |
-| Google Gemini | `gemini` | Requires `GEMINI_API_KEY` or stored key |
-| Ollama | `ollama` | Local models; no API key needed |
-| Azure OpenAI | `azure` | Requires endpoint, deployment, and API key |
+
+| Provider      | Flag name   | Notes                                                     |
+| ------------- | ----------- | --------------------------------------------------------- |
+| Anthropic     | `anthropic` | Claude models; requires `ANTHROPIC_API_KEY` or stored key |
+| Google Gemini | `gemini`    | Requires `GEMINI_API_KEY` or stored key                   |
+| Ollama        | `ollama`    | Local models; no API key needed                           |
+| Azure OpenAI  | `azure`     | Requires endpoint, deployment, and API key                |
+
+
+
 
 ### Options
 

@@ -15,7 +15,7 @@ curl -fsSL https://raw.githubusercontent.com/kushalBanda/Athena/main/scripts/ins
 Then simply run `athena` to get started.
 
 <details>
-<summary>Building from source (monorepo)</summary>
+<summary>Building from source</summary>
 
 ```shell
 bun install
