@@ -347,9 +347,8 @@ async function main() {
       sysMsg(
         tui,
         [
-          "/model [id]              switch model (opens picker if no id given)",
+          "/model                   switch model (opens picker)",
           "/provider                switch provider (opens picker)",
-          "/key <provider> <key>    store API key in auth.json",
           "/status                  show current provider + model",
           "/clear                   clear chat history, start a new session",
           "/resume                  pick a previous session to resume",
@@ -472,33 +471,6 @@ async function main() {
           sysMsg(tui, `unknown provider: ${pName}`);
         }
       })();
-      return true;
-    }
-
-    if (cmd === "key") {
-      const prov = parts[1];
-      const key = parts[2];
-      if (!prov || !key) {
-        sysMsg(tui, "usage: /key <provider> <api-key>");
-        return true;
-      }
-      setApiKey(prov, key);
-      const provKey = prov as keyof typeof session.cfg.providerConfig;
-      session.cfg = {
-        ...session.cfg,
-        providerConfig: {
-          ...session.cfg.providerConfig,
-          [provKey]: { ...session.cfg.providerConfig[provKey], apiKey: getApiKey(prov) },
-        },
-      };
-      if (prov === session.provider.name) {
-        session.provider = createProvider(
-          prov as Parameters<typeof createProvider>[0],
-          session.cfg.providerConfig,
-        );
-        tui.setContextLimit(session.provider.contextLimit);
-      }
-      sysMsg(tui, `saved ${prov} key to auth.json`);
       return true;
     }
 

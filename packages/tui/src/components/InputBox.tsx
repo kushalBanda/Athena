@@ -9,9 +9,8 @@ interface SlashCommand {
 }
 
 const SLASH_COMMANDS: SlashCommand[] = [
-  { name: "/model",    args: "[id]",          hint: "switch model — opens picker if no id given" },
-  { name: "/provider",                          hint: "switch provider — opens picker" },
-  { name: "/key",      args: "<provider> <key>", hint: "store API key in auth.json" },
+  { name: "/model",                             hint: "switch model" },
+  { name: "/provider",                          hint: "switch provider" },
   { name: "/status",                            hint: "show provider, model, stored keys" },
   { name: "/clear",                             hint: "clear chat history" },
   { name: "/help",                              hint: "list all commands" },
@@ -107,9 +106,6 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
           return;
         }
         if (key.return) {
-          // A no-arg command already fully typed (e.g. "/provider") has nothing left
-          // to complete — fall through to submit instead of re-applying the same
-          // suggestion forever.
           const sel = hasSlashSuggestions ? slashSuggestions[selectedIdx] : undefined;
           const completed = sel ? (sel.args ? `${sel.name} ` : sel.name) : undefined;
           const alreadyComplete = hasSlashSuggestions && completed === value;

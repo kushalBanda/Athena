@@ -53,7 +53,7 @@ export class BedrockProvider implements LLMProvider {
             api: "chat-completions",
             client: new OpenAI({
               apiKey: config.apiKey,
-              baseURL: `https://bedrock-mantle.${region}.api.aws/v1`,
+              baseURL: `https://bedrock-mantle.${region}.api.aws/${info.basePath === "openai-v1" ? "openai/v1" : "v1"}`,
             }),
           };
   }

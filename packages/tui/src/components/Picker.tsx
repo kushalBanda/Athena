@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from "react";
 import { Box, Text, useInput } from "ink";
+import { useMemo, useState } from "react";
 import type { PickerOption } from "../types.js";
 
 interface Props {
@@ -31,6 +31,8 @@ function fuzzyScore(query: string, target: string): number | null {
   return lastMatch - firstMatch;
 }
 
+const WINDOW_SIZE = 8;
+
 export function Picker({ title, options, onSelect, onCancel }: Props) {
   const [query, setQuery] = useState("");
   const [idx, setIdx] = useState(0);
@@ -46,6 +48,15 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
   }, [normalized, query]);
 
   const clampedIdx = Math.min(idx, Math.max(filtered.length - 1, 0));
+
+  const maxWindowStart = Math.max(0, filtered.length - WINDOW_SIZE);
+  const windowStart = Math.min(
+    maxWindowStart,
+    Math.max(0, clampedIdx - Math.floor(WINDOW_SIZE / 2)),
+  );
+  const visible = filtered.slice(windowStart, windowStart + WINDOW_SIZE);
+  const hiddenAbove = windowStart;
+  const hiddenBelow = Math.max(0, filtered.length - windowStart - visible.length);
 
   useInput((input, key) => {
     if (key.escape) {
@@ -77,19 +88,40 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
   });
 
   return (
-    <Box flexDirection="column" borderStyle="round" borderColor="#00D9FF" paddingX={1} marginX={1} marginBottom={1}>
+    <Box
+      flexDirection="column"
+      borderStyle="round"
+      borderColor="#00D9FF"
+      paddingX={1}
+      marginX={1}
+      marginBottom={1}
+    >
       <Box marginBottom={1}>
-        <Text bold color="#00D9FF">{title} </Text>
+        <Text bold color="#00D9FF">
+          {title}{" "}
+        </Text>
         <Text dimColor>{query || "type to filter…"}</Text>
+        {filtered.length > WINDOW_SIZE && (
+          <Text color="#444455">{`  ${clampedIdx + 1}/${filtered.length}`}</Text>
+        )}
       </Box>
       <Box flexDirection="column">
         {filtered.length === 0 && <Text color="#888899">no matches</Text>}
-        {filtered.slice(0, 8).map((opt, i) => (
-          <Text key={opt.value} color={i === clampedIdx ? "green" : "#888899"} bold={i === clampedIdx}>
-            {i === clampedIdx ? "▶ " : "  "}
-            {opt.label}
-          </Text>
-        ))}
+        {hiddenAbove > 0 && <Text color="#444455">{`  ↑ ${hiddenAbove} more`}</Text>}
+        {visible.map((opt, i) => {
+          const actualIdx = windowStart + i;
+          return (
+            <Text
+              key={opt.value}
+              color={actualIdx === clampedIdx ? "green" : "#888899"}
+              bold={actualIdx === clampedIdx}
+            >
+              {actualIdx === clampedIdx ? "▶ " : "  "}
+              {opt.label}
+            </Text>
+          );
+        })}
+        {hiddenBelow > 0 && <Text color="#444455">{`  ↓ ${hiddenBelow} more`}</Text>}
       </Box>
       <Box marginTop={1}>
         <Text dimColor>↑↓ navigate · Enter select · Esc cancel</Text>
