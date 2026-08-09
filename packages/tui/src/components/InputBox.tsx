@@ -11,6 +11,7 @@ interface SlashCommand {
 const SLASH_COMMANDS: SlashCommand[] = [
   { name: "/model",                             hint: "switch model" },
   { name: "/provider",                          hint: "switch provider" },
+  { name: "/effort",                            hint: "switch reasoning effort" },
   { name: "/status",                            hint: "show provider, model, stored keys" },
   { name: "/clear",                             hint: "clear chat history" },
   { name: "/compact",                           hint: "manually compact the session context" },

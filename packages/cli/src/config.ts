@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import type { ProviderConfig, ProviderName } from "@athena/providers";
+import type { EffortLevel, ProviderConfig, ProviderName } from "@athena/providers";
 import type { McpServerConfig } from "@athena/tools";
 import {
   readGlobalMcpConfig,
@@ -30,14 +30,15 @@ export interface AthenaConfig {
 interface ConfigFile {
   provider?: string;
   model?: string;
-  anthropic?: { model?: string };
+  anthropic?: { model?: string; effort?: EffortLevel };
   ollama?: { model?: string; baseUrl?: string };
-  gemini?: { model?: string };
+  gemini?: { model?: string; effort?: EffortLevel };
   azure?: {
     endpoint: string;
     apiKey: string;
     deploymentName: string;
     apiVersion?: string;
+    effort?: EffortLevel;
   };
   bedrock?: { model?: string; region?: string };
   observability?: {
@@ -56,7 +57,11 @@ function readConfigFile(): ConfigFile {
   }
 }
 
-export function saveConfig(patch: { provider?: ProviderName; model?: string }): void {
+export function saveConfig(patch: {
+  provider?: ProviderName;
+  model?: string;
+  effort?: EffortLevel;
+}): void {
   const dir = dirname(configPath());
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
 
@@ -75,6 +80,21 @@ export function saveConfig(patch: { provider?: ProviderName; model?: string }): 
         break;
       case "bedrock":
         file.bedrock = { ...file.bedrock, model: patch.model };
+        break;
+      default:
+        break;
+    }
+  }
+  if (patch.effort !== undefined) {
+    switch (patch.provider) {
+      case "anthropic":
+        file.anthropic = { ...file.anthropic, effort: patch.effort };
+        break;
+      case "gemini":
+        file.gemini = { ...file.gemini, effort: patch.effort };
+        break;
+      case "azure":
+        if (file.azure) file.azure = { ...file.azure, effort: patch.effort };
         break;
       default:
         break;
@@ -134,6 +154,7 @@ export function loadConfig(): AthenaConfig {
     anthropic: {
       apiKey: getApiKey("anthropic") ?? "",
       ...(anthropicModel !== undefined ? { model: anthropicModel } : {}),
+      ...(file.anthropic?.effort !== undefined ? { effort: file.anthropic.effort } : {}),
     },
     ollama: {
       ...(ollamaModel !== undefined ? { model: ollamaModel } : {}),
@@ -142,6 +163,7 @@ export function loadConfig(): AthenaConfig {
     gemini: {
       apiKey: getApiKey("gemini") ?? "",
       ...(geminiModel !== undefined ? { model: geminiModel } : {}),
+      ...(file.gemini?.effort !== undefined ? { effort: file.gemini.effort } : {}),
     },
     bedrock: {
       apiKey: getApiKey("bedrock") ?? "",
@@ -156,6 +178,7 @@ export function loadConfig(): AthenaConfig {
       apiKey: getApiKey("azure") ?? file.azure.apiKey,
       deployment: file.azure.deploymentName,
       ...(file.azure.apiVersion !== undefined ? { apiVersion: file.azure.apiVersion } : {}),
+      ...(file.azure.effort !== undefined ? { effort: file.azure.effort } : {}),
     };
   }
 

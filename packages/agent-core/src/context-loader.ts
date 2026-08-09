@@ -53,6 +53,7 @@ export async function buildSystemPrompt(
   tools: Tool[],
   customPrompt?: string,
   modelId?: string,
+  effort?: string,
 ): Promise<string> {
   const codeContext = await loadCodegraphContext(cwd, userMessage);
 
@@ -63,6 +64,7 @@ export async function buildSystemPrompt(
       isGitRepo: isGitRepo(cwd),
       date: new Date().toDateString(),
       ...(modelId !== undefined ? { modelId } : {}),
+      ...(effort !== undefined ? { effort } : {}),
     },
     toolNames: tools.map((t) => t.name),
     ...(customPrompt !== undefined ? { customPrompt } : {}),

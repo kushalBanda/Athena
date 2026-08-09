@@ -51,6 +51,7 @@ export interface AppState {
   messages: Message[];
   status: AgentStatus;
   model: string;
+  effort: string | undefined;
   cwd: string;
   inputTokens: number;
   outputTokens: number;

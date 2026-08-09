@@ -16,6 +16,7 @@ export interface AgentCallbacks {
   addMessage: (m: Message) => void;
   updateMessage: (id: string, patch: Partial<Omit<Message, "id">>) => void;
   setModel: (model: string) => void;
+  setEffort: (effort: string | undefined) => void;
   addTokens: (input: number, output: number, cacheRead?: number, cacheWrite?: number) => void;
   setStatus: (status: AgentStatus) => void;
   setContextLimit: (limit: number) => void;
@@ -44,6 +45,7 @@ const DEFAULT_STATE: AppState = {
   messages: [],
   status: READY,
   model: "claude-opus-5",
+  effort: undefined,
   cwd: process.cwd(),
   inputTokens: 0,
   outputTokens: 0,
@@ -131,6 +133,7 @@ export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Pr
     addMessage,
     updateMessage,
     setModel: (model) => setState((s) => ({ ...s, model })),
+    setEffort: (effort) => setState((s) => ({ ...s, effort })),
     addTokens: (input, output, cacheRead = 0, cacheWrite = 0) =>
       setState((s) => ({
         ...s,
@@ -226,6 +229,7 @@ export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Pr
       />
       <StatusBar
         model={state.model}
+        {...(state.effort !== undefined ? { effort: state.effort } : {})}
         cwd={state.cwd}
         inputTokens={state.inputTokens}
         outputTokens={state.outputTokens}

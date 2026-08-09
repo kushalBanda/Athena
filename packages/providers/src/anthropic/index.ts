@@ -1,7 +1,10 @@
 import Anthropic from "@anthropic-ai/sdk";
+import { THINKING_BUDGET_TOKENS, type EffortLevel } from "../effort.js";
 import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 import { cacheableSystemBlock } from "./cache.js";
 import { toAnthropicMessages, toAnthropicTools } from "./transform.js";
+
+const BASE_MAX_TOKENS = 8096;
 
 export class AnthropicProvider implements LLMProvider {
   readonly name = "anthropic";
@@ -9,11 +12,18 @@ export class AnthropicProvider implements LLMProvider {
   readonly model: string;
 
   private client: Anthropic;
+  private effort: EffortLevel | undefined;
 
-  constructor(apiKey: string, model = "claude-sonnet-4-6", contextLimit = 200_000) {
+  constructor(
+    apiKey: string,
+    model = "claude-sonnet-4-6",
+    contextLimit = 200_000,
+    effort?: EffortLevel,
+  ) {
     this.client = new Anthropic({ apiKey });
     this.model = model;
     this.contextLimit = contextLimit;
+    this.effort = effort;
   }
 
   async *chat(
@@ -24,12 +34,14 @@ export class AnthropicProvider implements LLMProvider {
   ): AsyncIterable<Delta> {
     // Anthropic caches by exact-prefix match, not by a caller-supplied key, so
     // sessionId isn't used here — breakpoints alone control what's cached.
+    const budgetTokens = this.effort ? THINKING_BUDGET_TOKENS[this.effort] : undefined;
     const stream = await this.client.messages.stream({
       model: this.model,
-      max_tokens: 8096,
+      max_tokens: budgetTokens ? budgetTokens + BASE_MAX_TOKENS : BASE_MAX_TOKENS,
       messages: toAnthropicMessages(messages, { cacheLastBlock: true }),
       ...(systemPrompt ? { system: cacheableSystemBlock(systemPrompt) } : {}),
       ...(tools.length > 0 ? { tools: toAnthropicTools(tools, { cacheLastTool: true }) } : {}),
+      ...(budgetTokens ? { thinking: { type: "enabled" as const, budget_tokens: budgetTokens } } : {}),
     });
 
     const blockIds = new Map<number, string>();

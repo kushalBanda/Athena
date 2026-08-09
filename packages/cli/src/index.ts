@@ -2,8 +2,8 @@
 import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, newId, runAgent } from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
-import { createProvider } from "@athena/providers";
-import type { ProviderName } from "@athena/providers";
+import { createProvider, PROVIDER_EFFORT_LEVELS } from "@athena/providers";
+import type { EffortLevel, ProviderName } from "@athena/providers";
 import { createRegistryWithMcp } from "@athena/tools";
 import { App } from "@athena/tui";
 import type { AgentCallbacks as TuiCallbacks } from "@athena/tui";
@@ -367,12 +367,14 @@ async function main() {
     const printAbort = new AbortController();
     currentTurnAbort = printAbort;
 
+    const printEffort = currentEffort(session.provider.name as ProviderName);
     const printResult = await runAgent(message, {
       provider: session.provider,
       tools,
       cwd,
       sessionHistory: printHistory,
       signal: printAbort.signal,
+      ...(printEffort !== undefined ? { effort: printEffort } : {}),
       callbacks: {
         onThinking: () => {},
         onAssistantToken: (t: string) => process.stdout.write(t),
@@ -419,6 +421,10 @@ async function main() {
     tui.addMessage({ id: crypto.randomUUID(), role: "system", content });
   }
 
+  function currentEffort(provName: ProviderName): EffortLevel | undefined {
+    return (session.cfg.providerConfig[provName] as { effort?: EffortLevel } | undefined)?.effort;
+  }
+
   async function handleSlashCommand(text: string, tui: TuiCallbacks): Promise<boolean> {
     const parts = text.slice(1).trim().split(/\s+/);
     const cmd = parts[0]?.toLowerCase();
@@ -429,6 +435,7 @@ async function main() {
         [
           "/model                   switch model (opens picker)",
           "/provider                switch provider (opens picker)",
+          "/effort                  switch reasoning effort (opens picker)",
           "/status                  show current provider + model",
           "/clear                   clear chat history, start a new session",
           "/compact                 manually compact the session context",
@@ -504,14 +511,50 @@ async function main() {
 
     if (cmd === "status") {
       const configured = getConfiguredProviders();
+      const provName = session.provider.name as ProviderName;
+      const effort = currentEffort(provName);
       sysMsg(
         tui,
         [
           `provider : ${session.provider.name}`,
           `model    : ${session.cfg.model ?? "(default)"}`,
+          `effort   : ${effort ?? (PROVIDER_EFFORT_LEVELS[provName].length > 0 ? "(default)" : "unsupported")}`,
           `keys     : ${configured.length === 0 ? "none" : configured.join(", ")}`,
         ].join("\n"),
       );
+      return true;
+    }
+
+    if (cmd === "effort") {
+      await (async () => {
+        const provName = session.provider.name as ProviderName;
+        const levels = PROVIDER_EFFORT_LEVELS[provName];
+        if (levels.length === 0) {
+          sysMsg(tui, `reasoning effort isn't supported for ${provName}`);
+          return;
+        }
+        let level = parts[1] as EffortLevel | undefined;
+        if (level && !levels.includes(level)) {
+          sysMsg(tui, `${provName} supports: ${levels.join(", ")}`);
+          return;
+        }
+        if (!level) {
+          const picked = await tui.pickFromList("effort", levels);
+          if (!picked) return;
+          level = picked as EffortLevel;
+        }
+        session.cfg = {
+          ...session.cfg,
+          providerConfig: {
+            ...session.cfg.providerConfig,
+            [provName]: { ...session.cfg.providerConfig[provName], effort: level },
+          },
+        };
+        session.provider = createProvider(provName, session.cfg.providerConfig);
+        saveConfig({ provider: provName, effort: level });
+        tui.setEffort(level);
+        sysMsg(tui, `effort → ${level}`);
+      })();
       return true;
     }
 
@@ -577,6 +620,7 @@ async function main() {
           session.cfg = { ...session.cfg, provider: pName };
           saveConfig({ provider: pName });
           tui.setModel(session.provider.model);
+          tui.setEffort(currentEffort(pName));
           sysMsg(tui, `provider → ${pName}`);
         } catch {
           sysMsg(tui, `unknown provider: ${pName}`);
@@ -634,6 +678,7 @@ async function main() {
     currentTurnAbort = abortController;
     let agentSession;
     try {
+      const turnEffort = currentEffort(session.provider.name as ProviderName);
       agentSession = await runAgent(msg, {
         provider: session.provider,
         tools,
@@ -641,6 +686,7 @@ async function main() {
         callbacks,
         sessionHistory: history,
         signal: abortController.signal,
+        ...(turnEffort !== undefined ? { effort: turnEffort } : {}),
       });
     } catch (err) {
       currentTurnAbort = null;
@@ -702,6 +748,9 @@ async function main() {
     React.createElement(App, {
       initialState: {
         model: session.provider.model,
+        ...(currentEffort(session.provider.name as ProviderName) !== undefined
+          ? { effort: currentEffort(session.provider.name as ProviderName) }
+          : {}),
         cwd,
         contextLimit: session.provider.contextLimit,
         messages: agentMessagesToTuiMessages(history),

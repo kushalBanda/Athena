@@ -1,4 +1,5 @@
 import { AzureOpenAI } from "openai";
+import type { EffortLevel } from "../effort.js";
 import { yieldOpenAIStream } from "../openai-shared/transform.js";
 import { estimateCharsAsTokens } from "../token-estimate.js";
 import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
@@ -8,6 +9,7 @@ export interface AzureConfig {
   apiKey: string;
   deployment: string;
   apiVersion?: string;
+  effort?: EffortLevel;
 }
 
 export class AzureOpenAIProvider implements LLMProvider {
@@ -17,6 +19,7 @@ export class AzureOpenAIProvider implements LLMProvider {
 
   private client: AzureOpenAI;
   private deployment: string;
+  private effort: "low" | "medium" | "high" | undefined;
 
   constructor(config: AzureConfig) {
     this.client = new AzureOpenAI({
@@ -27,6 +30,7 @@ export class AzureOpenAIProvider implements LLMProvider {
     });
     this.deployment = config.deployment;
     this.model = config.deployment;
+    this.effort = config.effort === "xhigh" || config.effort === "max" ? "high" : config.effort;
   }
 
   async *chat(
@@ -42,6 +46,7 @@ export class AzureOpenAIProvider implements LLMProvider {
       tools,
       systemPrompt,
       sessionId,
+      this.effort,
     );
   }
 

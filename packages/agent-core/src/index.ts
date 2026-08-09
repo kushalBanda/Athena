@@ -21,8 +21,8 @@ export interface AgentRunOptions {
   callbacks: AgentCallbacks;
   signal?: AbortSignal;
   compactionSettings?: CompactionSettings;
-  /** Forwarded to `runLoop` as the provider cache-key hint; pass the persisted session id once session resume exists, otherwise omit. */
   sessionId?: string;
+  effort?: string;
 }
 
 export async function runAgent(
@@ -38,9 +38,17 @@ export async function runAgent(
     signal,
     compactionSettings = DEFAULT_COMPACTION_SETTINGS,
     sessionId,
+    effort,
   } = options;
 
-  const systemPrompt = await buildSystemPrompt(cwd, userMessage, tools, options.systemPrompt);
+  const systemPrompt = await buildSystemPrompt(
+    cwd,
+    userMessage,
+    tools,
+    options.systemPrompt,
+    provider.model,
+    effort,
+  );
 
   const userMsg: AgentMessage = {
     id: newId(),

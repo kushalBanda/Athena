@@ -1,4 +1,5 @@
 import { GoogleGenAI, type Part } from "@google/genai";
+import { THINKING_BUDGET_TOKENS, type EffortLevel } from "../effort.js";
 import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 
 export class GeminiProvider implements LLMProvider {
@@ -7,10 +8,12 @@ export class GeminiProvider implements LLMProvider {
   readonly model: string;
 
   private client: GoogleGenAI;
+  private effort: EffortLevel | undefined;
 
-  constructor(apiKey: string, model = "gemini-2.5-pro") {
+  constructor(apiKey: string, model = "gemini-2.5-pro", effort?: EffortLevel) {
     this.client = new GoogleGenAI({ apiKey });
     this.model = model;
+    this.effort = effort;
   }
 
   async *chat(
@@ -19,7 +22,6 @@ export class GeminiProvider implements LLMProvider {
     systemPrompt?: string,
     _sessionId?: string,
   ): AsyncIterable<Delta> {
-    // Gemini 2.5+ caches implicitly server-side; no client action needed.
     const geminiContents = toGeminiContents(messages, systemPrompt);
 
     const stream = await this.client.models.generateContentStream({
@@ -38,6 +40,9 @@ export class GeminiProvider implements LLMProvider {
                 },
               ],
             }
+          : {}),
+        ...(this.effort
+          ? { thinkingConfig: { thinkingBudget: THINKING_BUDGET_TOKENS[this.effort] } }
           : {}),
       },
     });

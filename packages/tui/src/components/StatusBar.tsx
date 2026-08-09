@@ -5,6 +5,7 @@ import { Spinner } from "./Spinner.js";
 
 interface Props {
   model: string;
+  effort?: string;
   cwd: string;
   inputTokens: number;
   outputTokens: number;
@@ -31,13 +32,37 @@ const COLORS = {
   cacheWrite: "#FBBF24",
 } as const;
 
+const EFFORT_ORDER = ["low", "medium", "high", "xhigh", "max"] as const;
+
+const EFFORT_COLORS: Record<(typeof EFFORT_ORDER)[number], string> = {
+  low: "#4ADE80",
+  medium: "#00D9FF",
+  high: "#FBBF24",
+  xhigh: "#FF9F1C",
+  max: "#FF5555",
+};
+
+const EFFORT_GLYPHS: Record<(typeof EFFORT_ORDER)[number], string> = {
+  low: "◔",
+  medium: "◑",
+  high: "◕",
+  xhigh: "●",
+  max: "⬤",
+};
+
+function EffortDot({ effort }: { effort: string }) {
+  const level = EFFORT_ORDER.find((l) => l === effort);
+  if (!level) return null;
+  return <Text color={EFFORT_COLORS[level]}>{EFFORT_GLYPHS[level]}</Text>;
+}
+
 function formatCost(usd: number): string {
   if (usd < 0.01) return `$${usd.toFixed(4)}`;
   if (usd < 1) return `$${usd.toFixed(3)}`;
   return `$${usd.toFixed(2)}`;
 }
 
-/** Green/amber/red resource-meter coding — same convention a disk/memory gauge would use. */
+// One glyph per level, ascending fill — a single circle that fills up rather than a row of dots.
 function ctxColor(pct: number): string {
   if (pct >= 80) return COLORS.tokenDown;
   if (pct >= 50) return COLORS.warning;
@@ -60,7 +85,7 @@ function hintFor(status: AgentStatus): string {
   }
 }
 
-function Badge({ status, model }: { status: AgentStatus; model: string }) {
+function Badge({ status, model, effort }: { status: AgentStatus; model: string; effort?: string }) {
   switch (status.kind) {
     case "thinking":
       return (
@@ -108,6 +133,11 @@ function Badge({ status, model }: { status: AgentStatus; model: string }) {
             {" "}
             {model}{" "}
           </Text>
+          {effort !== undefined && (
+            <Box paddingLeft={1}>
+              <EffortDot effort={effort} />
+            </Box>
+          )}
         </Box>
       );
     default: {
@@ -119,6 +149,7 @@ function Badge({ status, model }: { status: AgentStatus; model: string }) {
 
 export function StatusBar({
   model,
+  effort,
   cwd,
   inputTokens,
   outputTokens,
@@ -140,7 +171,7 @@ export function StatusBar({
     <Box flexDirection="column" width="100%">
       <Box flexDirection="row" flexWrap="wrap" width="100%">
         <Box flexDirection="row">
-          <Badge status={status} model={model} />
+          <Badge status={status} model={model} {...(effort !== undefined ? { effort } : {})} />
           {pct !== undefined && (
             <Box paddingLeft={1}>
               <Text color={COLORS.muted}>· ctx:</Text>

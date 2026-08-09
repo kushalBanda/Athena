@@ -4,6 +4,8 @@ export interface SystemPromptEnv {
   isGitRepo: boolean;
   date: string;
   modelId?: string;
+  /** Reasoning-effort level ("low"|"medium"|"high"|"xhigh"|"max"), if the current provider supports it. */
+  effort?: string;
 }
 
 export function buildEnvBlock(env: SystemPromptEnv): string {
@@ -14,6 +16,7 @@ export function buildEnvBlock(env: SystemPromptEnv): string {
     `  Is directory a git repo: ${env.isGitRepo ? "yes" : "no"}`,
     `  Today's date: ${env.date}`,
     ...(env.modelId ? [`  Model: ${env.modelId}`] : []),
+    ...(env.effort ? [`  Reasoning effort: ${env.effort}`] : []),
     "</env>",
   ].join("\n");
 }

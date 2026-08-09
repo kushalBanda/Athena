@@ -23,3 +23,5 @@ export type { BedrockConfig } from "./bedrock/index.js";
 export { BEDROCK_MODEL_IDS } from "./bedrock/models.js";
 export { createProvider } from "./factory.js";
 export type { ProviderName, ProviderConfig } from "./factory.js";
+export { EFFORT_LEVELS, PROVIDER_EFFORT_LEVELS, supportsEffort } from "./effort.js";
+export type { EffortLevel } from "./effort.js";
