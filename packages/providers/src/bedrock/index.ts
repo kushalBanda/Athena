@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
+import { cacheableSystemBlock } from "../anthropic/cache.js";
 import { toAnthropicMessages, toAnthropicTools } from "../anthropic/transform.js";
 import { yieldOpenAIStream } from "../openai-shared/transform.js";
 import { estimateCharsAsTokens } from "../token-estimate.js";
@@ -58,8 +59,15 @@ export class BedrockProvider implements LLMProvider {
           };
   }
 
-  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+  async *chat(
+    messages: Message[],
+    tools: ToolDef[],
+    systemPrompt?: string,
+    _sessionId?: string,
+  ): AsyncIterable<Delta> {
     if (this.target.api === "chat-completions") {
+      // Cache-key support isn't confirmed for arbitrary Bedrock-routed
+      // OpenAI-compatible models, so it's deliberately not forwarded.
       yield* yieldOpenAIStream(this.target.client, this.model, messages, tools, systemPrompt);
       return;
     }
@@ -67,9 +75,9 @@ export class BedrockProvider implements LLMProvider {
     const stream = await this.target.client.messages.stream({
       model: this.model,
       max_tokens: 8096,
-      messages: toAnthropicMessages(messages),
-      ...(systemPrompt ? { system: systemPrompt } : {}),
-      ...(tools.length > 0 ? { tools: toAnthropicTools(tools) } : {}),
+      messages: toAnthropicMessages(messages, { cacheLastBlock: true }),
+      ...(systemPrompt ? { system: cacheableSystemBlock(systemPrompt) } : {}),
+      ...(tools.length > 0 ? { tools: toAnthropicTools(tools, { cacheLastTool: true }) } : {}),
     });
 
     const blockIds = new Map<number, string>();

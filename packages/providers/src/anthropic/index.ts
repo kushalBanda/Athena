@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
+import { cacheableSystemBlock } from "./cache.js";
 import { toAnthropicMessages, toAnthropicTools } from "./transform.js";
 
 export class AnthropicProvider implements LLMProvider {
@@ -15,13 +16,20 @@ export class AnthropicProvider implements LLMProvider {
     this.contextLimit = contextLimit;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+  async *chat(
+    messages: Message[],
+    tools: ToolDef[],
+    systemPrompt?: string,
+    _sessionId?: string,
+  ): AsyncIterable<Delta> {
+    // Anthropic caches by exact-prefix match, not by a caller-supplied key, so
+    // sessionId isn't used here — breakpoints alone control what's cached.
     const stream = await this.client.messages.stream({
       model: this.model,
       max_tokens: 8096,
-      messages: toAnthropicMessages(messages),
-      ...(systemPrompt ? { system: systemPrompt } : {}),
-      ...(tools.length > 0 ? { tools: toAnthropicTools(tools) } : {}),
+      messages: toAnthropicMessages(messages, { cacheLastBlock: true }),
+      ...(systemPrompt ? { system: cacheableSystemBlock(systemPrompt) } : {}),
+      ...(tools.length > 0 ? { tools: toAnthropicTools(tools, { cacheLastTool: true }) } : {}),
     });
 
     const blockIds = new Map<number, string>();

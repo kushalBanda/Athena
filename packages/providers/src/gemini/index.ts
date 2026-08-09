@@ -13,7 +13,13 @@ export class GeminiProvider implements LLMProvider {
     this.model = model;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
+  async *chat(
+    messages: Message[],
+    tools: ToolDef[],
+    systemPrompt?: string,
+    _sessionId?: string,
+  ): AsyncIterable<Delta> {
+    // Gemini 2.5+ caches implicitly server-side; no client action needed.
     const geminiContents = toGeminiContents(messages, systemPrompt);
 
     const stream = await this.client.models.generateContentStream({
@@ -70,7 +76,9 @@ export class GeminiProvider implements LLMProvider {
   }
 
   async countTokens(messages: Message[]): Promise<number> {
-    const { contents } = toGeminiContents(messages) as { contents: { role: string; parts: Part[] }[] };
+    const { contents } = toGeminiContents(messages) as {
+      contents: { role: string; parts: Part[] }[];
+    };
     const result = await this.client.models.countTokens({
       model: this.model,
       contents,

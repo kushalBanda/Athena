@@ -1,5 +1,9 @@
-import type { AgentCallbacks as CoreCallbacks, ActiveToolCall, AgentMessage } from "@athena/agent-core";
-import type { AgentCallbacks as TuiCallbacks, Message } from "@athena/tui";
+import type {
+  ActiveToolCall,
+  AgentMessage,
+  AgentCallbacks as CoreCallbacks,
+} from "@athena/agent-core";
+import type { Message, AgentCallbacks as TuiCallbacks } from "@athena/tui";
 import { parseUnifiedDiff } from "./diff-parse.js";
 
 export function agentMessagesToTuiMessages(messages: AgentMessage[]): Message[] {
@@ -26,7 +30,12 @@ export function agentMessagesToTuiMessages(messages: AgentMessage[]): Message[] 
       const text = extractText(msg.content);
       const toolCalls = msg.content
         .filter((b): b is Extract<typeof b, { type: "tool_call" }> => b.type === "tool_call")
-        .map((b) => ({ id: b.id, name: b.name, args: JSON.stringify(b.input), status: "ok" as const }));
+        .map((b) => ({
+          id: b.id,
+          name: b.name,
+          args: JSON.stringify(b.input),
+          status: "ok" as const,
+        }));
       out.push({
         id: msg.id,
         role: "assistant",
@@ -65,6 +74,8 @@ export interface AdapterState {
   streamingContent: string;
   lastInputTokens: number;
   lastOutputTokens: number;
+  lastCacheReadTokens: number;
+  lastCacheWriteTokens: number;
 }
 
 export function createCallbacks(
@@ -103,12 +114,19 @@ export function createCallbacks(
       const msg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
-        toolCalls: [{ id: call.id, name: call.name, args: JSON.stringify(call.input), status: "pending" }],
+        toolCalls: [
+          { id: call.id, name: call.name, args: JSON.stringify(call.input), status: "pending" },
+        ],
       };
       tui.addMessage(msg);
     },
 
-    onToolResult: (id: string, result: string, status: "ok" | "err", metadata?: Record<string, unknown>) => {
+    onToolResult: (
+      id: string,
+      result: string,
+      status: "ok" | "err",
+      metadata?: Record<string, unknown>,
+    ) => {
       state.currentToolCallId = null;
       if (status === "err") {
         tui.setStatus({ kind: "error", message: result.slice(0, 120) });
@@ -140,10 +158,17 @@ export function createCallbacks(
       });
     },
 
-    onTokenUpdate: (input: number, output: number) => {
-      tui.addTokens(input - state.lastInputTokens, output - state.lastOutputTokens);
+    onTokenUpdate: (input: number, output: number, cacheRead = 0, cacheWrite = 0) => {
+      tui.addTokens(
+        input - state.lastInputTokens,
+        output - state.lastOutputTokens,
+        cacheRead - state.lastCacheReadTokens,
+        cacheWrite - state.lastCacheWriteTokens,
+      );
       state.lastInputTokens = input;
       state.lastOutputTokens = output;
+      state.lastCacheReadTokens = cacheRead;
+      state.lastCacheWriteTokens = cacheWrite;
     },
 
     ...(permissionRequest !== undefined ? { onPermissionRequest: permissionRequest } : {}),

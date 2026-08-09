@@ -1,22 +1,22 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
 import { Box, useApp } from "ink";
-import { StatusBar } from "./components/StatusBar.js";
-import { TopBar } from "./components/TopBar.js";
-import { Welcome } from "./components/Welcome.js";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatView } from "./components/ChatView.js";
 import { InputBox } from "./components/InputBox.js";
 import { Picker } from "./components/Picker.js";
+import { StatusBar } from "./components/StatusBar.js";
 import { TextPrompt } from "./components/TextPrompt.js";
+import { TopBar } from "./components/TopBar.js";
+import { Welcome } from "./components/Welcome.js";
 import { getGitInfo } from "./git-info.js";
-import { walkFiles } from "./lib/file-walk.js";
 import { expandMentions } from "./lib/expand-mentions.js";
+import { walkFiles } from "./lib/file-walk.js";
 import type { AgentStatus, AppState, Message, PickerOption } from "./types.js";
 
 export interface AgentCallbacks {
   addMessage: (m: Message) => void;
   updateMessage: (id: string, patch: Partial<Omit<Message, "id">>) => void;
   setModel: (model: string) => void;
-  addTokens: (input: number, output: number) => void;
+  addTokens: (input: number, output: number, cacheRead?: number, cacheWrite?: number) => void;
   setStatus: (status: AgentStatus) => void;
   setContextLimit: (limit: number) => void;
   addCost: (usd: number) => void;
@@ -44,6 +44,8 @@ const DEFAULT_STATE: AppState = {
   cwd: process.cwd(),
   inputTokens: 0,
   outputTokens: 0,
+  cacheReadTokens: 0,
+  cacheWriteTokens: 0,
   picker: null,
   textPrompt: null,
   ctrlCArmed: false,
@@ -113,11 +115,13 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
     addMessage,
     updateMessage,
     setModel: (model) => setState((s) => ({ ...s, model })),
-    addTokens: (input, output) =>
+    addTokens: (input, output, cacheRead = 0, cacheWrite = 0) =>
       setState((s) => ({
         ...s,
         inputTokens: s.inputTokens + input,
         outputTokens: s.outputTokens + output,
+        cacheReadTokens: s.cacheReadTokens + cacheRead,
+        cacheWriteTokens: s.cacheWriteTokens + cacheWrite,
       })),
     setStatus: (status) => setState((s) => ({ ...s, status })),
     setContextLimit: (limit) => setState((s) => ({ ...s, contextLimit: limit })),
@@ -197,6 +201,8 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
         cwd={state.cwd}
         inputTokens={state.inputTokens}
         outputTokens={state.outputTokens}
+        cacheReadTokens={state.cacheReadTokens}
+        cacheWriteTokens={state.cacheWriteTokens}
         status={state.status}
         ctrlCArmed={state.ctrlCArmed}
         {...(state.contextLimit !== undefined ? { contextLimit: state.contextLimit } : {})}

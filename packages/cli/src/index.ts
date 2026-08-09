@@ -490,6 +490,8 @@ async function main() {
       streamingContent: "",
       lastInputTokens: 0,
       lastOutputTokens: 0,
+      lastCacheReadTokens: 0,
+      lastCacheWriteTokens: 0,
     };
     const requestPermission = async (toolName: string, input: unknown): Promise<boolean> => {
       const summary = JSON.stringify(input).slice(0, 200);

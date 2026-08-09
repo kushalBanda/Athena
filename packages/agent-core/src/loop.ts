@@ -27,6 +27,8 @@ export interface LoopOptions {
   callbacks: AgentCallbacks;
   signal?: AbortSignal;
   compactionSettings?: CompactionSettings;
+  /** Stable id passed to providers as a cache-key hint (e.g. OpenAI `prompt_cache_key`). Defaults to a fresh id per loop run — in-memory only, never persisted. */
+  sessionId?: string;
 }
 
 export async function runLoop(options: LoopOptions): Promise<AgentSession> {
@@ -38,6 +40,7 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
     callbacks,
     signal,
     compactionSettings = DEFAULT_COMPACTION_SETTINGS,
+    sessionId = crypto.randomUUID(),
   } = options;
 
   const registry = new Map<string, Tool>(tools.map((t) => [t.name, t]));
@@ -95,7 +98,12 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
         const providerMessages = toProviderMessages(messages);
 
         const turnInputEstimate = tokens;
-        callbacks.onTokenUpdate(totalUsage.input + turnInputEstimate, totalUsage.output);
+        callbacks.onTokenUpdate(
+          totalUsage.input + turnInputEstimate,
+          totalUsage.output,
+          totalUsage.cacheRead,
+          totalUsage.cacheWrite,
+        );
 
         const chatSpan = tracer.startSpan("llm.chat", {
           attributes: {
@@ -105,7 +113,12 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
         });
 
         try {
-          for await (const delta of provider.chat(providerMessages, toolDefs, systemPrompt)) {
+          for await (const delta of provider.chat(
+            providerMessages,
+            toolDefs,
+            systemPrompt,
+            sessionId,
+          )) {
             if (signal?.aborted) break;
 
             if (delta.type === "text") {
@@ -114,6 +127,8 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
               callbacks.onTokenUpdate(
                 totalUsage.input + turnInputEstimate,
                 totalUsage.output + charsToTokens(assistantText.length),
+                totalUsage.cacheRead,
+                totalUsage.cacheWrite,
               );
             } else if (delta.type === "tool_call") {
               let pending = pendingToolCalls.find((p) => p.id === delta.id);
@@ -189,7 +204,12 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
           if (lastUsage.costUsd !== undefined) {
             totalUsage.costUsd = (totalUsage.costUsd ?? 0) + lastUsage.costUsd;
           }
-          callbacks.onTokenUpdate(totalUsage.input, totalUsage.output);
+          callbacks.onTokenUpdate(
+            totalUsage.input,
+            totalUsage.output,
+            totalUsage.cacheRead,
+            totalUsage.cacheWrite,
+          );
         }
 
         if (toolCalls.length === 0) return true;

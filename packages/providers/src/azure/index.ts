@@ -1,7 +1,7 @@
 import { AzureOpenAI } from "openai";
-import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 import { yieldOpenAIStream } from "../openai-shared/transform.js";
 import { estimateCharsAsTokens } from "../token-estimate.js";
+import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 
 export interface AzureConfig {
   endpoint: string;
@@ -29,8 +29,20 @@ export class AzureOpenAIProvider implements LLMProvider {
     this.model = config.deployment;
   }
 
-  async *chat(messages: Message[], tools: ToolDef[], systemPrompt?: string): AsyncIterable<Delta> {
-    yield* yieldOpenAIStream(this.client, this.deployment, messages, tools, systemPrompt);
+  async *chat(
+    messages: Message[],
+    tools: ToolDef[],
+    systemPrompt?: string,
+    sessionId?: string,
+  ): AsyncIterable<Delta> {
+    yield* yieldOpenAIStream(
+      this.client,
+      this.deployment,
+      messages,
+      tools,
+      systemPrompt,
+      sessionId,
+    );
   }
 
   async countTokens(messages: Message[]): Promise<number> {

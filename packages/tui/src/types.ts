@@ -51,6 +51,8 @@ export interface AppState {
   cwd: string;
   inputTokens: number;
   outputTokens: number;
+  cacheReadTokens: number;
+  cacheWriteTokens: number;
   contextLimit?: number;
   costUsd?: number;
   picker: PickerState | null;

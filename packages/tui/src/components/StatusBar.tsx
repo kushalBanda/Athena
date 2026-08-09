@@ -1,14 +1,15 @@
-import React from "react";
-import { Box, Text } from "ink";
 import { estimateCost } from "@athena/providers";
-import { Spinner } from "./Spinner.js";
+import { Box, Text } from "ink";
 import type { AgentStatus } from "../types.js";
+import { Spinner } from "./Spinner.js";
 
 interface Props {
   model: string;
   cwd: string;
   inputTokens: number;
   outputTokens: number;
+  cacheReadTokens?: number;
+  cacheWriteTokens?: number;
   status: AgentStatus;
   contextLimit?: number;
   costUsd?: number;
@@ -63,33 +64,48 @@ function Badge({ status, model }: { status: AgentStatus; model: string }) {
       return (
         <Box paddingX={1}>
           <Spinner color={COLORS.highlight} />
-          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}> THINKING </Text>
+          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}>
+            {" "}
+            THINKING{" "}
+          </Text>
         </Box>
       );
     case "tool":
       return (
         <Box paddingX={1}>
           <Spinner color={COLORS.highlight} />
-          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}> TOOL: {status.name} </Text>
+          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}>
+            {" "}
+            TOOL: {status.name}{" "}
+          </Text>
         </Box>
       );
     case "compacting":
       return (
         <Box paddingX={1}>
           <Spinner color={COLORS.highlight} />
-          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}> COMPACTING </Text>
+          <Text bold backgroundColor={COLORS.highlight} color={COLORS.onHighlight}>
+            {" "}
+            COMPACTING{" "}
+          </Text>
         </Box>
       );
     case "error":
       return (
         <Box paddingX={1}>
-          <Text bold backgroundColor={COLORS.error} color={COLORS.onError}> ERROR: {status.message.slice(0, 40)} </Text>
+          <Text bold backgroundColor={COLORS.error} color={COLORS.onError}>
+            {" "}
+            ERROR: {status.message.slice(0, 40)}{" "}
+          </Text>
         </Box>
       );
     case "ready":
       return (
         <Box paddingX={1}>
-          <Text bold backgroundColor={COLORS.badgeReady} color={COLORS.text}> {model} </Text>
+          <Text bold backgroundColor={COLORS.badgeReady} color={COLORS.text}>
+            {" "}
+            {model}{" "}
+          </Text>
         </Box>
       );
     default: {
@@ -104,6 +120,8 @@ export function StatusBar({
   cwd,
   inputTokens,
   outputTokens,
+  cacheReadTokens,
+  cacheWriteTokens,
   status,
   contextLimit,
   costUsd,
@@ -145,10 +163,17 @@ export function StatusBar({
             </Text>
           </>
         )}
+        {((cacheReadTokens ?? 0) > 0 || (cacheWriteTokens ?? 0) > 0) && (
+          <Text color={COLORS.muted}>
+            {" "}
+            · cache: {(cacheReadTokens ?? 0).toLocaleString()}r/
+            {(cacheWriteTokens ?? 0).toLocaleString()}w
+          </Text>
+        )}
         {resolvedCost !== undefined && resolvedCost > 0 && (
           <Text color={COLORS.muted}> · {formatCost(resolvedCost)}</Text>
         )}
-        <Text color={COLORS.muted}>  ·  </Text>
+        <Text color={COLORS.muted}> · </Text>
         <Text color={COLORS.muted}>{displayCwd}</Text>
       </Box>
       {ctrlCArmed && (

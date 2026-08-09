@@ -75,9 +75,14 @@ export interface AgentCallbacks {
   onThinking: (active: boolean) => void;
   onAssistantToken: (token: string) => void;
   onToolCall: (toolCall: ActiveToolCall) => void;
-  onToolResult: (id: string, result: string, status: "ok" | "err", metadata?: Record<string, unknown>) => void;
+  onToolResult: (
+    id: string,
+    result: string,
+    status: "ok" | "err",
+    metadata?: Record<string, unknown>,
+  ) => void;
   onCompacting: () => void;
-  onTokenUpdate: (input: number, output: number) => void;
+  onTokenUpdate: (input: number, output: number, cacheRead?: number, cacheWrite?: number) => void;
   onPermissionRequest?: (toolName: string, input: unknown) => Promise<boolean>;
 }
 

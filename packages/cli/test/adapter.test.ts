@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import type { AgentCallbacks as TuiCallbacks, AgentStatus, Message } from "@athena/tui";
-import { createCallbacks, type AdapterState } from "../src/adapter.js";
+import type { AgentStatus, Message, AgentCallbacks as TuiCallbacks } from "@athena/tui";
+import { type AdapterState, createCallbacks } from "../src/adapter.js";
 
 function makeFakeTui(): {
   tui: TuiCallbacks;
@@ -32,6 +32,8 @@ function freshState(): AdapterState {
     streamingContent: "",
     lastInputTokens: 0,
     lastOutputTokens: 0,
+    lastCacheReadTokens: 0,
+    lastCacheWriteTokens: 0,
   };
 }
 

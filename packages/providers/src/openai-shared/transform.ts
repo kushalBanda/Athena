@@ -71,6 +71,7 @@ export async function* yieldOpenAIStream(
   messages: Message[],
   tools: ToolDef[],
   systemPrompt?: string,
+  sessionId?: string,
 ): AsyncIterable<Delta> {
   const openaiMessages = toOpenAIMessages(messages);
   const stream = await client.chat.completions.create({
@@ -79,6 +80,9 @@ export async function* yieldOpenAIStream(
       ? [{ role: "system", content: systemPrompt }, ...openaiMessages]
       : openaiMessages,
     ...(tools.length > 0 ? { tools: toOpenAITools(tools) } : {}),
+    // Server owns the cached prefix for this API; a stable key just extends
+    // its lifetime across turns instead of resetting on every call.
+    ...(sessionId ? { prompt_cache_key: sessionId } : {}),
     stream: true,
     stream_options: { include_usage: true },
   });
