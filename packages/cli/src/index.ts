@@ -412,6 +412,8 @@ async function main() {
   }
   sessionSpan.setAttribute("session.id", sessionManager.getSessionId());
   let history: AgentMessage[] = sessionManager.buildSessionContext().messages;
+  let turnInFlight = false;
+  const messageQueue: string[] = [];
 
   function sysMsg(tui: TuiCallbacks, content: string) {
     tui.addMessage({ id: crypto.randomUUID(), role: "system", content });
@@ -604,7 +606,7 @@ async function main() {
     return true;
   }
 
-  const handleUserMessage = async (msg: string, tui: TuiCallbacks): Promise<void> => {
+  const processOneMessage = async (msg: string, tui: TuiCallbacks): Promise<void> => {
     if (msg.startsWith("/")) {
       await handleSlashCommand(msg, tui);
       return;
@@ -670,6 +672,32 @@ async function main() {
     }
   };
 
+  const handleUserMessage = async (msg: string, tui: TuiCallbacks): Promise<void> => {
+    if (turnInFlight) {
+      messageQueue.push(msg);
+      tui.setQueuedMessages([...messageQueue]);
+      return;
+    }
+
+    turnInFlight = true;
+    try {
+      await processOneMessage(msg, tui);
+      while (messageQueue.length > 0) {
+        const next = messageQueue.shift()!;
+        tui.setQueuedMessages([...messageQueue]);
+        await processOneMessage(next, tui);
+      }
+    } finally {
+      turnInFlight = false;
+      tui.setStatus({ kind: "ready" });
+    }
+  };
+
+  const recallLastQueued = (): void => {
+    messageQueue.pop();
+    liveTui?.setQueuedMessages([...messageQueue]);
+  };
+
   const { waitUntilExit, unmount } = render(
     React.createElement(App, {
       initialState: {
@@ -679,6 +707,7 @@ async function main() {
         messages: agentMessagesToTuiMessages(history),
       },
       onUserMessage: handleUserMessage,
+      onRecallQueued: recallLastQueued,
       onReady: (callbacks: TuiCallbacks) => {
         liveTui = callbacks;
       },

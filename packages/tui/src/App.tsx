@@ -22,6 +22,7 @@ export interface AgentCallbacks {
   addCost: (usd: number) => void;
   clearMessages: () => void;
   setCtrlCArmed: (armed: boolean) => void;
+  setQueuedMessages: (messages: string[]) => void;
   pickFromList: (
     title: string,
     options: readonly (string | PickerOption)[],
@@ -34,6 +35,7 @@ interface Props {
   initialState?: Partial<AppState>;
   onUserMessage?: (msg: string, callbacks: AgentCallbacks) => Promise<void>;
   onReady?: (callbacks: AgentCallbacks) => void;
+  onRecallQueued?: () => void;
 }
 
 const READY: AgentStatus = { kind: "ready" };
@@ -50,9 +52,10 @@ const DEFAULT_STATE: AppState = {
   picker: null,
   textPrompt: null,
   ctrlCArmed: false,
+  queuedMessages: [],
 };
 
-export function App({ initialState, onUserMessage, onReady }: Props) {
+export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Props) {
   const { exit } = useApp();
   const { stdout } = useStdout();
   const [state, setState] = useState<AppState>({ ...DEFAULT_STATE, ...initialState });
@@ -145,6 +148,7 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
       setState((s) => ({ ...s, messages: [] }));
     },
     setCtrlCArmed: (armed) => setState((s) => ({ ...s, ctrlCArmed: armed })),
+    setQueuedMessages: (messages) => setState((s) => ({ ...s, queuedMessages: messages })),
     pickFromList,
     promptForText,
   };
@@ -168,13 +172,18 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
         try {
           const expanded = isSlash ? text : await expandMentions(text, state.cwd);
           await onUserMessage(expanded, callbacks);
-        } finally {
+        } catch (err) {
           setState((s) => (s.status.kind === "ready" ? s : { ...s, status: READY }));
+          throw err;
         }
       }
     },
     [addMessage, onUserMessage, exit, state.cwd],
   );
+
+  const handleRecallQueued = useCallback(() => {
+    onRecallQueued?.();
+  }, [onRecallQueued]);
 
   const header = (
     <Box flexDirection="column" borderStyle="round" borderColor="#3A3F52">
@@ -210,10 +219,10 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
       )}
       <InputBox
         onSubmit={handleSubmit}
-        disabled={
-          state.status.kind !== "ready" || state.picker !== null || state.textPrompt !== null
-        }
+        disabled={state.picker !== null || state.textPrompt !== null}
         mentionCandidates={mentionCandidates}
+        queuedMessages={state.queuedMessages}
+        onRecallQueued={handleRecallQueued}
       />
       <StatusBar
         model={state.model}

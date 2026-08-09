@@ -18,9 +18,16 @@ describe("App status wiring", () => {
     expect(out).toContain("Press Ctrl-C again to exit");
   });
 
-  it("a busy initialState.status hides the input cursor and shows the tool badge", async () => {
+  it("a busy status shows the tool badge but keeps the input cursor visible (typing queues while a turn runs)", async () => {
     const out = await renderToString(<App initialState={{ status: { kind: "tool", name: "grep" } }} />);
     expect(out).toContain("TOOL: grep");
+    expect(out).toContain("█");
+  });
+
+  it("an open picker hides the input cursor", async () => {
+    const out = await renderToString(
+      <App initialState={{ picker: { title: "pick one", options: ["a", "b"] } }} />,
+    );
     expect(out).not.toContain("█");
   });
 

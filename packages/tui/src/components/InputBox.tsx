@@ -24,6 +24,8 @@ interface Props {
   onSubmit: (value: string) => void;
   disabled?: boolean;
   mentionCandidates?: string[];
+  queuedMessages?: string[];
+  onRecallQueued?: () => void;
 }
 
 interface MentionTrigger {
@@ -51,7 +53,13 @@ function wordBackwardStart(value: string, cursor: number): number {
   return i;
 }
 
-export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }: Props) {
+export function InputBox({
+  onSubmit,
+  disabled = false,
+  mentionCandidates = [],
+  queuedMessages = [],
+  onRecallQueued,
+}: Props) {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState(0);
@@ -120,6 +128,13 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
         }
       }
 
+      if (key.upArrow && value === "" && queuedMessages.length > 0) {
+        const last = queuedMessages[queuedMessages.length - 1]!;
+        setValue(last);
+        setCursor(last.length);
+        onRecallQueued?.();
+        return;
+      }
       if (key.return && key.shift) {
         insertAt(cursor, "\n");
         setSelectedIdx(0);
@@ -232,6 +247,18 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
           ));
         })()}
       </Box>
+      {queuedMessages.length > 0 && (
+        <Box flexDirection="column" paddingX={1}>
+          {queuedMessages.map((msg, i) => (
+            <Text key={i} color="#555566" dimColor>
+              ⧗ {msg.length > 80 ? `${msg.slice(0, 80)}…` : msg}
+            </Text>
+          ))}
+          <Text color="#444455" dimColor>
+            {queuedMessages.length} queued · ↑ on empty input to edit the last one
+          </Text>
+        </Box>
+      )}
     </Box>
   );
 }

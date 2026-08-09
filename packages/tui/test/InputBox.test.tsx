@@ -4,6 +4,7 @@ import { InputBox } from "../src/components/InputBox.js";
 import { renderToString, renderInteractive } from "./helpers.js";
 
 const LEFT = "\x1B[D";
+const UP = "\x1B[A";
 const BACKSPACE = "\x7F";
 const ALT_BACKSPACE = "\x1B\x7F";
 const CTRL_W = "\x17";
@@ -100,6 +101,33 @@ describe("InputBox", () => {
     await handle.type(ENTER);
     expect(handle.frame()).toContain("@src/components/InputBox.tsx");
     expect(submitted).toEqual([]);
+    handle.unmount();
+  });
+
+  it("shows queued messages and lets ↑ on an empty input recall the last one", async () => {
+    let recalled = 0;
+    const handle = renderInteractive(
+      <InputBox onSubmit={() => {}} queuedMessages={["first", "second"]} onRecallQueued={() => recalled++} />,
+    );
+    expect(handle.frame()).toContain("2 queued");
+    expect(handle.frame()).toContain("first");
+    expect(handle.frame()).toContain("second");
+
+    await handle.type(UP);
+    const stripped = handle.frame().replace("█", "");
+    expect(stripped).toContain("second");
+    expect(recalled).toBe(1);
+    handle.unmount();
+  });
+
+  it("does not recall a queued message when the input already has text", async () => {
+    let recalled = 0;
+    const handle = renderInteractive(
+      <InputBox onSubmit={() => {}} queuedMessages={["queued"]} onRecallQueued={() => recalled++} />,
+    );
+    await handle.type("typing");
+    await handle.type(UP);
+    expect(recalled).toBe(0);
     handle.unmount();
   });
 

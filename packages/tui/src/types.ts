@@ -61,4 +61,5 @@ export interface AppState {
   picker: PickerState | null;
   textPrompt: TextPromptState | null;
   ctrlCArmed: boolean;
+  queuedMessages: string[];
 }
