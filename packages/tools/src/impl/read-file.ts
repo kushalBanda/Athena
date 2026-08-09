@@ -1,6 +1,8 @@
-import { Type } from "@sinclair/typebox";
 import path from "node:path";
+import { formatFromExtension, toMarkdown } from "@firecrawl/anydoc";
+import { Type } from "@sinclair/typebox";
 import { BaseTool, err, ok } from "../base.js";
+import { isConvertError } from "../lib/anydoc-convert.js";
 import type { ToolContext } from "../types.js";
 
 const Schema = Type.Object({
@@ -14,15 +16,20 @@ export class ReadFileTool extends BaseTool<typeof Schema> {
   readonly permission = "auto" as const;
   readonly schema = Schema;
 
-  protected async run(
-    input: { path: string; maxBytes?: number },
-    ctx: ToolContext,
-  ) {
+  protected async run(input: { path: string; maxBytes?: number }, ctx: ToolContext) {
     const resolved = path.resolve(ctx.workingDir, input.path);
     const file = Bun.file(resolved);
 
     if (!(await file.exists())) {
       return err(`File not found: ${resolved}`);
+    }
+
+    if (formatFromExtension(path.extname(resolved)) !== null) {
+      try {
+        return ok(await toMarkdown(resolved));
+      } catch (e) {
+        if (!isConvertError(e)) throw e;
+      }
     }
 
     const maxBytes = input.maxBytes ?? 200_000;

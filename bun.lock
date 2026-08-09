@@ -6,6 +6,7 @@
       "name": "athena",
       "devDependencies": {
         "@biomejs/biome": "^1.9.0",
+        "@firecrawl/anydoc": "^0.1.7",
         "typescript": "7.0.2",
       },
     },
@@ -77,6 +78,7 @@
       "name": "@athena/tools",
       "version": "0.1.0",
       "dependencies": {
+        "@firecrawl/anydoc": "^0.1.7",
         "@sinclair/typebox": "^0.34.52",
         "diff": "8.0.4",
         "htmlparser2": "^12.0.0",
@@ -141,6 +143,22 @@
     "@biomejs/cli-win32-arm64": ["@biomejs/cli-win32-arm64@1.9.4", "", { "os": "win32", "cpu": "arm64" }, "sha512-tlbhLk+WXZmgwoIKwHIHEBZUwxml7bRJgk0X2sPyNR3S93cdRq6XulAZRQJ17FYGGzWne0fgrXBKpl7l4M87Hg=="],
 
     "@biomejs/cli-win32-x64": ["@biomejs/cli-win32-x64@1.9.4", "", { "os": "win32", "cpu": "x64" }, "sha512-8Y5wMhVIPaWe6jw2H+KlEm4wP/f7EW3810ZLmDlrEEy5KvBsb9ECEfu/kMWD484ijfQ8+nIi0giMgu9g1UAuuA=="],
+
+    "@firecrawl/anydoc": ["@firecrawl/anydoc@0.1.7", "", { "optionalDependencies": { "@firecrawl/anydoc-darwin-arm64": "0.1.7", "@firecrawl/anydoc-darwin-x64": "0.1.7", "@firecrawl/anydoc-linux-arm64-gnu": "0.1.7", "@firecrawl/anydoc-linux-arm64-musl": "0.1.7", "@firecrawl/anydoc-linux-x64-gnu": "0.1.7", "@firecrawl/anydoc-linux-x64-musl": "0.1.7", "@firecrawl/anydoc-win32-x64-msvc": "0.1.7" }, "bin": { "anydoc": "cli.js" } }, "sha512-UbJ6I49uaeUopcxozvX3TT7bvt9Gnx2tk2wf8ykaLtrThxvY9ZIZlbY47odT+x01ce3rXH9Pkpj40A796jN7Og=="],
+
+    "@firecrawl/anydoc-darwin-arm64": ["@firecrawl/anydoc-darwin-arm64@0.1.7", "", { "os": "darwin", "cpu": "arm64" }, "sha512-1qi2pg6ija1EulitX/WkA9lkA9oa0CIFluUycFir5oP7M+Zpv1J12aEgleD/aHXr0EwiWVsRgTkGy3vBxy3rBA=="],
+
+    "@firecrawl/anydoc-darwin-x64": ["@firecrawl/anydoc-darwin-x64@0.1.7", "", { "os": "darwin", "cpu": "x64" }, "sha512-BkmkrnkcbxCQi/+YIWbtPIoM6kM5ULDLw8tjAC7EsNb+H3tyCUdUg1fkBDzhRGCBo0urocTuGkG0uVR+udH0YA=="],
+
+    "@firecrawl/anydoc-linux-arm64-gnu": ["@firecrawl/anydoc-linux-arm64-gnu@0.1.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-T+2QkmGnnOCwaGX4nuq4rri3wQRp7Q9U52kI/vEGvq9699hLUkFjMP6aYxug8WBkgavQ6wU8Hd3u9wGkU9FnJQ=="],
+
+    "@firecrawl/anydoc-linux-arm64-musl": ["@firecrawl/anydoc-linux-arm64-musl@0.1.7", "", { "os": "linux", "cpu": "arm64" }, "sha512-fiFUrHas8Gi8/G99CkuOkIN5HydSxvIsqN/fZI5jlhzkVm4ODRd47P0NRN0G0zPTKyzVvju9NypWfvZh5ptH8A=="],
+
+    "@firecrawl/anydoc-linux-x64-gnu": ["@firecrawl/anydoc-linux-x64-gnu@0.1.7", "", { "os": "linux", "cpu": "x64" }, "sha512-ezIvZ8IAfIHEXc7GW0Urt3cO2dcaS8Ko2YqZubCEGO3+4VjQz7x9ZZEBDFFr4xUSdlORyoOx7+a3OVbHaWdm2Q=="],
+
+    "@firecrawl/anydoc-linux-x64-musl": ["@firecrawl/anydoc-linux-x64-musl@0.1.7", "", { "os": "linux", "cpu": "x64" }, "sha512-5/YlfHT+u1dZ4gWgVp4QBWDQRExNDGiE5b0CvL9ZD7lOPK5N3Q+wkCl6Q5UV9/V/Ku6GgVxrI8p21TqG0ZZJlA=="],
+
+    "@firecrawl/anydoc-win32-x64-msvc": ["@firecrawl/anydoc-win32-x64-msvc@0.1.7", "", { "os": "win32", "cpu": "x64" }, "sha512-mo2jdUAxd87z9CATfN9dPiwJENaF0ZmS1Ll0Z0lWxWLN2ufqicrVZBMKU4c0+B/wX4OfzACh2Kh6J2x5918CtQ=="],
 
     "@google/genai": ["@google/genai@2.13.0", "", { "dependencies": { "google-auth-library": "^10.3.0", "p-retry": "^4.6.2", "protobufjs": "^7.5.4", "ws": "^8.18.0" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.25.2" }, "optionalPeers": ["@modelcontextprotocol/sdk"] }, "sha512-GM7C8Kaomvjz05x5JEO6+l3d/pciL9LxAG9dUjJLD7nTPZ9X0Cfsf2Z7eET6UjgWyUmxXCHtYnQoQ77F9+ZIOQ=="],
 

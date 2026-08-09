@@ -1,7 +1,9 @@
+import { formatFromBytes, toMarkdownBytes } from "@firecrawl/anydoc";
 import { Type } from "@sinclair/typebox";
 import { Parser } from "htmlparser2";
 import TurndownService from "turndown";
 import { BaseTool, err, ok } from "../base.js";
+import { isConvertError } from "../lib/anydoc-convert.js";
 import type { ToolContext } from "../types.js";
 
 const MAX_RESPONSE_BYTES = 5 * 1024 * 1024;
@@ -26,7 +28,10 @@ export class WebFetchTool extends BaseTool<typeof Schema> {
   readonly permission = "auto" as const;
   readonly schema = Schema;
 
-  protected async run(input: { url: string; format?: "markdown" | "text" | "html" }, _ctx: ToolContext) {
+  protected async run(
+    input: { url: string; format?: "markdown" | "text" | "html" },
+    _ctx: ToolContext,
+  ) {
     const format = input.format ?? "markdown";
 
     try {
@@ -42,6 +47,16 @@ export class WebFetchTool extends BaseTool<typeof Schema> {
 
       if (raw.byteLength > MAX_RESPONSE_BYTES) {
         return err(`Response too large (${raw.byteLength} bytes)`);
+      }
+
+      const bytes = new Uint8Array(raw);
+      const docFormat = formatFromBytes(bytes);
+      if (docFormat !== null) {
+        try {
+          return ok(truncate(await toMarkdownBytes(bytes, docFormat)));
+        } catch (e) {
+          if (!isConvertError(e)) throw e;
+        }
       }
 
       const html = new TextDecoder().decode(raw);
