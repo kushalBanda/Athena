@@ -2,7 +2,15 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { formatMcpListEntry, mcpAdd, mcpRemove, splitCommand } from "../src/mcp-commands.js";
+import {
+  formatMcpListEntry,
+  formatMcpPickerOption,
+  mcpAdd,
+  mcpPickerEntries,
+  mcpRemove,
+  mcpToggle,
+  splitCommand,
+} from "../src/mcp-commands.js";
 
 let originalConfigDir: string | undefined;
 let configDir: string;
@@ -80,6 +88,54 @@ describe("mcpRemove", () => {
     const result = mcpRemove("srv", projectDir);
     expect(result.ok).toBe(true);
     expect(result.message).toContain("global");
+  });
+});
+
+describe("mcpToggle", () => {
+  it("disables an enabled global server, then re-enables it", () => {
+    mcpAdd({ name: "srv", local: "cmd" }, projectDir);
+
+    const off = mcpToggle("srv", projectDir);
+    expect(off).toEqual({ ok: true, message: '"srv" → disabled', enabled: false });
+    expect(mcpPickerEntries(projectDir)).toEqual([
+      { name: "srv", scope: "global", type: "local", enabled: false },
+    ]);
+
+    const on = mcpToggle("srv", projectDir);
+    expect(on).toEqual({ ok: true, message: '"srv" → enabled', enabled: true });
+    expect(mcpPickerEntries(projectDir)).toEqual([
+      { name: "srv", scope: "global", type: "local", enabled: true },
+    ]);
+  });
+
+  it("toggles a project-scoped server without touching global config", () => {
+    mcpAdd({ name: "srv", local: "cmd", project: true }, projectDir);
+    const result = mcpToggle("srv", projectDir);
+    expect(result).toEqual({ ok: true, message: '"srv" → disabled', enabled: false });
+    expect(mcpPickerEntries(projectDir)).toEqual([
+      { name: "srv", scope: "project", type: "local", enabled: false },
+    ]);
+  });
+
+  it("reports not-found for an unknown server", () => {
+    const result = mcpToggle("nope", projectDir);
+    expect(result).toEqual({ ok: false, message: 'No MCP server named "nope" found' });
+  });
+});
+
+describe("formatMcpPickerOption", () => {
+  it("shows enabled state with success tone", () => {
+    const opt = formatMcpPickerOption({ name: "fs", scope: "global", type: "local", enabled: true });
+    expect(opt.value).toBe("fs");
+    expect(opt.label).toContain("fs");
+    expect(opt.hint).toBe("✓ enabled");
+    expect(opt.tone).toBe("success");
+  });
+
+  it("shows disabled state with muted tone", () => {
+    const opt = formatMcpPickerOption({ name: "fs", scope: "project", type: "remote", enabled: false });
+    expect(opt.hint).toBe("○ disabled");
+    expect(opt.tone).toBe("muted");
   });
 });
 

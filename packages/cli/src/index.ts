@@ -22,7 +22,15 @@ import {
   setApiKey,
 } from "./auth.js";
 import { loadConfig, loadObservabilityConfig, saveConfig } from "./config.js";
-import { formatMcpListEntry, mcpAdd, mcpList, mcpRemove } from "./mcp-commands.js";
+import {
+  formatMcpListEntry,
+  formatMcpPickerOption,
+  mcpAdd,
+  mcpList,
+  mcpPickerEntries,
+  mcpRemove,
+  mcpToggle,
+} from "./mcp-commands.js";
 import { MODEL_CATALOG } from "./models.js";
 import { PROVIDER_META, getProviderMeta } from "./provider-meta.js";
 import { runSetup } from "./setup.js";
@@ -571,6 +579,23 @@ async function main() {
         } catch {
           sysMsg(tui, `unknown provider: ${pName}`);
         }
+      })();
+      return true;
+    }
+
+    if (cmd === "mcp") {
+      await (async () => {
+        const entries = mcpPickerEntries(cwd);
+        if (entries.length === 0) {
+          sysMsg(tui, 'no MCP servers configured. Run: athena mcp add <name> --local "<cmd>" | --remote <url>');
+          return;
+        }
+        await tui.pickFromList("mcp servers", entries.map(formatMcpPickerOption), {
+          onToggle: (name) => {
+            mcpToggle(name, cwd);
+            return mcpPickerEntries(cwd).map(formatMcpPickerOption);
+          },
+        });
       })();
       return true;
     }

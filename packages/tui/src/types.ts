@@ -25,11 +25,14 @@ export interface Message {
 export interface PickerOption {
   readonly label: string;
   readonly value: string;
+  readonly hint?: string;
+  readonly tone?: "success" | "muted" | "danger";
 }
 
 export interface PickerState {
   title: string;
   options: readonly (string | PickerOption)[];
+  onToggle?: (value: string) => readonly (string | PickerOption)[];
 }
 
 export interface TextPromptState {

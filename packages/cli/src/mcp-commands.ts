@@ -1,6 +1,7 @@
-import { connectMcpServer, loadMcpConfig, type McpServerConfig } from "@athena/tools";
+import { connectMcpServer, isServerEnabled, loadMcpConfig, type McpServerConfig } from "@athena/tools";
 import { FileMcpOAuthStore } from "./auth.js";
 import {
+  loadGlobalMcpServers,
   loadProjectMcpServers,
   removeGlobalMcpServer,
   removeProjectMcpServer,
@@ -104,6 +105,66 @@ export async function mcpList(projectRoot: string, opts: { skipConnect?: boolean
   }
 
   return entries;
+}
+
+export interface McpToggleResult {
+  ok: boolean;
+  message: string;
+  enabled?: boolean;
+}
+
+/** Flips a server's `enabled` flag in whichever config (project, else global) has it. */
+export function mcpToggle(name: string, projectRoot: string): McpToggleResult {
+  const project = loadProjectMcpServers(projectRoot);
+  if (name in project) {
+    const cfg = project[name] as McpServerConfig;
+    const enabled = !isServerEnabled(cfg);
+    saveProjectMcpServer(projectRoot, name, { ...cfg, enabled });
+    return { ok: true, message: `"${name}" → ${enabled ? "enabled" : "disabled"}`, enabled };
+  }
+  const global = loadGlobalMcpServers();
+  if (name in global) {
+    const cfg = global[name] as McpServerConfig;
+    const enabled = !isServerEnabled(cfg);
+    saveGlobalMcpServer(name, { ...cfg, enabled });
+    return { ok: true, message: `"${name}" → ${enabled ? "enabled" : "disabled"}`, enabled };
+  }
+  return { ok: false, message: `No MCP server named "${name}" found` };
+}
+
+export interface McpPickerEntry {
+  name: string;
+  scope: "project" | "global";
+  type: "local" | "remote";
+  enabled: boolean;
+}
+
+export function mcpPickerEntries(projectRoot: string): McpPickerEntry[] {
+  const project = loadProjectMcpServers(projectRoot);
+  const merged = loadMcpConfig(projectRoot);
+  return Object.entries(merged).map(([name, cfg]) => ({
+    name,
+    scope: name in project ? ("project" as const) : ("global" as const),
+    type: cfg.type,
+    enabled: isServerEnabled(cfg),
+  }));
+}
+
+export interface McpPickerOption {
+  label: string;
+  value: string;
+  hint: string;
+  tone: "success" | "muted";
+}
+
+/** Structured picker row: name/scope/type as the label, enabled state as a colored hint. */
+export function formatMcpPickerOption(entry: McpPickerEntry): McpPickerOption {
+  return {
+    label: `${entry.name}  [${entry.scope}/${entry.type}]`,
+    value: entry.name,
+    hint: entry.enabled ? "✓ enabled" : "○ disabled",
+    tone: entry.enabled ? "success" : "muted",
+  };
 }
 
 export function formatMcpListEntry(entry: McpListEntry): string {

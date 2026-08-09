@@ -15,6 +15,7 @@ const SLASH_COMMANDS: SlashCommand[] = [
   { name: "/clear",                             hint: "clear chat history" },
   { name: "/compact",                           hint: "manually compact the session context" },
   { name: "/resume",                            hint: "pick a previous session to resume" },
+  { name: "/mcp",                               hint: "view/toggle configured MCP servers" },
   { name: "/help",                              hint: "list all commands" },
   { name: "/exit",                              hint: "quit athena" },
 ];

@@ -7,11 +7,18 @@ interface Props {
   options: readonly (string | PickerOption)[];
   onSelect: (value: string) => void;
   onCancel: () => void;
+  onToggle?: (value: string) => void;
 }
 
 function toOption(opt: string | PickerOption): PickerOption {
   return typeof opt === "string" ? { label: opt, value: opt } : opt;
 }
+
+const TONE_COLOR: Record<NonNullable<PickerOption["tone"]>, string> = {
+  success: "#3DDC84",
+  muted: "#555566",
+  danger: "#FF5C7A",
+};
 
 function fuzzyScore(query: string, target: string): number | null {
   if (query === "") return 0;
@@ -33,7 +40,7 @@ function fuzzyScore(query: string, target: string): number | null {
 
 const WINDOW_SIZE = 8;
 
-export function Picker({ title, options, onSelect, onCancel }: Props) {
+export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) {
   const [query, setQuery] = useState("");
   const [idx, setIdx] = useState(0);
 
@@ -64,6 +71,10 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
       return;
     }
     if (key.return) {
+      if (onToggle) {
+        onCancel();
+        return;
+      }
       const picked = filtered[clampedIdx];
       if (picked) onSelect(picked.value);
       return;
@@ -79,6 +90,11 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
     if (key.backspace || key.delete) {
       setQuery((q) => q.slice(0, -1));
       setIdx(0);
+      return;
+    }
+    if (onToggle && input === " ") {
+      const picked = filtered[clampedIdx];
+      if (picked) onToggle(picked.value);
       return;
     }
     if (!key.ctrl && !key.meta && input) {
@@ -110,21 +126,27 @@ export function Picker({ title, options, onSelect, onCancel }: Props) {
         {hiddenAbove > 0 && <Text color="#444455">{`  ↑ ${hiddenAbove} more`}</Text>}
         {visible.map((opt, i) => {
           const actualIdx = windowStart + i;
+          const active = actualIdx === clampedIdx;
           return (
-            <Text
-              key={opt.value}
-              color={actualIdx === clampedIdx ? "green" : "#888899"}
-              bold={actualIdx === clampedIdx}
-            >
-              {actualIdx === clampedIdx ? "▶ " : "  "}
-              {opt.label}
-            </Text>
+            <Box key={opt.value}>
+              <Text color={active ? "green" : "#888899"} bold={active}>
+                {active ? "▶ " : "  "}
+                {opt.label}
+              </Text>
+              {opt.hint && (
+                <Text color={active ? "green" : TONE_COLOR[opt.tone ?? "muted"]} bold={active}>
+                  {"  " + opt.hint}
+                </Text>
+              )}
+            </Box>
           );
         })}
         {hiddenBelow > 0 && <Text color="#444455">{`  ↓ ${hiddenBelow} more`}</Text>}
       </Box>
       <Box marginTop={1}>
-        <Text dimColor>↑↓ navigate · Enter select · Esc cancel</Text>
+        <Text dimColor>
+          {onToggle ? "↑↓ navigate · Space toggle · Enter/Esc done" : "↑↓ navigate · Enter select · Esc cancel"}
+        </Text>
       </Box>
     </Box>
   );

@@ -25,6 +25,7 @@ export interface AgentCallbacks {
   pickFromList: (
     title: string,
     options: readonly (string | PickerOption)[],
+    opts?: { onToggle?: (value: string) => readonly (string | PickerOption)[] },
   ) => Promise<string | null>;
   promptForText: (title: string, opts?: { mask?: boolean }) => Promise<string | null>;
 }
@@ -68,10 +69,14 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
   }, []);
 
   const pickFromList = useCallback(
-    (title: string, options: readonly (string | PickerOption)[]): Promise<string | null> => {
+    (
+      title: string,
+      options: readonly (string | PickerOption)[],
+      opts?: { onToggle?: (value: string) => readonly (string | PickerOption)[] },
+    ): Promise<string | null> => {
       return new Promise((resolve) => {
         pickerResolveRef.current = resolve;
-        setState((s) => ({ ...s, picker: { title, options } }));
+        setState((s) => ({ ...s, picker: { title, options, ...(opts?.onToggle ? { onToggle: opts.onToggle } : {}) } }));
       });
     },
     [],
@@ -82,6 +87,13 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
     pickerResolveRef.current = null;
     setState((s) => ({ ...s, picker: null }));
     resolve?.(value);
+  }, []);
+
+  const togglePickerOption = useCallback((value: string) => {
+    setState((s) => {
+      if (!s.picker?.onToggle) return s;
+      return { ...s, picker: { ...s.picker, options: s.picker.onToggle(value) } };
+    });
   }, []);
 
   const promptForText = useCallback(
@@ -185,6 +197,7 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
           options={state.picker.options}
           onSelect={(value) => resolvePicker(value)}
           onCancel={() => resolvePicker(null)}
+          {...(state.picker.onToggle ? { onToggle: togglePickerOption } : {})}
         />
       )}
       {state.textPrompt && (
