@@ -27,6 +27,8 @@ const COLORS = {
   tokenUp: "#4ADE80",
   tokenDown: "#FF6B6B",
   warning: "#FBBF24",
+  cacheRead: "#4ADE80",
+  cacheWrite: "#FBBF24",
 } as const;
 
 function formatCost(usd: number): string {
@@ -163,12 +165,21 @@ export function StatusBar({
             </Text>
           </>
         )}
-        {((cacheReadTokens ?? 0) > 0 || (cacheWriteTokens ?? 0) > 0) && (
-          <Text color={COLORS.muted}>
-            {" "}
-            · cache: {(cacheReadTokens ?? 0).toLocaleString()}r/
-            {(cacheWriteTokens ?? 0).toLocaleString()}w
-          </Text>
+        {(cacheReadTokens ?? 0) > 0 && (
+          <>
+            <Text color={COLORS.muted}> · </Text>
+            <Text color={COLORS.text}>
+              {(cacheReadTokens ?? 0).toLocaleString()} <Text color={COLORS.cacheRead}>Cᵣ</Text>
+            </Text>
+          </>
+        )}
+        {(cacheWriteTokens ?? 0) > 0 && (
+          <>
+            <Text color={COLORS.muted}> · </Text>
+            <Text color={COLORS.text}>
+              {(cacheWriteTokens ?? 0).toLocaleString()} <Text color={COLORS.cacheWrite}>C𝓌</Text>
+            </Text>
+          </>
         )}
         {resolvedCost !== undefined && resolvedCost > 0 && (
           <Text color={COLORS.muted}> · {formatCost(resolvedCost)}</Text>

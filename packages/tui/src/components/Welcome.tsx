@@ -1,8 +1,6 @@
-import React from "react";
 import { Box, Text } from "ink";
 
 interface Props {
-  model: string;
   cwd: string;
 }
 
@@ -34,7 +32,7 @@ function Owl() {
   );
 }
 
-export function Welcome({ model, cwd }: Props) {
+export function Welcome({ cwd }: Props) {
   const home = process.env.HOME ?? "";
   const displayCwd = cwd.startsWith(home) ? `~${cwd.slice(home.length)}` : cwd;
 
@@ -43,15 +41,20 @@ export function Welcome({ model, cwd }: Props) {
       <Box flexDirection="column" width="50%" alignItems="center">
         <Owl />
         <Box flexDirection="column" alignItems="center">
-          <Text bold color={COLORS.text}>Welcome to Athena</Text>
-          <Text color={COLORS.muted}>{model}</Text>
+          <Text bold color={COLORS.text}>
+            Welcome to Athena
+          </Text>
           <Text color={COLORS.muted}>{displayCwd}</Text>
         </Box>
       </Box>
       <Box flexDirection="column" width="50%" paddingLeft={2}>
-        <Text bold color={COLORS.accent}>Tips for getting started</Text>
+        <Text bold color={COLORS.accent}>
+          Tips for getting started
+        </Text>
         {TIPS.map((tip) => (
-          <Text key={tip} color={COLORS.muted} wrap="wrap">{tip}</Text>
+          <Text key={tip} color={COLORS.muted} wrap="wrap">
+            {tip}
+          </Text>
         ))}
       </Box>
     </Box>

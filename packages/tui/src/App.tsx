@@ -55,7 +55,6 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
   const { exit } = useApp();
   const [state, setState] = useState<AppState>({ ...DEFAULT_STATE, ...initialState });
   const [gitInfo] = useState(() => getGitInfo(state.cwd));
-  const [initialModel] = useState(() => state.model);
   const [mentionCandidates, setMentionCandidates] = useState<string[]>([]);
   const pickerResolveRef = useRef<((value: string | null) => void) | null>(null);
   const textPromptResolveRef = useRef<((value: string | null) => void) | null>(null);
@@ -162,7 +161,7 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
   const header = (
     <Box flexDirection="column" borderStyle="round" borderColor="#3A3F52">
       <TopBar cwd={state.cwd} git={gitInfo} />
-      <Welcome model={initialModel} cwd={state.cwd} />
+      <Welcome cwd={state.cwd} />
     </Box>
   );
 
