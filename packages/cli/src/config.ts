@@ -2,6 +2,15 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { ProviderConfig, ProviderName } from "@athena/providers";
+import type { McpServerConfig } from "@athena/tools";
+import {
+  readGlobalMcpConfig,
+  readProjectMcpConfig,
+  saveGlobalMcpServer as toolsSaveGlobalMcpServer,
+  removeGlobalMcpServer as toolsRemoveGlobalMcpServer,
+  saveProjectMcpServer as toolsSaveProjectMcpServer,
+  removeProjectMcpServer as toolsRemoveProjectMcpServer,
+} from "@athena/tools";
 import { getApiKey } from "./auth.js";
 
 function configDir(): string {
@@ -36,6 +45,7 @@ interface ConfigFile {
     otlpEndpoint?: string;
     backendPreset?: "new-relic" | "custom";
   };
+  mcp?: Record<string, McpServerConfig>;
 }
 
 function readConfigFile(): ConfigFile {
@@ -152,4 +162,28 @@ export function loadConfig(): AthenaConfig {
   const result: AthenaConfig = { provider, providerConfig };
   if (file.model !== undefined) result.model = file.model;
   return result;
+}
+
+export function loadGlobalMcpServers(): Record<string, McpServerConfig> {
+  return readGlobalMcpConfig();
+}
+
+export function saveGlobalMcpServer(name: string, server: McpServerConfig): void {
+  toolsSaveGlobalMcpServer(name, server);
+}
+
+export function removeGlobalMcpServer(name: string): boolean {
+  return toolsRemoveGlobalMcpServer(name);
+}
+
+export function loadProjectMcpServers(projectRoot: string): Record<string, McpServerConfig> {
+  return readProjectMcpConfig(projectRoot);
+}
+
+export function saveProjectMcpServer(projectRoot: string, name: string, server: McpServerConfig): void {
+  toolsSaveProjectMcpServer(projectRoot, name, server);
+}
+
+export function removeProjectMcpServer(projectRoot: string, name: string): boolean {
+  return toolsRemoveProjectMcpServer(projectRoot, name);
 }

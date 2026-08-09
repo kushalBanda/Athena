@@ -1,6 +1,11 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
+import type {
+  McpOAuthStore,
+  OAuthClientInformationMixed,
+  OAuthTokens,
+} from "@athena/tools";
 
 type AuthEntry = { type: "api_key"; key: string };
 type AuthData = Record<string, AuthEntry>;
@@ -125,4 +130,49 @@ export function setOtlpHeaders(headers: Record<string, string>): void {
     raw.otlpHeaders = headers;
   });
   console.log(`Saved OTLP headers to ${authFilePath()}`);
+}
+
+interface McpOAuthEntry {
+  clientInformation?: OAuthClientInformationMixed;
+  tokens?: OAuthTokens;
+  codeVerifier?: string;
+}
+
+function readMcpOAuthData(): Record<string, McpOAuthEntry> {
+  const raw = readRawAuthFile().mcpOAuth;
+  return typeof raw === "object" && raw !== null ? (raw as Record<string, McpOAuthEntry>) : {};
+}
+
+function writeMcpOAuthEntry(serverName: string, patch: Partial<McpOAuthEntry>): void {
+  writeRawAuthFile((raw) => {
+    const existing = readMcpOAuthData();
+    raw.mcpOAuth = { ...existing, [serverName]: { ...existing[serverName], ...patch } };
+  });
+}
+
+/**
+ * `McpOAuthStore` backed by `auth.json` (0600, same file as provider API
+ * keys) so a completed OAuth flow survives across `athena mcp` process
+ * invocations — each CLI subcommand runs as a fresh process, so an
+ * in-memory-only store never observes its own writes from a prior command.
+ */
+export class FileMcpOAuthStore implements McpOAuthStore {
+  getClientInformation(serverName: string) {
+    return readMcpOAuthData()[serverName]?.clientInformation;
+  }
+  saveClientInformation(serverName: string, info: OAuthClientInformationMixed) {
+    writeMcpOAuthEntry(serverName, { clientInformation: info });
+  }
+  getTokens(serverName: string) {
+    return readMcpOAuthData()[serverName]?.tokens;
+  }
+  saveTokens(serverName: string, tokens: OAuthTokens) {
+    writeMcpOAuthEntry(serverName, { tokens });
+  }
+  getCodeVerifier(serverName: string) {
+    return readMcpOAuthData()[serverName]?.codeVerifier;
+  }
+  saveCodeVerifier(serverName: string, verifier: string) {
+    writeMcpOAuthEntry(serverName, { codeVerifier: verifier });
+  }
 }

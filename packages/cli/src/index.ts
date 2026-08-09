@@ -4,7 +4,7 @@ import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { createProvider } from "@athena/providers";
 import type { ProviderName } from "@athena/providers";
-import { createDefaultRegistry } from "@athena/tools";
+import { createRegistryWithMcp } from "@athena/tools";
 import { App } from "@athena/tui";
 import type { AgentCallbacks as TuiCallbacks } from "@athena/tui";
 import { SpanKind } from "@opentelemetry/api";
@@ -14,6 +14,7 @@ import { agentMessagesToTuiMessages, createCallbacks, finalizeStream } from "./a
 import type { AdapterState } from "./adapter.js";
 import {
   autoDetectProvider,
+  FileMcpOAuthStore,
   getApiKey,
   getConfiguredProviders,
   getOtlpHeaders,
@@ -21,6 +22,7 @@ import {
   setApiKey,
 } from "./auth.js";
 import { loadConfig, loadObservabilityConfig, saveConfig } from "./config.js";
+import { formatMcpListEntry, mcpAdd, mcpList, mcpRemove } from "./mcp-commands.js";
 import { MODEL_CATALOG } from "./models.js";
 import { PROVIDER_META, getProviderMeta } from "./provider-meta.js";
 import { runSetup } from "./setup.js";
@@ -49,7 +51,7 @@ function parseArgs(argv: string[]): CliArgs {
   };
 
   const first = args[0];
-  if (first === "auth" || first === "setup" || first === "status") {
+  if (first === "auth" || first === "setup" || first === "status" || first === "mcp") {
     result.subcommand = first;
     return result;
   }
@@ -98,6 +100,10 @@ Usage:
   athena status                       show current config and stored keys
   athena auth set <provider> <key>    store API key in ~/.config/athena/auth.json
   athena auth list                    list stored providers
+
+  athena mcp add <name>               add an MCP server (--local "<cmd>" | --remote <url>) [--project]
+  athena mcp list                     list configured MCP servers + live connection status
+  athena mcp remove <name>            remove an MCP server (project config wins, else global)
 `);
 }
 
@@ -142,6 +148,59 @@ function handleStatusCommand() {
   }
 }
 
+async function handleMcpCommand(argv: string[]): Promise<void> {
+  const action = argv[3];
+  const cwd = process.cwd();
+
+  if (action === "add") {
+    const name = argv[4];
+    let local: string | undefined;
+    let remote: string | undefined;
+    let project = false;
+    for (let i = 5; i < argv.length; i++) {
+      const a = argv[i];
+      if (a === "--local" && argv[i + 1]) local = argv[++i];
+      else if (a === "--remote" && argv[i + 1]) remote = argv[++i];
+      else if (a === "--project") project = true;
+    }
+    if (!name) {
+      console.error('Usage: athena mcp add <name> --local "<cmd>" | --remote <url> [--project]');
+      process.exit(1);
+    }
+    const result = mcpAdd(
+      { name, project, ...(local !== undefined ? { local } : {}), ...(remote !== undefined ? { remote } : {}) },
+      cwd,
+    );
+    console.log(result.message);
+    process.exit(result.ok ? 0 : 1);
+  }
+
+  if (action === "list" || action === undefined) {
+    const entries = await mcpList(cwd);
+    if (entries.length === 0) {
+      console.log("No MCP servers configured. Run: athena mcp add <name> --local \"<cmd>\" | --remote <url>");
+      return;
+    }
+    console.log("MCP servers:\n");
+    for (const entry of entries) console.log(formatMcpListEntry(entry));
+    return;
+  }
+
+  if (action === "remove") {
+    const name = argv[4];
+    if (!name) {
+      console.error("Usage: athena mcp remove <name>");
+      process.exit(1);
+    }
+    const result = mcpRemove(name, cwd);
+    console.log(result.message);
+    process.exit(result.ok ? 0 : 1);
+  }
+
+  console.error(`Unknown mcp action: ${action}. Use: add | list | remove`);
+  process.exit(1);
+}
+
 function resolveProvider(args: CliArgs, cfg: ReturnType<typeof loadConfig>): string {
   if (args.provider) return args.provider;
   if (cfg.provider !== "anthropic") return cfg.provider;
@@ -162,6 +221,10 @@ async function main() {
   }
   if (args.subcommand === "status") {
     handleStatusCommand();
+    return;
+  }
+  if (args.subcommand === "mcp") {
+    await handleMcpCommand(process.argv);
     return;
   }
 
@@ -268,9 +331,16 @@ async function main() {
     cfg,
   };
 
-  const registry = createDefaultRegistry();
-  const tools = registry.all();
   const cwd = process.cwd();
+  const { registry, connections } = await createRegistryWithMcp({
+    projectRoot: cwd,
+    oauthStore: new FileMcpOAuthStore(),
+  });
+  for (const c of connections) {
+    if (c.status === "failed") console.error(`[mcp] "${c.server}" failed to connect: ${c.error ?? "unknown error"}`);
+    else if (c.status === "needs_auth") console.error(`[mcp] "${c.server}" needs authentication — run: athena mcp list`);
+  }
+  const tools = registry.all();
 
   if (args.print) {
     const message = args.message ?? "";
