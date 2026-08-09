@@ -4,10 +4,11 @@ import type { AgentCallbacks, AgentMessage, AgentSession, CompactionSettings } f
 import { buildSystemPrompt } from "./context-loader.js";
 import { runLoop } from "./loop.js";
 import { newId } from "./session.js";
-import { DEFAULT_COMPACTION_SETTINGS } from "./compaction/index.js";
+import { DEFAULT_COMPACTION_SETTINGS, compact } from "./compaction/index.js";
 
 export type { AgentCallbacks, AgentMessage, AgentSession, CompactionSettings, ActiveToolCall, TokenUsage } from "./types.js";
-export { DEFAULT_COMPACTION_SETTINGS } from "./compaction/index.js";
+export { DEFAULT_COMPACTION_SETTINGS, compact } from "./compaction/index.js";
+export { newId } from "./session.js";
 export { SessionManager, getDefaultSessionDir, diffNewMessages } from "./session-manager.js";
 export type { SessionInfo, SessionContext } from "./session-manager.js";
 

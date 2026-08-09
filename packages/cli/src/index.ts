@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { SessionManager, diffNewMessages, runAgent } from "@athena/agent-core";
+import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, newId, runAgent } from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { createProvider } from "@athena/providers";
@@ -339,7 +339,7 @@ async function main() {
     tui.addMessage({ id: crypto.randomUUID(), role: "system", content });
   }
 
-  function handleSlashCommand(text: string, tui: TuiCallbacks): boolean {
+  async function handleSlashCommand(text: string, tui: TuiCallbacks): Promise<boolean> {
     const parts = text.slice(1).trim().split(/\s+/);
     const cmd = parts[0]?.toLowerCase();
 
@@ -351,6 +351,7 @@ async function main() {
           "/provider                switch provider (opens picker)",
           "/status                  show current provider + model",
           "/clear                   clear chat history, start a new session",
+          "/compact                 manually compact the session context",
           "/resume                  pick a previous session to resume",
           "/exit  /quit             quit athena",
         ].join("\n"),
@@ -366,9 +367,39 @@ async function main() {
       return true;
     }
 
+    if (cmd === "compact") {
+      await (async () => {
+        if (history.length === 0) {
+          sysMsg(tui, "nothing to compact");
+          return;
+        }
+        tui.setStatus({ kind: "compacting" });
+        try {
+          const result = await compact(history, DEFAULT_COMPACTION_SETTINGS, session.provider);
+          const summaryMsg: AgentMessage = {
+            id: newId(),
+            role: "compaction_summary",
+            content: `<compaction-summary>\n${result.summary}\n</compaction-summary>`,
+            timestamp: Date.now(),
+          };
+          const before = history;
+          history = [summaryMsg, ...result.retainedTail];
+          for (const m of diffNewMessages(before, history)) sessionManager.appendMessage(m);
+          tui.clearMessages();
+          for (const m of agentMessagesToTuiMessages(history)) tui.addMessage(m);
+          sysMsg(tui, `compacted: ${result.tokensBefore} tokens → summary + ${result.retainedTail.length} kept messages`);
+        } finally {
+          tui.setStatus({ kind: "ready" });
+        }
+      })();
+      return true;
+    }
+
     if (cmd === "resume") {
-      (async () => {
-        const sessions = SessionManager.list(cwd);
+      await (async () => {
+        const sessions = SessionManager.list(cwd).filter(
+          (s) => s.messageCount > 0 && s.id !== sessionManager.getSessionId(),
+        );
         if (sessions.length === 0) {
           sysMsg(tui, "no saved sessions for this directory");
           return;
@@ -405,7 +436,7 @@ async function main() {
     }
 
     if (cmd === "model") {
-      void (async () => {
+      await (async () => {
         const provName = session.provider.name as ProviderName;
         let modelId = parts[1];
         if (!modelId) {
@@ -431,7 +462,7 @@ async function main() {
     }
 
     if (cmd === "provider") {
-      void (async () => {
+      await (async () => {
         let pName = parts[1] as ProviderName | undefined;
         if (!pName) {
           const options = PROVIDER_META.map((p) => ({
@@ -480,7 +511,7 @@ async function main() {
 
   const handleUserMessage = async (msg: string, tui: TuiCallbacks): Promise<void> => {
     if (msg.startsWith("/")) {
-      handleSlashCommand(msg, tui);
+      await handleSlashCommand(msg, tui);
       return;
     }
 

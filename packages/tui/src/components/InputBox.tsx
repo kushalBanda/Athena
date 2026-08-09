@@ -13,6 +13,8 @@ const SLASH_COMMANDS: SlashCommand[] = [
   { name: "/provider",                          hint: "switch provider" },
   { name: "/status",                            hint: "show provider, model, stored keys" },
   { name: "/clear",                             hint: "clear chat history" },
+  { name: "/compact",                           hint: "manually compact the session context" },
+  { name: "/resume",                            hint: "pick a previous session to resume" },
   { name: "/help",                              hint: "list all commands" },
   { name: "/exit",                              hint: "quit athena" },
 ];
@@ -117,6 +119,11 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
         }
       }
 
+      if (key.return && key.shift) {
+        insertAt(cursor, "\n");
+        setSelectedIdx(0);
+        return;
+      }
       if (key.return) {
         const trimmed = value.trim();
         if (trimmed) {
@@ -200,11 +207,29 @@ export function InputBox({ onSubmit, disabled = false, mentionCandidates = [] }:
           <Text color="#444455" dimColor>Tab to complete · ↑↓ to navigate</Text>
         </Box>
       )}
-      <Box borderStyle="single" borderColor={disabled ? "#555566" : "#00D9FF"} paddingX={1}>
-        <Text color="#00D9FF">▸ </Text>
-        <Text color="#DDDDEE">{value.slice(0, cursor)}</Text>
-        {!disabled && <Text color="#00D9FF">█</Text>}
-        <Text color="#DDDDEE">{value.slice(cursor)}</Text>
+      <Box borderStyle="single" borderColor={disabled ? "#555566" : "#00D9FF"} paddingX={1} flexDirection="column">
+        {(() => {
+          const before = value.slice(0, cursor);
+          const after = value.slice(cursor);
+          const beforeLines = before.split("\n");
+          const afterLines = after.split("\n");
+          const cursorLineIdx = beforeLines.length - 1;
+          const lines = [...beforeLines.slice(0, -1), beforeLines[beforeLines.length - 1] + afterLines[0], ...afterLines.slice(1)];
+          return lines.map((line, i) => (
+            <Box key={i}>
+              <Text color="#00D9FF">{i === 0 ? "▸ " : "  "}</Text>
+              {i === cursorLineIdx ? (
+                <>
+                  <Text color="#DDDDEE">{beforeLines[cursorLineIdx]}</Text>
+                  {!disabled && <Text color="#00D9FF">█</Text>}
+                  <Text color="#DDDDEE">{afterLines[0]}</Text>
+                </>
+              ) : (
+                <Text color="#DDDDEE">{line}</Text>
+              )}
+            </Box>
+          ));
+        })()}
       </Box>
     </Box>
   );

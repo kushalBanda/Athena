@@ -1,4 +1,4 @@
-import { Box, useApp } from "ink";
+import { Box, useApp, useStdout } from "ink";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ChatView } from "./components/ChatView.js";
 import { InputBox } from "./components/InputBox.js";
@@ -53,9 +53,11 @@ const DEFAULT_STATE: AppState = {
 
 export function App({ initialState, onUserMessage, onReady }: Props) {
   const { exit } = useApp();
+  const { stdout } = useStdout();
   const [state, setState] = useState<AppState>({ ...DEFAULT_STATE, ...initialState });
   const [gitInfo] = useState(() => getGitInfo(state.cwd));
   const [mentionCandidates, setMentionCandidates] = useState<string[]>([]);
+  const [clearEpoch, setClearEpoch] = useState(0);
   const pickerResolveRef = useRef<((value: string | null) => void) | null>(null);
   const textPromptResolveRef = useRef<((value: string | null) => void) | null>(null);
 
@@ -125,7 +127,11 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
     setStatus: (status) => setState((s) => ({ ...s, status })),
     setContextLimit: (limit) => setState((s) => ({ ...s, contextLimit: limit })),
     addCost: (usd) => setState((s) => ({ ...s, costUsd: (s.costUsd ?? 0) + usd })),
-    clearMessages: () => setState((s) => ({ ...s, messages: [] })),
+    clearMessages: () => {
+      stdout?.write("\x1Bc");
+      setClearEpoch((e) => e + 1);
+      setState((s) => ({ ...s, messages: [] }));
+    },
     setCtrlCArmed: (armed) => setState((s) => ({ ...s, ctrlCArmed: armed })),
     pickFromList,
     promptForText,
@@ -168,6 +174,7 @@ export function App({ initialState, onUserMessage, onReady }: Props) {
   return (
     <Box flexDirection="column">
       <ChatView
+        key={clearEpoch}
         header={header}
         messages={state.messages}
         thinking={state.status.kind !== "ready"}
