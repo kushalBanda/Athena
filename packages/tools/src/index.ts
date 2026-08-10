@@ -49,3 +49,4 @@ export { FindTool } from "./impl/find.js";
 export { ShellExecTool } from "./impl/shell-exec.js";
 export { WebSearchTool } from "./impl/web-search.js";
 export { WebFetchTool } from "./impl/web-fetch.js";
+export { CodegraphQueryTool } from "./impl/codegraph-query.js";

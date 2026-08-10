@@ -8,6 +8,7 @@ import { FindTool } from "./impl/find.js";
 import { ShellExecTool } from "./impl/shell-exec.js";
 import { WebSearchTool } from "./impl/web-search.js";
 import { WebFetchTool } from "./impl/web-fetch.js";
+import { CodegraphQueryTool } from "./impl/codegraph-query.js";
 import { loadMcpConfig, isServerEnabled } from "./mcp/config.js";
 import { connectMcpServer } from "./mcp/client.js";
 import { McpToolBridge } from "./mcp/tool-bridge.js";
@@ -44,7 +45,8 @@ export function createDefaultRegistry(config: DefaultToolsConfig = {}): ToolRegi
     .register(new FindTool())
     .register(new ShellExecTool())
     .register(new WebSearchTool(config.exaApiKey))
-    .register(new WebFetchTool());
+    .register(new WebFetchTool())
+    .register(new CodegraphQueryTool());
 }
 
 export interface McpConnectionReport {
