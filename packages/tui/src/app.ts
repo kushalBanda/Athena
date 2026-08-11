@@ -18,6 +18,24 @@ import {
 } from "./components/status-indicator.ts";
 import { defaultTheme } from "./theme.ts";
 import type { AgentStatus, AppState, Message, PickerOption } from "./app-types.ts";
+import { CombinedAutocompleteProvider, type SlashCommand } from "./autocomplete.ts";
+
+const BUILTIN_SLASH_COMMANDS: SlashCommand[] = [
+  { name: "help", description: "list available commands" },
+  { name: "model", description: "switch model (opens picker)" },
+  { name: "provider", description: "switch provider (opens picker)" },
+  { name: "effort", description: "switch reasoning effort (opens picker)" },
+  { name: "status", description: "show current provider + model" },
+  { name: "clear", description: "clear chat history, start a new session" },
+  { name: "compact", description: "manually compact the session context" },
+  { name: "resume", description: "pick a previous session to resume" },
+  { name: "skills", description: "list loaded skills (name, description, path)" },
+  { name: "context-config", description: "toggle CLAUDE.md loading and claude skill loading" },
+  { name: "init", description: "generate CLAUDE.md for this repo" },
+  { name: "reload", description: "reload skills and custom commands" },
+  { name: "exit", description: "quit athena" },
+  { name: "quit", description: "quit athena" },
+];
 
 /** The public surface `packages/cli`'s adapter.ts wires the agent loop's callbacks into. */
 export interface AgentCallbacks {
@@ -168,6 +186,7 @@ export class TuiApp {
       this.editor.setText("");
       void this.handleSubmit(text);
     };
+    this.refreshAutocompleteProvider();
 
     this.ui.setFocus(this.editor);
     this.setLayoutRootByMessages();
@@ -182,6 +201,18 @@ export class TuiApp {
     });
 
     options.onReady?.(this.callbacks());
+  }
+
+  private refreshAutocompleteProvider(): void {
+    const commands: SlashCommand[] = [
+      ...BUILTIN_SLASH_COMMANDS,
+      ...this.state.customCommands.filter(
+        (c) => !BUILTIN_SLASH_COMMANDS.some((b) => b.name === c.name),
+      ),
+    ];
+    this.editor.setAutocompleteProvider(
+      new CombinedAutocompleteProvider(commands, this.state.cwd, null),
+    );
   }
 
   private setLayoutRootByMessages(): void {
@@ -311,6 +342,7 @@ export class TuiApp {
       },
       setCustomCommands: (commands: { name: string; description: string }[]) => {
         this.state.customCommands = commands;
+        this.refreshAutocompleteProvider();
       },
       pickFromList: (title, options, opts) => this.showPicker(title, options, opts),
       promptForText: (title, opts) => this.showTextPrompt(title, opts),
