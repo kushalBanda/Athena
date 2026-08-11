@@ -18,7 +18,10 @@ async function run(label: string, tool: { execute: Function }, input: unknown) {
 }
 
 // write then read back
-await run("write_file", new WriteFileTool(), { path: "/tmp/athena-smoke.txt", content: "hello from athena" });
+await run("write_file", new WriteFileTool(), {
+  path: "/tmp/athena-smoke.txt",
+  content: "hello from athena",
+});
 await run("read_file", new ReadFileTool(), { path: "/tmp/athena-smoke.txt" });
 
 // list package root

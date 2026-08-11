@@ -30,7 +30,9 @@ export class McpToolBridge implements Tool {
   ) {
     this.name = mcpToolName(serverName, def.name);
     this.description = def.description ?? `MCP tool "${def.name}" from server "${serverName}"`;
-    this.inputSchema = (def.inputSchema as unknown as Record<string, unknown>) ?? { type: "object" };
+    this.inputSchema = (def.inputSchema as unknown as Record<string, unknown>) ?? {
+      type: "object",
+    };
   }
 
   async execute(input: unknown, _ctx: ToolContext): Promise<ToolResult> {

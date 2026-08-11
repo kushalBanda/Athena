@@ -1,5 +1,5 @@
 import { getTracer } from "@athena/observability";
-import type { LLMProvider } from "@athena/providers";
+import { estimateCost, type LLMProvider } from "@athena/providers";
 import type { Tool, ToolContext } from "@athena/tools";
 import { SpanStatusCode, context, trace } from "@opentelemetry/api";
 import { charsToTokens, estimateContextTokens } from "./compaction/estimate.js";
@@ -17,6 +17,27 @@ import type {
 } from "./types.js";
 
 const MAX_CONSECUTIVE_ERRORS = 5;
+const RETRY_MAX_ATTEMPTS = 3;
+const RETRY_BASE_DELAY_MS = 2000;
+
+/** Rejects immediately if `signal` aborts. */
+function sleepAbortable(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal?.aborted) {
+      reject(new Error("aborted"));
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    signal?.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        reject(new Error("aborted"));
+      },
+      { once: true },
+    );
+  });
+}
 
 export interface LoopOptions {
   provider: LLMProvider;
@@ -29,6 +50,8 @@ export interface LoopOptions {
   compactionSettings?: CompactionSettings;
   /** Stable id passed to providers as a cache-key hint (e.g. OpenAI `prompt_cache_key`). Defaults to a fresh id per loop run — in-memory only, never persisted. */
   sessionId?: string;
+  /** Provider-call retry overrides; defaults to 3 attempts, 2000ms base delay, exponential backoff. */
+  retry?: { maxAttempts?: number; baseDelayMs?: number };
 }
 
 export async function runLoop(options: LoopOptions): Promise<AgentSession> {
@@ -42,6 +65,8 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
     compactionSettings = DEFAULT_COMPACTION_SETTINGS,
     sessionId = crypto.randomUUID(),
   } = options;
+  const retryMaxAttempts = options.retry?.maxAttempts ?? RETRY_MAX_ATTEMPTS;
+  const retryBaseDelayMs = options.retry?.baseDelayMs ?? RETRY_BASE_DELAY_MS;
 
   const registry = new Map<string, Tool>(tools.map((t) => [t.name, t]));
   const toolDefs = toToolDefs(tools);
@@ -85,6 +110,7 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
 
           messages.length = 0;
           messages.push(summaryMsg, ...result.retainedTail);
+          callbacks.onCompactingDone?.();
         }
 
         if (signal?.aborted) return true;
@@ -112,50 +138,78 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
           },
         });
 
-        try {
-          for await (const delta of provider.chat(
-            providerMessages,
-            toolDefs,
-            systemPrompt,
-            sessionId,
-          )) {
-            if (signal?.aborted) break;
+        let retryAttempt = 0;
+        for (;;) {
+          try {
+            // Reset partial state from any previous failed attempt before retrying.
+            assistantText = "";
+            pendingToolCalls.length = 0;
+            lastUsage = undefined;
 
-            if (delta.type === "text") {
-              assistantText += delta.text;
-              callbacks.onAssistantToken(delta.text);
-              callbacks.onTokenUpdate(
-                totalUsage.input + turnInputEstimate,
-                totalUsage.output + charsToTokens(assistantText.length),
-                totalUsage.cacheRead,
-                totalUsage.cacheWrite,
-              );
-            } else if (delta.type === "tool_call") {
-              let pending = pendingToolCalls.find((p) => p.id === delta.id);
-              if (!pending) {
-                pending = { id: delta.id, name: delta.name, inputJson: "" };
-                pendingToolCalls.push(pending);
+            for await (const delta of provider.chat(
+              providerMessages,
+              toolDefs,
+              systemPrompt,
+              sessionId,
+            )) {
+              if (signal?.aborted) break;
+
+              if (delta.type === "text") {
+                assistantText += delta.text;
+                callbacks.onAssistantToken(delta.text);
+                callbacks.onTokenUpdate(
+                  totalUsage.input + turnInputEstimate,
+                  totalUsage.output + charsToTokens(assistantText.length),
+                  totalUsage.cacheRead,
+                  totalUsage.cacheWrite,
+                );
+              } else if (delta.type === "tool_call") {
+                let pending = pendingToolCalls.find((p) => p.id === delta.id);
+                if (!pending) {
+                  pending = { id: delta.id, name: delta.name, inputJson: "" };
+                  pendingToolCalls.push(pending);
+                }
+                pending.inputJson += delta.inputChunk;
+              } else if (delta.type === "usage") {
+                lastUsage = {
+                  input: delta.usage.inputTokens,
+                  output: delta.usage.outputTokens,
+                  cacheRead: delta.usage.cacheReadTokens,
+                  cacheWrite: delta.usage.cacheWriteTokens,
+                  totalTokens: delta.usage.inputTokens + delta.usage.outputTokens,
+                  ...(delta.usage.costUsd !== undefined ? { costUsd: delta.usage.costUsd } : {}),
+                };
+              } else if (delta.type === "done") {
+                break;
               }
-              pending.inputJson += delta.inputChunk;
-            } else if (delta.type === "usage") {
-              lastUsage = {
-                input: delta.usage.inputTokens,
-                output: delta.usage.outputTokens,
-                cacheRead: delta.usage.cacheReadTokens,
-                cacheWrite: delta.usage.cacheWriteTokens,
-                totalTokens: delta.usage.inputTokens + delta.usage.outputTokens,
-                ...(delta.usage.costUsd !== undefined ? { costUsd: delta.usage.costUsd } : {}),
-              };
-            } else if (delta.type === "done") {
-              break;
+            }
+            break;
+          } catch (err) {
+            if (signal?.aborted || retryAttempt >= retryMaxAttempts) {
+              callbacks.onThinking(false);
+              chatSpan.recordException(err instanceof Error ? err : new Error(String(err)));
+              chatSpan.setStatus({ code: SpanStatusCode.ERROR });
+              chatSpan.end();
+              throw err;
+            }
+
+            retryAttempt++;
+            const delayMs = retryBaseDelayMs * 2 ** (retryAttempt - 1);
+            const reason = err instanceof Error ? err.message : String(err);
+            // Tokens already streamed for the failed attempt are not un-sent; callers must
+            // reset their own accumulated text on onRetrying.
+            callbacks.onRetrying?.(retryAttempt, retryMaxAttempts, delayMs, reason);
+
+            try {
+              await sleepAbortable(delayMs, signal);
+            } catch {
+              callbacks.onThinking(false);
+              chatSpan.recordException(err instanceof Error ? err : new Error(String(err)));
+              chatSpan.setStatus({ code: SpanStatusCode.ERROR });
+              chatSpan.end();
+              throw err;
             }
           }
-        } catch (err) {
-          callbacks.onThinking(false);
-          chatSpan.recordException(err instanceof Error ? err : new Error(String(err)));
-          chatSpan.setStatus({ code: SpanStatusCode.ERROR });
-          chatSpan.end();
-          throw err;
         }
 
         if (lastUsage) {
@@ -201,8 +255,10 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
           totalUsage.cacheRead += lastUsage.cacheRead;
           totalUsage.cacheWrite += lastUsage.cacheWrite;
           totalUsage.totalTokens += lastUsage.totalTokens;
-          if (lastUsage.costUsd !== undefined) {
-            totalUsage.costUsd = (totalUsage.costUsd ?? 0) + lastUsage.costUsd;
+          const turnCostUsd =
+            lastUsage.costUsd ?? estimateCost(provider.model, lastUsage.input, lastUsage.output);
+          if (turnCostUsd !== undefined) {
+            totalUsage.costUsd = (totalUsage.costUsd ?? 0) + turnCostUsd;
           }
           callbacks.onTokenUpdate(
             totalUsage.input,

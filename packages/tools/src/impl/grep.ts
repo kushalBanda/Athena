@@ -6,7 +6,9 @@ import { spawnCollect } from "../spawn.js";
 
 const Schema = Type.Object({
   pattern: Type.String({ description: "Regex or string pattern to search for" }),
-  path: Type.Optional(Type.String({ description: "Directory or file to search (defaults to working dir)" })),
+  path: Type.Optional(
+    Type.String({ description: "Directory or file to search (defaults to working dir)" }),
+  ),
   glob: Type.Optional(Type.String({ description: "File glob filter, e.g. '*.ts'" })),
   ignoreCase: Type.Optional(Type.Boolean({ default: false })),
   maxResults: Type.Optional(Type.Number({ minimum: 1, default: 100 })),
@@ -20,7 +22,13 @@ export class GrepTool extends BaseTool<typeof Schema> {
   readonly schema = Schema;
 
   protected async run(
-    input: { pattern: string; path?: string; glob?: string; ignoreCase?: boolean; maxResults?: number },
+    input: {
+      pattern: string;
+      path?: string;
+      glob?: string;
+      ignoreCase?: boolean;
+      maxResults?: number;
+    },
     ctx: ToolContext,
   ) {
     const searchPath = path.resolve(ctx.workingDir, input.path ?? ".");
@@ -40,7 +48,8 @@ export class GrepTool extends BaseTool<typeof Schema> {
 
     const lines = stdout.split("\n").filter(Boolean);
     const truncated = lines.slice(0, maxResults);
-    const suffix = lines.length > maxResults ? `\n[${lines.length - maxResults} more results omitted]` : "";
+    const suffix =
+      lines.length > maxResults ? `\n[${lines.length - maxResults} more results omitted]` : "";
     return ok(truncated.join("\n") + suffix);
   }
 }

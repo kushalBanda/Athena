@@ -10,7 +10,7 @@ const tool = new GrepTool();
 beforeAll(() => {
   mkdirSync(tmpDir, { recursive: true });
   writeFileSync(`${tmpDir}/a.ts`, 'export function hello() { return "world"; }');
-  writeFileSync(`${tmpDir}/b.ts`, 'export function greet(name: string) { return `hi ${name}`; }');
+  writeFileSync(`${tmpDir}/b.ts`, "export function greet(name: string) { return `hi ${name}`; }");
   writeFileSync(`${tmpDir}/c.txt`, "not typescript");
 });
 

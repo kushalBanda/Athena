@@ -29,7 +29,9 @@ export function normalizeForFuzzyMatch(text: string): string {
 }
 
 export function stripBom(content: string): { bom: string; text: string } {
-  return content.startsWith("\uFEFF") ? { bom: "\uFEFF", text: content.slice(1) } : { bom: "", text: content };
+  return content.startsWith("\uFEFF")
+    ? { bom: "\uFEFF", text: content.slice(1) }
+    : { bom: "", text: content };
 }
 
 function splitLinesWithEndings(content: string): string[] {
@@ -92,7 +94,9 @@ function applyReplacements(content: string, replacements: TextReplacement[], off
     const replacement = replacements[i]!;
     const matchIndex = replacement.matchIndex - offset;
     result =
-      result.substring(0, matchIndex) + replacement.newText + result.substring(matchIndex + replacement.matchLength);
+      result.substring(0, matchIndex) +
+      replacement.newText +
+      result.substring(matchIndex + replacement.matchLength);
   }
   return result;
 }
@@ -105,7 +109,9 @@ export function applyReplacementsPreservingUnchangedLines(
   const originalLines = splitLinesWithEndings(originalContent);
   const baseLines = getLineSpans(baseContent);
   if (originalLines.length !== baseLines.length) {
-    throw new Error("Cannot preserve unchanged lines because the base content has a different line count.");
+    throw new Error(
+      "Cannot preserve unchanged lines because the base content has a different line count.",
+    );
   }
 
   const groups: Array<{ startLine: number; endLine: number; replacements: TextReplacement[] }> = [];
@@ -151,7 +157,13 @@ export interface FuzzyMatchResult {
 export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResult {
   const exactIndex = content.indexOf(oldText);
   if (exactIndex !== -1) {
-    return { found: true, index: exactIndex, matchLength: oldText.length, usedFuzzyMatch: false, contentForReplacement: content };
+    return {
+      found: true,
+      index: exactIndex,
+      matchLength: oldText.length,
+      usedFuzzyMatch: false,
+      contentForReplacement: content,
+    };
   }
 
   const fuzzyContent = normalizeForFuzzyMatch(content);
@@ -159,10 +171,22 @@ export function fuzzyFindText(content: string, oldText: string): FuzzyMatchResul
   const fuzzyIndex = fuzzyContent.indexOf(fuzzyOldText);
 
   if (fuzzyIndex === -1) {
-    return { found: false, index: -1, matchLength: 0, usedFuzzyMatch: false, contentForReplacement: content };
+    return {
+      found: false,
+      index: -1,
+      matchLength: 0,
+      usedFuzzyMatch: false,
+      contentForReplacement: content,
+    };
   }
 
-  return { found: true, index: fuzzyIndex, matchLength: fuzzyOldText.length, usedFuzzyMatch: true, contentForReplacement: fuzzyContent };
+  return {
+    found: true,
+    index: fuzzyIndex,
+    matchLength: fuzzyOldText.length,
+    usedFuzzyMatch: true,
+    contentForReplacement: fuzzyContent,
+  };
 }
 
 function findAllOccurrences(content: string, needle: string): number[] {
@@ -184,7 +208,11 @@ function findAllOccurrences(content: string, needle: string): number[] {
  * the only place a match can balloon past `oldText` is this line-widening step,
  * so that's what the disproportionate-match guard must measure against.
  */
-function getWidenedOriginalSpan(originalContent: string, baseContent: string, replacement: TextReplacement): string {
+function getWidenedOriginalSpan(
+  originalContent: string,
+  baseContent: string,
+  replacement: TextReplacement,
+): string {
   const originalLines = splitLinesWithEndings(originalContent);
   const baseLines = getLineSpans(baseContent);
   const range = getReplacementLineRange(baseLines, replacement);
@@ -213,16 +241,29 @@ export interface AppliedEditsResult {
 
 function getNotFoundError(path: string, editIndex: number, totalEdits: number): Error {
   if (totalEdits === 1) {
-    return new Error(`Could not find the exact text in ${path}. The oldText must match exactly, including all whitespace and newlines.`);
+    return new Error(
+      `Could not find the exact text in ${path}. The oldText must match exactly, including all whitespace and newlines.`,
+    );
   }
-  return new Error(`Could not find edits[${editIndex}] in ${path}. The oldText must match exactly, including all whitespace and newlines.`);
+  return new Error(
+    `Could not find edits[${editIndex}] in ${path}. The oldText must match exactly, including all whitespace and newlines.`,
+  );
 }
 
-function getDuplicateError(path: string, editIndex: number, totalEdits: number, occurrences: number): Error {
+function getDuplicateError(
+  path: string,
+  editIndex: number,
+  totalEdits: number,
+  occurrences: number,
+): Error {
   if (totalEdits === 1) {
-    return new Error(`Found ${occurrences} occurrences of the text in ${path}. Each oldText must be unique — add more surrounding context, or set replaceAll.`);
+    return new Error(
+      `Found ${occurrences} occurrences of the text in ${path}. Each oldText must be unique — add more surrounding context, or set replaceAll.`,
+    );
   }
-  return new Error(`Found ${occurrences} occurrences of edits[${editIndex}] in ${path}. Each oldText must be unique — add more surrounding context, or set replaceAll.`);
+  return new Error(
+    `Found ${occurrences} occurrences of edits[${editIndex}] in ${path}. Each oldText must be unique — add more surrounding context, or set replaceAll.`,
+  );
 }
 
 function getEmptyOldTextError(path: string, editIndex: number, totalEdits: number): Error {
@@ -242,7 +283,11 @@ function getNoChangeError(path: string, totalEdits: number): Error {
  * if any edit needs the fuzzy pass, ALL edits re-match against one fuzzy
  * base — never mixes exact-space and fuzzy-space offsets.
  */
-export function applyEditsToNormalizedContent(normalizedContent: string, edits: Edit[], path: string): AppliedEditsResult {
+export function applyEditsToNormalizedContent(
+  normalizedContent: string,
+  edits: Edit[],
+  path: string,
+): AppliedEditsResult {
   const normalizedEdits = edits.map((edit) => ({
     oldText: normalizeToLF(edit.oldText),
     newText: normalizeToLF(edit.newText),
@@ -255,9 +300,13 @@ export function applyEditsToNormalizedContent(normalizedContent: string, edits: 
     }
   }
 
-  const initialMatches = normalizedEdits.map((edit) => fuzzyFindText(normalizedContent, edit.oldText));
+  const initialMatches = normalizedEdits.map((edit) =>
+    fuzzyFindText(normalizedContent, edit.oldText),
+  );
   const usedFuzzyMatch = initialMatches.some((match) => match.usedFuzzyMatch);
-  const replacementBaseContent = usedFuzzyMatch ? normalizeForFuzzyMatch(normalizedContent) : normalizedContent;
+  const replacementBaseContent = usedFuzzyMatch
+    ? normalizeForFuzzyMatch(normalizedContent)
+    : normalizedContent;
 
   const checkDisproportionate = (i: number, replacement: TextReplacement) => {
     if (!usedFuzzyMatch) return; // exact match: span always equals oldText, never disproportionate
@@ -294,7 +343,11 @@ export function applyEditsToNormalizedContent(normalizedContent: string, edits: 
       throw getDuplicateError(path, i, normalizedEdits.length, occurrences.length);
     }
 
-    const replacement = { matchIndex: occurrences[0]!, matchLength: fuzzyOldText.length, newText: edit.newText };
+    const replacement = {
+      matchIndex: occurrences[0]!,
+      matchLength: fuzzyOldText.length,
+      newText: edit.newText,
+    };
     checkDisproportionate(i, replacement);
     matchedEdits.push({ editIndex: i, ...replacement });
   }
@@ -312,7 +365,11 @@ export function applyEditsToNormalizedContent(normalizedContent: string, edits: 
 
   const baseContent = normalizedContent;
   const newContent = usedFuzzyMatch
-    ? applyReplacementsPreservingUnchangedLines(normalizedContent, replacementBaseContent, matchedEdits)
+    ? applyReplacementsPreservingUnchangedLines(
+        normalizedContent,
+        replacementBaseContent,
+        matchedEdits,
+      )
     : applyReplacements(replacementBaseContent, matchedEdits);
 
   if (baseContent === newContent) {
@@ -322,8 +379,15 @@ export function applyEditsToNormalizedContent(normalizedContent: string, edits: 
   return { baseContent, newContent };
 }
 
-export function generateUnifiedPatch(path: string, oldContent: string, newContent: string, contextLines = 4): string {
-  return Diff.createTwoFilesPatch(path, path, oldContent, newContent, undefined, undefined, { context: contextLines });
+export function generateUnifiedPatch(
+  path: string,
+  oldContent: string,
+  newContent: string,
+  contextLines = 4,
+): string {
+  return Diff.createTwoFilesPatch(path, path, oldContent, newContent, undefined, undefined, {
+    context: contextLines,
+  });
 }
 
 export interface DiffCounts {

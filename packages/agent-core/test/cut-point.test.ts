@@ -26,7 +26,14 @@ describe("findCutPoint", () => {
     const messages: AgentMessage[] = [
       msg("user"),
       msg("assistant"),
-      { id: "tr", role: "tool_result", content: [{ type: "tool_result", toolCallId: "x", content: "x".repeat(100), isError: false }], timestamp: 0 },
+      {
+        id: "tr",
+        role: "tool_result",
+        content: [
+          { type: "tool_result", toolCallId: "x", content: "x".repeat(100), isError: false },
+        ],
+        timestamp: 0,
+      },
       msg("user"),
     ];
     const { cutIndex } = findCutPoint(messages, 10);

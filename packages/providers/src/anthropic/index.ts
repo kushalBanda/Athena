@@ -41,7 +41,9 @@ export class AnthropicProvider implements LLMProvider {
       messages: toAnthropicMessages(messages, { cacheLastBlock: true }),
       ...(systemPrompt ? { system: cacheableSystemBlock(systemPrompt) } : {}),
       ...(tools.length > 0 ? { tools: toAnthropicTools(tools, { cacheLastTool: true }) } : {}),
-      ...(budgetTokens ? { thinking: { type: "enabled" as const, budget_tokens: budgetTokens } } : {}),
+      ...(budgetTokens
+        ? { thinking: { type: "enabled" as const, budget_tokens: budgetTokens } }
+        : {}),
     });
 
     const blockIds = new Map<number, string>();

@@ -6,12 +6,11 @@ export interface SpawnCollectResult {
   code: number;
 }
 
-/**
- * Runs cmd via the OS process directly (argv-array, no shell), not
- * Bun.spawn: the CLI ships with a node shebang and --target=node build
- * (packages/cli/package.json), so tools must work under plain Node too.
- */
-export function spawnCollect(cmd: string, args: string[], cwd?: string): Promise<SpawnCollectResult> {
+export function spawnCollect(
+  cmd: string,
+  args: string[],
+  cwd?: string,
+): Promise<SpawnCollectResult> {
   return new Promise((resolve, reject) => {
     const child = spawn(cmd, args, {
       ...(cwd ? { cwd } : {}),

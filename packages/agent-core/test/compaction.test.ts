@@ -13,7 +13,9 @@ function assistantMsg(text: string): AgentMessage {
 
 describe("shouldCompact", () => {
   it("returns false when disabled", () => {
-    expect(shouldCompact(190_000, 200_000, { ...DEFAULT_COMPACTION_SETTINGS, enabled: false })).toBe(false);
+    expect(
+      shouldCompact(190_000, 200_000, { ...DEFAULT_COMPACTION_SETTINGS, enabled: false }),
+    ).toBe(false);
   });
 
   it("returns true when tokens exceed contextWindow - reserveTokens", () => {
@@ -41,7 +43,11 @@ describe("compact", () => {
       assistantMsg("reply 3"),
     ];
 
-    const result = await compact(messages, { ...DEFAULT_COMPACTION_SETTINGS, keepRecentTokens: 10 }, provider);
+    const result = await compact(
+      messages,
+      { ...DEFAULT_COMPACTION_SETTINGS, keepRecentTokens: 10 },
+      provider,
+    );
 
     expect(result.summary).toContain("## Goal");
     expect(result.retainedTail.length).toBeGreaterThan(0);

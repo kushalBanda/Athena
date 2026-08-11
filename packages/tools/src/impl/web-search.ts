@@ -51,7 +51,10 @@ export class WebSearchTool extends BaseTool<typeof Schema> {
     try {
       const res = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json", Accept: "application/json, text/event-stream" },
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json, text/event-stream",
+        },
         body: JSON.stringify(body),
         signal: AbortSignal.timeout(15_000),
       });
@@ -76,7 +79,9 @@ export class WebSearchTool extends BaseTool<typeof Schema> {
       const results: ExaResult[] = safeParseExaText(text);
       const formatted = results
         .slice(0, input.numResults ?? 5)
-        .map((r, i) => `${i + 1}. ${r.title ?? "Untitled"}\n   ${r.url ?? ""}\n   ${r.snippet ?? ""}`)
+        .map(
+          (r, i) => `${i + 1}. ${r.title ?? "Untitled"}\n   ${r.url ?? ""}\n   ${r.snippet ?? ""}`,
+        )
         .join("\n\n");
 
       return ok(formatted || text);
@@ -90,7 +95,6 @@ function safeParseExaText(text: string): ExaResult[] {
   try {
     const parsed = JSON.parse(text);
     if (Array.isArray(parsed)) return parsed as ExaResult[];
-  } catch {
-  }
+  } catch {}
   return [{ snippet: text }];
 }

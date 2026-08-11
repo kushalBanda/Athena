@@ -1,5 +1,12 @@
 import { describe, expect, it } from "bun:test";
-import { ATHENA_SYSTEM_PROMPT_BASE, buildAthenaSystemPrompt, buildEnvBlock, buildToolsList, formatSkillsForPrompt, formatClaudeMdForPrompt } from "../src/system-prompt.js";
+import {
+  ATHENA_SYSTEM_PROMPT_BASE,
+  buildAthenaSystemPrompt,
+  buildEnvBlock,
+  buildToolsList,
+  formatSkillsForPrompt,
+  formatClaudeMdForPrompt,
+} from "../src/system-prompt.js";
 import type { Skill } from "../src/skills.js";
 import type { ClaudeMdFile } from "../src/claude-md.js";
 
@@ -102,7 +109,12 @@ describe("formatSkillsForPrompt", () => {
 
   it("formats a visible skill as an XML entry", () => {
     const skills: Skill[] = [
-      { name: "my-skill", description: "Does a thing", filePath: "/skills/my-skill/SKILL.md", disableModelInvocation: false },
+      {
+        name: "my-skill",
+        description: "Does a thing",
+        filePath: "/skills/my-skill/SKILL.md",
+        disableModelInvocation: false,
+      },
     ];
     const block = formatSkillsForPrompt(skills);
     expect(block).toContain("<available_skills>");
@@ -120,7 +132,12 @@ describe("formatSkillsForPrompt", () => {
 
   it("escapes XML special characters in name and description", () => {
     const skills: Skill[] = [
-      { name: "a-b", description: 'Uses <tags> & "quotes"', filePath: "/x", disableModelInvocation: false },
+      {
+        name: "a-b",
+        description: 'Uses <tags> & "quotes"',
+        filePath: "/x",
+        disableModelInvocation: false,
+      },
     ];
     const block = formatSkillsForPrompt(skills);
     expect(block).toContain("&lt;tags&gt; &amp; &quot;quotes&quot;");
@@ -130,7 +147,12 @@ describe("formatSkillsForPrompt", () => {
 describe("buildAthenaSystemPrompt with skills", () => {
   it("appends the skills block after code context", () => {
     const skills: Skill[] = [
-      { name: "my-skill", description: "Does a thing", filePath: "/x/SKILL.md", disableModelInvocation: false },
+      {
+        name: "my-skill",
+        description: "Does a thing",
+        filePath: "/x/SKILL.md",
+        disableModelInvocation: false,
+      },
     ];
     const prompt = buildAthenaSystemPrompt({ env: baseEnv, toolNames: [], skills });
     expect(prompt).toContain("<available_skills>");

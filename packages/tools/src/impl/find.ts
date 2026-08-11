@@ -6,7 +6,9 @@ import { spawnCollect } from "../spawn.js";
 
 const Schema = Type.Object({
   pattern: Type.String({ description: "Filename pattern, e.g. '*.ts' or 'package.json'" }),
-  path: Type.Optional(Type.String({ description: "Directory to search (defaults to working dir)" })),
+  path: Type.Optional(
+    Type.String({ description: "Directory to search (defaults to working dir)" }),
+  ),
   type: Type.Optional(
     Type.Union([Type.Literal("f"), Type.Literal("d")], {
       description: "'f' for files, 'd' for directories",
@@ -30,9 +32,20 @@ export class FindTool extends BaseTool<typeof Schema> {
 
     const withPrune = [
       searchPath,
-      "(", "-name", "node_modules", "-o", "-name", ".git", "-o", "-name", "dist", ")",
-      "-prune", "-o",
-      "-name", input.pattern,
+      "(",
+      "-name",
+      "node_modules",
+      "-o",
+      "-name",
+      ".git",
+      "-o",
+      "-name",
+      "dist",
+      ")",
+      "-prune",
+      "-o",
+      "-name",
+      input.pattern,
       ...(input.type ? ["-type", input.type] : []),
       "-print",
     ];
@@ -43,7 +56,8 @@ export class FindTool extends BaseTool<typeof Schema> {
 
     const lines = stdout.split("\n").filter(Boolean);
     const truncated = lines.slice(0, maxResults);
-    const suffix = lines.length > maxResults ? `\n[${lines.length - maxResults} more results omitted]` : "";
+    const suffix =
+      lines.length > maxResults ? `\n[${lines.length - maxResults} more results omitted]` : "";
     return ok(truncated.join("\n") + suffix || "No matches found.");
   }
 }

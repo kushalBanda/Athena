@@ -17,12 +17,17 @@ import {
 const EditSchema = Type.Object({
   oldText: Type.String({ description: "Exact text to replace" }),
   newText: Type.String({ description: "Replacement text" }),
-  replaceAll: Type.Optional(Type.Boolean({ description: "Replace every occurrence of oldText (default false)" })),
+  replaceAll: Type.Optional(
+    Type.Boolean({ description: "Replace every occurrence of oldText (default false)" }),
+  ),
 });
 
 const Schema = Type.Object({
   path: Type.String({ description: "Path to the file to edit" }),
-  edits: Type.Array(EditSchema, { minItems: 1, description: "One or more edits to apply to the file" }),
+  edits: Type.Array(EditSchema, {
+    minItems: 1,
+    description: "One or more edits to apply to the file",
+  }),
 });
 
 export class EditFileTool extends BaseTool<typeof Schema> {
@@ -49,7 +54,11 @@ export class EditFileTool extends BaseTool<typeof Schema> {
           return {
             content: `Created ${resolved} (+${additions} -0)`,
             isError: false,
-            metadata: { diff: generateUnifiedPatch(resolved, "", input.edits[0]!.newText), additions, deletions: 0 },
+            metadata: {
+              diff: generateUnifiedPatch(resolved, "", input.edits[0]!.newText),
+              additions,
+              deletions: 0,
+            },
           };
         } catch (e) {
           return err(`Write failed: ${e instanceof Error ? e.message : String(e)}`);
@@ -65,7 +74,9 @@ export class EditFileTool extends BaseTool<typeof Schema> {
     const normalizedContent = normalizeToLF(text);
 
     if (input.edits.length === 1 && input.edits[0]!.oldText === "") {
-      return err(`edits[0].oldText must not be empty for an existing file: ${resolved}. Use write_file for a full rewrite.`);
+      return err(
+        `edits[0].oldText must not be empty for an existing file: ${resolved}. Use write_file for a full rewrite.`,
+      );
     }
 
     let baseContent: string;

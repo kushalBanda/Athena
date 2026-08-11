@@ -77,7 +77,9 @@ export async function generateSummary(
     userPrompt += `\n\n${fileOpsText}`;
   }
 
-  const providerMessages: Message[] = [{ role: "user", content: [{ type: "text", text: userPrompt }] }];
+  const providerMessages: Message[] = [
+    { role: "user", content: [{ type: "text", text: userPrompt }] },
+  ];
 
   let summary = "";
   for await (const delta of provider.chat(providerMessages, [])) {

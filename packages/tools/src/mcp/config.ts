@@ -84,7 +84,6 @@ export function readProjectMcpConfig(projectRoot: string): McpConfigFile {
   return result;
 }
 
-
 export function mergeMcpConfigs(global: McpConfigFile, project: McpConfigFile): McpConfigFile {
   return { ...global, ...project };
 }
@@ -107,14 +106,16 @@ function writeJsonFile(path: string, data: Record<string, unknown>): void {
 /** Adds/overwrites one server entry under the `mcp` block of the global `config.json`, preserving other keys. */
 export function saveGlobalMcpServer(name: string, server: McpServerConfig): void {
   const file = readJsonFile(globalMcpConfigPath());
-  const mcp = typeof file.mcp === "object" && file.mcp !== null ? (file.mcp as Record<string, unknown>) : {};
+  const mcp =
+    typeof file.mcp === "object" && file.mcp !== null ? (file.mcp as Record<string, unknown>) : {};
   writeJsonFile(globalMcpConfigPath(), { ...file, mcp: { ...mcp, [name]: server } });
 }
 
 /** Removes a server entry from the global `config.json`'s `mcp` block. Returns whether it existed. */
 export function removeGlobalMcpServer(name: string): boolean {
   const file = readJsonFile(globalMcpConfigPath());
-  const mcp = typeof file.mcp === "object" && file.mcp !== null ? (file.mcp as Record<string, unknown>) : {};
+  const mcp =
+    typeof file.mcp === "object" && file.mcp !== null ? (file.mcp as Record<string, unknown>) : {};
   if (!(name in mcp)) return false;
   const { [name]: _removed, ...rest } = mcp;
   writeJsonFile(globalMcpConfigPath(), { ...file, mcp: rest });
@@ -122,7 +123,11 @@ export function removeGlobalMcpServer(name: string): boolean {
 }
 
 /** Adds/overwrites one server entry in `<projectRoot>/.athena/mcp.json`. */
-export function saveProjectMcpServer(projectRoot: string, name: string, server: McpServerConfig): void {
+export function saveProjectMcpServer(
+  projectRoot: string,
+  name: string,
+  server: McpServerConfig,
+): void {
   const path = projectMcpConfigPath(projectRoot);
   const file = readJsonFile(path);
   writeJsonFile(path, { ...file, [name]: server });

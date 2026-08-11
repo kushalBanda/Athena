@@ -21,7 +21,11 @@ describe("mcpToolName", () => {
 
 describe("McpToolBridge", () => {
   it("exposes name/description/schema/permission from the MCP tool def", () => {
-    const bridge = new McpToolBridge("exa", def, fakeClient(() => ({ content: [] })));
+    const bridge = new McpToolBridge(
+      "exa",
+      def,
+      fakeClient(() => ({ content: [] })),
+    );
     expect(bridge.name).toBe("mcp__exa__search");
     expect(bridge.description).toBe("search things");
     expect(bridge.permission).toBe("prompt");
@@ -30,7 +34,11 @@ describe("McpToolBridge", () => {
 
   it("falls back to a generated description when the server omits one", () => {
     const bare: McpToolDef = { name: "noop", inputSchema: { type: "object" } };
-    const bridge = new McpToolBridge("srv", bare, fakeClient(() => ({ content: [] })));
+    const bridge = new McpToolBridge(
+      "srv",
+      bare,
+      fakeClient(() => ({ content: [] })),
+    );
     expect(bridge.description).toContain("noop");
     expect(bridge.description).toContain("srv");
   });
@@ -38,7 +46,12 @@ describe("McpToolBridge", () => {
   it("proxies execute() to client.callTool and joins text blocks", async () => {
     const callTool = mock(async (params: unknown) => {
       expect(params).toEqual({ name: "search", arguments: { q: "cats" } });
-      return { content: [{ type: "text", text: "result 1" }, { type: "text", text: "result 2" }] };
+      return {
+        content: [
+          { type: "text", text: "result 1" },
+          { type: "text", text: "result 2" },
+        ],
+      };
     });
     const bridge = new McpToolBridge("exa", def, fakeClient(callTool));
     const result = await bridge.execute({ q: "cats" }, { workingDir: "/tmp" });
@@ -79,7 +92,11 @@ describe("McpToolBridge", () => {
   });
 
   it("toToolDef mirrors name/description/inputSchema", () => {
-    const bridge = new McpToolBridge("exa", def, fakeClient(() => ({ content: [] })));
+    const bridge = new McpToolBridge(
+      "exa",
+      def,
+      fakeClient(() => ({ content: [] })),
+    );
     expect(bridge.toToolDef()).toEqual({
       name: "mcp__exa__search",
       description: "search things",

@@ -27,7 +27,9 @@ export function toProviderMessages(messages: AgentMessage[]): Message[] {
 
     if (msg.role === "tool_result") {
       const blocks = Array.isArray(msg.content)
-        ? msg.content.filter((b): b is ContentBlock & { type: "tool_result" } => b.type === "tool_result")
+        ? msg.content.filter(
+            (b): b is ContentBlock & { type: "tool_result" } => b.type === "tool_result",
+          )
         : [];
       return {
         role: "tool",

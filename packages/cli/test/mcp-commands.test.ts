@@ -32,7 +32,11 @@ afterEach(() => {
 
 describe("splitCommand", () => {
   it("splits on whitespace", () => {
-    expect(splitCommand("npx some-mcp-server --flag")).toEqual(["npx", "some-mcp-server", "--flag"]);
+    expect(splitCommand("npx some-mcp-server --flag")).toEqual([
+      "npx",
+      "some-mcp-server",
+      "--flag",
+    ]);
   });
 
   it("respects quoted segments", () => {
@@ -61,7 +65,10 @@ describe("mcpAdd", () => {
   });
 
   it("adds a remote server to the project config with --project", async () => {
-    const result = mcpAdd({ name: "remote", remote: "https://example.com/mcp", project: true }, projectDir);
+    const result = mcpAdd(
+      { name: "remote", remote: "https://example.com/mcp", project: true },
+      projectDir,
+    );
     expect(result.ok).toBe(true);
 
     const { loadProjectMcpServers } = await import(`../src/config.js?t=${Date.now()}`);
@@ -125,7 +132,12 @@ describe("mcpToggle", () => {
 
 describe("formatMcpPickerOption", () => {
   it("shows enabled state with success tone", () => {
-    const opt = formatMcpPickerOption({ name: "fs", scope: "global", type: "local", enabled: true });
+    const opt = formatMcpPickerOption({
+      name: "fs",
+      scope: "global",
+      type: "local",
+      enabled: true,
+    });
     expect(opt.value).toBe("fs");
     expect(opt.label).toContain("fs");
     expect(opt.hint).toBe("✓ enabled");
@@ -133,7 +145,12 @@ describe("formatMcpPickerOption", () => {
   });
 
   it("shows disabled state with muted tone", () => {
-    const opt = formatMcpPickerOption({ name: "fs", scope: "project", type: "remote", enabled: false });
+    const opt = formatMcpPickerOption({
+      name: "fs",
+      scope: "project",
+      type: "remote",
+      enabled: false,
+    });
     expect(opt.hint).toBe("○ disabled");
     expect(opt.tone).toBe("muted");
   });

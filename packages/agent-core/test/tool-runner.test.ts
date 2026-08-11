@@ -7,7 +7,11 @@ import { makeNoopCallbacks } from "./helpers.js";
 const ctx: ToolContext = { workingDir: "/tmp" };
 const callbacks = makeNoopCallbacks();
 
-function makeTool(name: string, result: ToolExecResult, permission: "auto" | "prompt" = "auto"): Tool {
+function makeTool(
+  name: string,
+  result: ToolExecResult,
+  permission: "auto" | "prompt" = "auto",
+): Tool {
   return {
     name,
     description: "",
@@ -24,7 +28,9 @@ function errorTool(name: string): Tool {
     description: "",
     inputSchema: {},
     permission: "auto",
-    execute: async () => { throw new Error("boom"); },
+    execute: async () => {
+      throw new Error("boom");
+    },
     toToolDef: (): ToolDef => ({ name, description: "", inputSchema: {} }),
   };
 }
@@ -44,7 +50,9 @@ describe("runTool", () => {
   });
 
   it("prompt tool allowed when onPermissionRequest returns true", async () => {
-    const registry = new Map([["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")]]);
+    const registry = new Map([
+      ["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")],
+    ]);
     const cb = { ...callbacks, onPermissionRequest: async () => true };
     const result = await runTool({ id: "1", name: "shell_exec", input: {} }, registry, ctx, cb);
     expect(result.isError).toBe(false);
@@ -52,7 +60,9 @@ describe("runTool", () => {
   });
 
   it("prompt tool denied when onPermissionRequest returns false", async () => {
-    const registry = new Map([["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")]]);
+    const registry = new Map([
+      ["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")],
+    ]);
     const cb = { ...callbacks, onPermissionRequest: async () => false };
     const result = await runTool({ id: "1", name: "shell_exec", input: {} }, registry, ctx, cb);
     expect(result.isError).toBe(true);
@@ -60,7 +70,9 @@ describe("runTool", () => {
   });
 
   it("prompt tool denied when no onPermissionRequest callback", async () => {
-    const registry = new Map([["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")]]);
+    const registry = new Map([
+      ["shell_exec", makeTool("shell_exec", { content: "ran", isError: false }, "prompt")],
+    ]);
     const cb = { ...callbacks, onPermissionRequest: undefined };
     const result = await runTool({ id: "1", name: "shell_exec", input: {} }, registry, ctx, cb);
     expect(result.isError).toBe(true);
@@ -82,9 +94,21 @@ describe("runTool", () => {
 
   it("forwards metadata when the tool result includes it", async () => {
     const registry = new Map([
-      ["edit_file", makeTool("edit_file", { content: "Edited", isError: false, metadata: { diff: "x", additions: 1, deletions: 0 } })],
+      [
+        "edit_file",
+        makeTool("edit_file", {
+          content: "Edited",
+          isError: false,
+          metadata: { diff: "x", additions: 1, deletions: 0 },
+        }),
+      ],
     ]);
-    const result = await runTool({ id: "1", name: "edit_file", input: {} }, registry, ctx, callbacks);
+    const result = await runTool(
+      { id: "1", name: "edit_file", input: {} },
+      registry,
+      ctx,
+      callbacks,
+    );
     expect(result.metadata).toEqual({ diff: "x", additions: 1, deletions: 0 });
   });
 

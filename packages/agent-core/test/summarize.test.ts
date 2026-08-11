@@ -9,7 +9,10 @@ function msg(role: AgentMessage["role"], text: string): AgentMessage {
 
 describe("generateSummary", () => {
   it("calls provider and returns summary text", async () => {
-    const provider = makeMockProvider([{ type: "text", text: "## Goal\nWrite tests" }, { type: "done" }]);
+    const provider = makeMockProvider([
+      { type: "text", text: "## Goal\nWrite tests" },
+      { type: "done" },
+    ]);
     const messages = [msg("user", "write tests for my code"), msg("assistant", "sure")];
     const result = await generateSummary(messages, provider);
     expect(result).toContain("## Goal");
@@ -19,7 +22,9 @@ describe("generateSummary", () => {
     let capturedMessages: unknown;
     const provider = makeMockProvider(
       [{ type: "text", text: "## Goal\nUpdated" }, { type: "done" }],
-      (msgs) => { capturedMessages = msgs; },
+      (msgs) => {
+        capturedMessages = msgs;
+      },
     );
     const messages = [msg("user", "new task")];
     await generateSummary(messages, provider, "prior summary content");
@@ -28,12 +33,17 @@ describe("generateSummary", () => {
   });
 
   it("appends file ops to summary", async () => {
-    const provider = makeMockProvider([{ type: "text", text: "## Goal\nEdit files" }, { type: "done" }]);
+    const provider = makeMockProvider([
+      { type: "text", text: "## Goal\nEdit files" },
+      { type: "done" },
+    ]);
     const messages: AgentMessage[] = [
       {
         id: "1",
         role: "assistant",
-        content: [{ type: "tool_call", id: "tc1", name: "read_file", input: { path: "/src/foo.ts" } }],
+        content: [
+          { type: "tool_call", id: "tc1", name: "read_file", input: { path: "/src/foo.ts" } },
+        ],
         timestamp: 0,
       },
     ];

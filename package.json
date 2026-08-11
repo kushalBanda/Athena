@@ -2,9 +2,7 @@
   "name": "athena",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
+  "workspaces": ["packages/*"],
   "scripts": {
     "build": "bun run --filter '*' build",
     "dev": "bun run --cwd packages/cli src/index.ts",
@@ -14,6 +12,6 @@
   "devDependencies": {
     "@biomejs/biome": "^1.9.0",
     "@firecrawl/anydoc": "^0.1.7",
-    "typescript": "7.0.2"
+    "typescript": "7.1.0-dev.20260811.1"
   }
 }

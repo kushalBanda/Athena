@@ -67,7 +67,11 @@ describe("loadSkills", () => {
   });
 
   it("sets disableModelInvocation from frontmatter", () => {
-    writeSkill(userDir, "skills/manual/SKILL.md", "description: Manual only\ndisable-model-invocation: true");
+    writeSkill(
+      userDir,
+      "skills/manual/SKILL.md",
+      "description: Manual only\ndisable-model-invocation: true",
+    );
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: isolatedHome });
     expect(skills.find((s) => s.name === "manual")?.disableModelInvocation).toBe(true);
   });
@@ -92,11 +96,17 @@ describe("loadSkills — ecosystem interop (.claude only)", () => {
   it("loads a user-level skill from ~/.claude/skills", () => {
     writeSkill(fakeHome, ".claude/skills/from-claude/SKILL.md", "description: From claude");
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.some((s) => s.name === "from-claude" && s.description === "From claude")).toBe(true);
+    expect(skills.some((s) => s.name === "from-claude" && s.description === "From claude")).toBe(
+      true,
+    );
   });
 
   it("loads a project-level skill from <cwd>/.claude/skills", () => {
-    writeSkill(projectDir, ".claude/skills/proj-claude/SKILL.md", "description: Project claude skill");
+    writeSkill(
+      projectDir,
+      ".claude/skills/proj-claude/SKILL.md",
+      "description: Project claude skill",
+    );
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     expect(skills.some((s) => s.name === "proj-claude")).toBe(true);
   });
@@ -105,7 +115,11 @@ describe("loadSkills — ecosystem interop (.claude only)", () => {
     writeSkill(fakeHome, ".codex/skills/from-codex/SKILL.md", "description: From codex");
     writeSkill(fakeHome, ".cursor/skills/from-cursor/SKILL.md", "description: From cursor");
     writeSkill(projectDir, ".codex/skills/proj-codex/SKILL.md", "description: Project codex skill");
-    writeSkill(projectDir, ".cursor/skills/proj-cursor/SKILL.md", "description: Project cursor skill");
+    writeSkill(
+      projectDir,
+      ".cursor/skills/proj-cursor/SKILL.md",
+      "description: Project cursor skill",
+    );
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     expect(skills.some((s) => s.name === "from-codex")).toBe(false);
     expect(skills.some((s) => s.name === "from-cursor")).toBe(false);
@@ -146,7 +160,11 @@ describe("loadSkills — source/scope tagging", () => {
   });
 
   it("tags an athena-native project skill with source athena, scope project", () => {
-    writeSkill(projectDir, ".athena/skills/native-proj/SKILL.md", "description: Native project skill");
+    writeSkill(
+      projectDir,
+      ".athena/skills/native-proj/SKILL.md",
+      "description: Native project skill",
+    );
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     const skill = skills.find((s) => s.name === "native-proj");
     expect(skill?.source).toBe("athena");
@@ -178,7 +196,12 @@ describe("loadSkills — enabledSources toggle", () => {
   });
 
   it("excludes claude skills when enabledSources.claude is false, but keeps athena's own", () => {
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome, enabledSources: { claude: false } });
+    const skills = loadSkills({
+      cwd: projectDir,
+      agentDir: userDir,
+      homeDir: fakeHome,
+      enabledSources: { claude: false },
+    });
     expect(skills.map((s) => s.name)).toEqual(["athena-skill"]);
   });
 

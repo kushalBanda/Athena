@@ -3,13 +3,9 @@
   "compilerOptions": {
     "rootDir": "src",
     "outDir": "dist",
-    "jsx": "react-jsx",
-    "lib": ["ES2022", "DOM"],
+    "target": "ESNext",
+    "lib": ["ESNext"],
     "types": ["bun"]
   },
-  "references": [
-    { "path": "../agent-core" },
-    { "path": "../providers" }
-  ],
   "include": ["src"]
 }
