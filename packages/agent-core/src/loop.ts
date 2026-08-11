@@ -1,5 +1,5 @@
 import { getTracer } from "@athena/observability";
-import type { LLMProvider } from "@athena/providers";
+import { estimateCost, type LLMProvider } from "@athena/providers";
 import type { Tool, ToolContext } from "@athena/tools";
 import { SpanStatusCode, context, trace } from "@opentelemetry/api";
 import { charsToTokens, estimateContextTokens } from "./compaction/estimate.js";
@@ -255,8 +255,10 @@ export async function runLoop(options: LoopOptions): Promise<AgentSession> {
           totalUsage.cacheRead += lastUsage.cacheRead;
           totalUsage.cacheWrite += lastUsage.cacheWrite;
           totalUsage.totalTokens += lastUsage.totalTokens;
-          if (lastUsage.costUsd !== undefined) {
-            totalUsage.costUsd = (totalUsage.costUsd ?? 0) + lastUsage.costUsd;
+          const turnCostUsd =
+            lastUsage.costUsd ?? estimateCost(provider.model, lastUsage.input, lastUsage.output);
+          if (turnCostUsd !== undefined) {
+            totalUsage.costUsd = (totalUsage.costUsd ?? 0) + turnCostUsd;
           }
           callbacks.onTokenUpdate(
             totalUsage.input,
