@@ -83,9 +83,7 @@ describe("loadCommandTemplates", () => {
 
 describe("expandPromptTemplate", () => {
   it("expands a matching /command with substituted args", () => {
-    const templates = [
-      { name: "review", description: "d", content: "Review: $ARGUMENTS" },
-    ];
+    const templates = [{ name: "review", description: "d", content: "Review: $ARGUMENTS" }];
     expect(expandPromptTemplate("/review the diff", templates)).toBe("Review: the diff");
   });
 

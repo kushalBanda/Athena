@@ -84,6 +84,10 @@ export interface AgentCallbacks {
   onCompacting: () => void;
   onTokenUpdate: (input: number, output: number, cacheRead?: number, cacheWrite?: number) => void;
   onPermissionRequest?: (toolName: string, input: unknown) => Promise<boolean>;
+  /** Called when the loop is about to retry after a transient provider-call failure. */
+  onRetrying?: (attempt: number, maxAttempts: number, delayMs: number, reason: string) => void;
+  /** Called when a compaction pass (started via onCompacting) has finished. */
+  onCompactingDone?: () => void;
 }
 
 export interface AgentSession {

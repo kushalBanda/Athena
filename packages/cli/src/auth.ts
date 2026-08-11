@@ -1,11 +1,7 @@
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
-import type {
-  McpOAuthStore,
-  OAuthClientInformationMixed,
-  OAuthTokens,
-} from "@athena/tools";
+import type { McpOAuthStore, OAuthClientInformationMixed, OAuthTokens } from "@athena/tools";
 
 type AuthEntry = { type: "api_key"; key: string };
 type AuthData = Record<string, AuthEntry>;

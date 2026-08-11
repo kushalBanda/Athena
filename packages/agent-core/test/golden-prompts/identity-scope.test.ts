@@ -46,7 +46,12 @@ describe("tone-and-style still bounds scope without the capability disclaimer", 
 describe("runAgent does not mechanically block a web_search tool call", () => {
   it("executes web_search end-to-end when the provider decides to call it", async () => {
     const firstTurn: Delta[] = [
-      { type: "tool_call", id: "tc1", name: "web_search", inputChunk: '{"query":"latest AI news"}' },
+      {
+        type: "tool_call",
+        id: "tc1",
+        name: "web_search",
+        inputChunk: '{"query":"latest AI news"}',
+      },
       { type: "done" },
     ];
     const secondTurn: Delta[] = [
@@ -85,7 +90,9 @@ describe("URL policy grants explicit permission for user-given and search-result
   // permission plainly, codex has no restrictive URL rule at all
   // (docs/superpowers/prompts/comparison.md).
   it("explicitly allows fetching a URL the user provides directly", () => {
-    expect(ATHENA_SYSTEM_PROMPT_BASE).toMatch(/URL the user (gives|provides).{0,120}(allowed|expected|safe to use|fetch)/is);
+    expect(ATHENA_SYSTEM_PROMPT_BASE).toMatch(
+      /URL the user (gives|provides).{0,120}(allowed|expected|safe to use|fetch)/is,
+    );
   });
 
   it("explicitly allows fetching a URL returned by web_search", () => {

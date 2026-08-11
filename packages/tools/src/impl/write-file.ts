@@ -11,7 +11,8 @@ const Schema = Type.Object({
 
 export class WriteFileTool extends BaseTool<typeof Schema> {
   readonly name = "write_file";
-  readonly description = "Write content to a file. Creates parent directories if needed. Overwrites existing files.";
+  readonly description =
+    "Write content to a file. Creates parent directories if needed. Overwrites existing files.";
   readonly permission = "auto" as const;
   readonly schema = Schema;
 

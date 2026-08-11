@@ -249,10 +249,13 @@ function buildSessionPath(
   return path;
 }
 
-const VALID_ROLES = new Set<AgentMessage["role"]>(["user", "assistant", "tool_result", "compaction_summary"]);
+const VALID_ROLES = new Set<AgentMessage["role"]>([
+  "user",
+  "assistant",
+  "tool_result",
+  "compaction_summary",
+]);
 
-/** Shape check for messages loaded from disk — a hand-edited or corrupted-but-valid-JSON
- * line should fail here, not deep inside a provider call with a confusing error. */
 function isWellFormedMessage(message: AgentMessage): boolean {
   return (
     typeof message.id === "string" &&
@@ -266,8 +269,10 @@ function sessionEntryToContextMessage(entry: SessionEntry): AgentMessage | null 
   return isWellFormedMessage(entry.message) ? entry.message : null;
 }
 
-
-export function diffNewMessages(priorHistory: AgentMessage[], newHistory: AgentMessage[]): AgentMessage[] {
+export function diffNewMessages(
+  priorHistory: AgentMessage[],
+  newHistory: AgentMessage[],
+): AgentMessage[] {
   const priorIds = new Set(priorHistory.map((m) => m.id));
   return newHistory.filter((m) => !priorIds.has(m.id));
 }
@@ -292,7 +297,8 @@ export class SessionManager {
     this.cwd = resolve(cwd);
     this.sessionDir = sessionDir;
     this.persist = persist;
-    if (persist && sessionDir && !existsSync(sessionDir)) mkdirSync(sessionDir, { recursive: true, mode: 0o700 });
+    if (persist && sessionDir && !existsSync(sessionDir))
+      mkdirSync(sessionDir, { recursive: true, mode: 0o700 });
 
     if (sessionFile) {
       this.sessionFile = resolve(sessionFile);
@@ -470,7 +476,8 @@ export class SessionManager {
     const path = buildSessionPath(this.getEntries(), this.leafId, this.byId);
     let model: { provider: string; modelId: string } | null = null;
     for (const entry of path) {
-      if (entry.type === "model_change") model = { provider: entry.provider, modelId: entry.modelId };
+      if (entry.type === "model_change")
+        model = { provider: entry.provider, modelId: entry.modelId };
     }
     const messages = path
       .map(sessionEntryToContextMessage)
@@ -494,7 +501,9 @@ export class SessionManager {
   static continueRecent(cwd: string, sessionDir?: string): SessionManager {
     const dir = sessionDir ?? getDefaultSessionDir(cwd);
     const mostRecent = findMostRecentSession(dir, sessionDir ? cwd : undefined);
-    return mostRecent ? new SessionManager(cwd, dir, mostRecent, true) : new SessionManager(cwd, dir, undefined, true);
+    return mostRecent
+      ? new SessionManager(cwd, dir, mostRecent, true)
+      : new SessionManager(cwd, dir, undefined, true);
   }
 
   static inMemory(cwd: string = process.cwd()): SessionManager {
@@ -504,11 +513,15 @@ export class SessionManager {
   static list(cwd: string, sessionDir?: string): SessionInfo[] {
     const dir = sessionDir ?? getDefaultSessionDir(cwd);
     const resolvedCwd = resolve(cwd);
-    return listSessionsFromDir(dir).filter((s) => !sessionDir || sessionCwdMatches(s.cwd, resolvedCwd));
+    return listSessionsFromDir(dir).filter(
+      (s) => !sessionDir || sessionCwdMatches(s.cwd, resolvedCwd),
+    );
   }
 
   static findById(cwd: string, id: string, sessionDir?: string): SessionManager | null {
-    const match = SessionManager.list(cwd, sessionDir).find((s) => s.id === id || s.id.startsWith(id));
+    const match = SessionManager.list(cwd, sessionDir).find(
+      (s) => s.id === id || s.id.startsWith(id),
+    );
     return match ? SessionManager.open(match.path, sessionDir) : null;
   }
 

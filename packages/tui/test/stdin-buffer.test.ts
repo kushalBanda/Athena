@@ -1,9 +1,4 @@
-/**
- * Tests for StdinBuffer
- *
- * Based on code from OpenTUI (https://github.com/anomalyco/opentui)
- * MIT License - Copyright (c) 2025 opentui
- */
+// Based on OpenTUI (https://github.com/anomalyco/opentui), MIT License, (c) 2025 opentui.
 
 import assert from "node:assert";
 import { beforeEach, describe, it } from "node:test";

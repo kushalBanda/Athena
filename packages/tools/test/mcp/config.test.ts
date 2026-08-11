@@ -79,12 +79,20 @@ describe("mcp config", () => {
   it("merges global and project configs end to end via loadMcpConfig", () => {
     writeFileSync(
       join(process.env.ATHENA_CONFIG_DIR!, "config.json"),
-      JSON.stringify({ mcp: { a: { type: "local", command: ["a"] }, shared: { type: "local", command: ["global"] } } }),
+      JSON.stringify({
+        mcp: {
+          a: { type: "local", command: ["a"] },
+          shared: { type: "local", command: ["global"] },
+        },
+      }),
     );
     mkdirSync(join(dir, ".athena"), { recursive: true });
     writeFileSync(
       join(dir, ".athena", "mcp.json"),
-      JSON.stringify({ shared: { type: "local", command: ["project"] }, b: { type: "remote", url: "https://x" } }),
+      JSON.stringify({
+        shared: { type: "local", command: ["project"] },
+        b: { type: "remote", url: "https://x" },
+      }),
     );
 
     const merged = loadMcpConfig(dir);

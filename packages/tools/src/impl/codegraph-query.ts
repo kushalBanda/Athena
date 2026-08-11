@@ -6,7 +6,9 @@ import { BaseTool, err, ok } from "../base.js";
 import type { ToolContext } from "../types.js";
 
 type CodegraphModule = {
-  ContextBuilder: new (dbPath: string) => {
+  ContextBuilder: new (
+    dbPath: string,
+  ) => {
     buildContext(
       query: string,
       options?: {

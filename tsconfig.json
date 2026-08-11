@@ -13,7 +13,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "skipLibCheck": true,
-    "composite": true
+    "composite": true,
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   },
   "references": [
     { "path": "./packages/providers" },

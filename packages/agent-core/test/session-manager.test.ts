@@ -18,7 +18,11 @@ function compactionMsg(id: string, summary: string): AgentMessage {
 }
 
 /** Exercises the exact function packages/cli/src/index.ts calls after every turn — not a reimplementation. */
-function persistNewMessages(sm: SessionManager, priorHistory: AgentMessage[], newHistory: AgentMessage[]): void {
+function persistNewMessages(
+  sm: SessionManager,
+  priorHistory: AgentMessage[],
+  newHistory: AgentMessage[],
+): void {
   for (const msg of diffNewMessages(priorHistory, newHistory)) sm.appendMessage(msg);
 }
 

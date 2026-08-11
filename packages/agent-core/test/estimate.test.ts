@@ -2,7 +2,11 @@ import { describe, expect, it } from "bun:test";
 import { estimateContextTokens, estimateTokens } from "../src/compaction/estimate.js";
 import type { AgentMessage } from "../src/types.js";
 
-function makeMsg(role: AgentMessage["role"], content: string, usage?: AgentMessage["usage"]): AgentMessage {
+function makeMsg(
+  role: AgentMessage["role"],
+  content: string,
+  usage?: AgentMessage["usage"],
+): AgentMessage {
   return { id: "x", role, content, usage, timestamp: 0 };
 }
 

@@ -2,17 +2,23 @@
 import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, loadSkills, newId, runAgent } from "@athena/agent-core";
+import {
+  DEFAULT_COMPACTION_SETTINGS,
+  SessionManager,
+  compact,
+  diffNewMessages,
+  loadSkills,
+  newId,
+  runAgent,
+} from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage, Skill } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { createProvider, PROVIDER_EFFORT_LEVELS } from "@athena/providers";
 import type { EffortLevel, ProviderName } from "@athena/providers";
 import { createRegistryWithMcp } from "@athena/tools";
-import { App } from "@athena/tui";
+import { TuiApp } from "@athena/tui";
 import type { AgentCallbacks as TuiCallbacks, PickerOption } from "@athena/tui";
 import { SpanKind } from "@opentelemetry/api";
-import { render } from "ink";
-import React from "react";
 import { agentMessagesToTuiMessages, createCallbacks, finalizeStream } from "./adapter.js";
 import type { AdapterState } from "./adapter.js";
 import { expandPromptTemplate, loadCommandTemplates } from "./commands.js";
@@ -26,7 +32,13 @@ import {
   listKeys,
   setApiKey,
 } from "./auth.js";
-import { loadConfig, loadObservabilityConfig, loadContextSourcesConfig, saveConfig, saveContextSourcesConfig } from "./config.js";
+import {
+  loadConfig,
+  loadObservabilityConfig,
+  loadContextSourcesConfig,
+  saveConfig,
+  saveContextSourcesConfig,
+} from "./config.js";
 import type { ContextSourcesSettings } from "./config.js";
 import {
   formatMcpListEntry,
@@ -182,7 +194,12 @@ async function handleMcpCommand(argv: string[]): Promise<void> {
       process.exit(1);
     }
     const result = mcpAdd(
-      { name, project, ...(local !== undefined ? { local } : {}), ...(remote !== undefined ? { remote } : {}) },
+      {
+        name,
+        project,
+        ...(local !== undefined ? { local } : {}),
+        ...(remote !== undefined ? { remote } : {}),
+      },
       cwd,
     );
     console.log(result.message);
@@ -192,7 +209,9 @@ async function handleMcpCommand(argv: string[]): Promise<void> {
   if (action === "list" || action === undefined) {
     const entries = await mcpList(cwd);
     if (entries.length === 0) {
-      console.log("No MCP servers configured. Run: athena mcp add <name> --local \"<cmd>\" | --remote <url>");
+      console.log(
+        'No MCP servers configured. Run: athena mcp add <name> --local "<cmd>" | --remote <url>',
+      );
       return;
     }
     console.log("MCP servers:\n");
@@ -355,8 +374,10 @@ async function main() {
     oauthStore: new FileMcpOAuthStore(),
   });
   for (const c of connections) {
-    if (c.status === "failed") console.error(`[mcp] "${c.server}" failed to connect: ${c.error ?? "unknown error"}`);
-    else if (c.status === "needs_auth") console.error(`[mcp] "${c.server}" needs authentication — run: athena mcp list`);
+    if (c.status === "failed")
+      console.error(`[mcp] "${c.server}" failed to connect: ${c.error ?? "unknown error"}`);
+    else if (c.status === "needs_auth")
+      console.error(`[mcp] "${c.server}" needs authentication — run: athena mcp list`);
   }
   const tools = registry.all();
 
@@ -513,7 +534,10 @@ async function main() {
           for (const m of diffNewMessages(before, history)) sessionManager.appendMessage(m);
           tui.clearMessages();
           for (const m of agentMessagesToTuiMessages(history)) tui.addMessage(m);
-          sysMsg(tui, `compacted: ${result.tokensBefore} tokens → summary + ${result.retainedTail.length} kept messages`);
+          sysMsg(
+            tui,
+            `compacted: ${result.tokensBefore} tokens → summary + ${result.retainedTail.length} kept messages`,
+          );
         } finally {
           tui.setStatus({ kind: "ready" });
         }
@@ -672,7 +696,10 @@ async function main() {
       await (async () => {
         const entries = mcpPickerEntries(cwd);
         if (entries.length === 0) {
-          sysMsg(tui, 'no MCP servers configured. Run: athena mcp add <name> --local "<cmd>" | --remote <url>');
+          sysMsg(
+            tui,
+            'no MCP servers configured. Run: athena mcp add <name> --local "<cmd>" | --remote <url>',
+          );
           return;
         }
         await tui.pickFromList("mcp servers", entries.map(formatMcpPickerOption), {
@@ -732,20 +759,24 @@ async function main() {
             tone: contextSources[key] ? "success" : "muted",
           }));
 
-        await tui.pickFromList("context sources — space to toggle (athena's own skills are always on)", buildOptions(), {
-          onToggle: (name) => {
-            const key = name as (typeof rows)[number];
-            contextSources = { ...contextSources, [key]: !contextSources[key] };
-            saveContextSourcesConfig({ [key]: contextSources[key] });
-            skills = loadSkills({
-              cwd,
-              agentDir: agentDir(),
-              enabledSources: { claude: contextSources.claudeSkills },
-            });
-            tui.setCustomCommands(buildCustomCommandList());
-            return buildOptions();
+        await tui.pickFromList(
+          "context sources — space to toggle (athena's own skills are always on)",
+          buildOptions(),
+          {
+            onToggle: (name) => {
+              const key = name as (typeof rows)[number];
+              contextSources = { ...contextSources, [key]: !contextSources[key] };
+              saveContextSourcesConfig({ [key]: contextSources[key] });
+              skills = loadSkills({
+                cwd,
+                agentDir: agentDir(),
+                enabledSources: { claude: contextSources.claudeSkills },
+              });
+              tui.setCustomCommands(buildCustomCommandList());
+              return buildOptions();
+            },
           },
-        });
+        );
         sysMsg(
           tui,
           `context sources → CLAUDE.md: ${contextSources.claudeMd ? "on" : "off"}, claude skills: ${contextSources.claudeSkills ? "on" : "off"} — ${skills.length} skill(s) loaded`,
@@ -895,28 +926,26 @@ async function main() {
     liveTui?.setQueuedMessages([...messageQueue]);
   };
 
-  const { waitUntilExit, unmount } = render(
-    React.createElement(App, {
-      initialState: {
-        model: session.provider.model,
-        ...(currentEffort(session.provider.name as ProviderName) !== undefined
-          ? { effort: currentEffort(session.provider.name as ProviderName) }
-          : {}),
-        cwd,
-        contextLimit: session.provider.contextLimit,
-        messages: agentMessagesToTuiMessages(history),
-        customCommands: buildCustomCommandList(),
-      },
-      onUserMessage: handleUserMessage,
-      onRecallQueued: recallLastQueued,
-      onReady: (callbacks: TuiCallbacks) => {
-        liveTui = callbacks;
-      },
-    }),
-  );
-  unmountApp = unmount;
+  const app = new TuiApp({
+    initialState: {
+      model: session.provider.model,
+      ...(currentEffort(session.provider.name as ProviderName) !== undefined
+        ? { effort: currentEffort(session.provider.name as ProviderName) }
+        : {}),
+      cwd,
+      contextLimit: session.provider.contextLimit,
+      messages: agentMessagesToTuiMessages(history),
+      customCommands: buildCustomCommandList(),
+    },
+    onUserMessage: handleUserMessage,
+    onRecallQueued: recallLastQueued,
+    onReady: (callbacks: TuiCallbacks) => {
+      liveTui = callbacks;
+    },
+  });
+  unmountApp = () => app.stop();
 
-  await waitUntilExit();
+  await app.start();
   await shutdown();
 }
 

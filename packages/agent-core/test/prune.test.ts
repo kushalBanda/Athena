@@ -1,5 +1,9 @@
 import { describe, expect, it } from "bun:test";
-import { pruneToolOutputs, PRUNE_PROTECT_TOKENS, PRUNE_MINIMUM_GAIN } from "../src/compaction/prune.js";
+import {
+  pruneToolOutputs,
+  PRUNE_PROTECT_TOKENS,
+  PRUNE_MINIMUM_GAIN,
+} from "../src/compaction/prune.js";
 import type { AgentMessage } from "../src/types.js";
 
 function toolResultMsg(content: string): AgentMessage {

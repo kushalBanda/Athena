@@ -57,8 +57,7 @@ export function openBrowser(url: string): void {
     } else {
       spawn(cmd, [url], { stdio: "ignore", detached: true }).unref();
     }
-  } catch {
-  }
+  } catch {}
 }
 
 export class OAuthCallbackServer {
@@ -93,9 +92,9 @@ export class OAuthCallbackServer {
           return;
         }
 
-        res.writeHead(200, { "Content-Type": "text/html" }).end(
-          "<html><body>Authentication complete. You may close this tab.</body></html>",
-        );
+        res
+          .writeHead(200, { "Content-Type": "text/html" })
+          .end("<html><body>Authentication complete. You may close this tab.</body></html>");
         this.close();
         resolve(code);
       });
@@ -118,7 +117,13 @@ export class McpOAuthProvider implements OAuthClientProvider {
   constructor(
     private serverName: string,
     private store: McpOAuthStore,
-    private opts: { clientId?: string; clientSecret?: string; scope?: string; callbackPort?: number; redirectUri?: string } = {},
+    private opts: {
+      clientId?: string;
+      clientSecret?: string;
+      scope?: string;
+      callbackPort?: number;
+      redirectUri?: string;
+    } = {},
   ) {
     this.port = opts.callbackPort ?? DEFAULT_OAUTH_CALLBACK_PORT;
   }

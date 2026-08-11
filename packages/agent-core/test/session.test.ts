@@ -102,8 +102,15 @@ describe("toToolDefs", () => {
       description: "does stuff",
       inputSchema: { type: "object" },
       permission: "auto",
-      execute: async (_i: unknown, _c: ToolContext): Promise<ToolResult> => ({ content: "", isError: false }),
-      toToolDef: (): ToolDef => ({ name: "my_tool", description: "does stuff", inputSchema: { type: "object" } }),
+      execute: async (_i: unknown, _c: ToolContext): Promise<ToolResult> => ({
+        content: "",
+        isError: false,
+      }),
+      toToolDef: (): ToolDef => ({
+        name: "my_tool",
+        description: "does stuff",
+        inputSchema: { type: "object" },
+      }),
     };
     const defs = toToolDefs([tool]);
     expect(defs.length).toBe(1);

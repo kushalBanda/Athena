@@ -158,6 +158,20 @@ export function createCallbacks(
       });
     },
 
+    onCompactingDone: () => {
+      tui.setStatus({ kind: "ready" });
+    },
+
+    onRetrying: (attempt: number, maxAttempts: number, delayMs: number, reason: string) => {
+      // Discard partial streamed text so the retry does not append onto stale text.
+      if (state.streamingMessageId !== null) {
+        tui.updateMessage(state.streamingMessageId, { content: "", streaming: false });
+        state.streamingMessageId = null;
+        state.streamingContent = "";
+      }
+      tui.setStatus({ kind: "retrying", attempt, maxAttempts, delayMs, reason });
+    },
+
     onTokenUpdate: (input: number, output: number, cacheRead = 0, cacheWrite = 0) => {
       tui.addTokens(
         input - state.lastInputTokens,

@@ -150,13 +150,9 @@ export function buildAthenaSystemPrompt(options: {
 
   const envBlock = buildEnvBlock(env);
   const toolsBlock =
-    toolNames.length > 0
-      ? `\n# Available tools\n${buildToolsList(toolNames)}`
-      : "";
+    toolNames.length > 0 ? `\n# Available tools\n${buildToolsList(toolNames)}` : "";
 
-  const codeCtxBlock = codeContext
-    ? `\n\n<code-context>\n${codeContext}\n</code-context>`
-    : "";
+  const codeCtxBlock = codeContext ? `\n\n<code-context>\n${codeContext}\n</code-context>` : "";
 
   const claudeMdBlock = claudeMdFiles ? formatClaudeMdForPrompt(claudeMdFiles) : "";
 

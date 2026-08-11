@@ -4,7 +4,9 @@ import { parseFrontmatter } from "../src/frontmatter.js";
 describe("parseFrontmatter", () => {
   it("parses YAML frontmatter and returns the body separately", () => {
     const content = "---\nname: my-skill\ndescription: Does a thing\n---\nBody content here.";
-    const { frontmatter, body } = parseFrontmatter<{ name?: string; description?: string }>(content);
+    const { frontmatter, body } = parseFrontmatter<{ name?: string; description?: string }>(
+      content,
+    );
     expect(frontmatter.name).toBe("my-skill");
     expect(frontmatter.description).toBe("Does a thing");
     expect(body).toBe("Body content here.");

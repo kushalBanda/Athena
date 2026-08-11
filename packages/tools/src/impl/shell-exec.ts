@@ -17,7 +17,10 @@ export class ShellExecTool extends BaseTool<typeof Schema> {
   readonly permission = "prompt" as const;
   readonly schema = Schema;
 
-  protected run(input: { command: string; timeoutMs?: number }, ctx: ToolContext): Promise<ToolResult> {
+  protected run(
+    input: { command: string; timeoutMs?: number },
+    ctx: ToolContext,
+  ): Promise<ToolResult> {
     const timeoutMs = input.timeoutMs ?? 30_000;
 
     return new Promise((resolve) => {
@@ -35,7 +38,9 @@ export class ShellExecTool extends BaseTool<typeof Schema> {
 
       const decode = (chunks: Buffer[]) => {
         const text = Buffer.concat(chunks).toString("utf-8");
-        return text.length > MAX_OUTPUT_BYTES ? `${text.slice(0, MAX_OUTPUT_BYTES)}\n[truncated]` : text;
+        return text.length > MAX_OUTPUT_BYTES
+          ? `${text.slice(0, MAX_OUTPUT_BYTES)}\n[truncated]`
+          : text;
       };
 
       child.on("error", (e) => {

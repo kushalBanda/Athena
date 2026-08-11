@@ -8,7 +8,9 @@ import type { Skill } from "./skills.js";
 import { loadClaudeMd } from "./claude-md.js";
 
 type CodegraphModule = {
-  ContextBuilder: new (dbPath: string) => {
+  ContextBuilder: new (
+    dbPath: string,
+  ) => {
     buildContext(
       query: string,
       options?: {

@@ -42,9 +42,22 @@ describe("buildSystemPrompt", () => {
 
   it("includes the skills block when skills are passed in", async () => {
     const skills = [
-      { name: "my-skill", description: "Does a thing", filePath: "/x/SKILL.md", disableModelInvocation: false },
+      {
+        name: "my-skill",
+        description: "Does a thing",
+        filePath: "/x/SKILL.md",
+        disableModelInvocation: false,
+      },
     ];
-    const prompt = await buildSystemPrompt("/tmp", "task", [], undefined, undefined, undefined, skills);
+    const prompt = await buildSystemPrompt(
+      "/tmp",
+      "task",
+      [],
+      undefined,
+      undefined,
+      undefined,
+      skills,
+    );
     expect(prompt).toContain("<available_skills>");
   });
 
@@ -71,7 +84,16 @@ describe("buildSystemPrompt with CLAUDE.md", () => {
   });
 
   it("omits CLAUDE.md content when the toggle is explicitly false", async () => {
-    const prompt = await buildSystemPrompt(repoRoot, "task", [], undefined, undefined, undefined, undefined, false);
+    const prompt = await buildSystemPrompt(
+      repoRoot,
+      "task",
+      [],
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      false,
+    );
     expect(prompt).not.toContain("Always run tests before committing.");
   });
 });

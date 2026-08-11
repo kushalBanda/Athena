@@ -53,7 +53,9 @@ describe("context sources config", () => {
   });
 
   it("round-trips a partial toggle through save/load, leaving other sources at their default", async () => {
-    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
     saveContextSourcesConfig({ claudeSkills: false });
     expect(loadContextSourcesConfig()).toEqual({
       claudeSkills: false,
@@ -62,7 +64,9 @@ describe("context sources config", () => {
   });
 
   it("re-enabling a previously disabled source flips it back", async () => {
-    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
     saveContextSourcesConfig({ claudeSkills: false });
     saveContextSourcesConfig({ claudeSkills: true });
     expect(loadContextSourcesConfig()).toEqual({
@@ -72,7 +76,9 @@ describe("context sources config", () => {
   });
 
   it("defaults claudeMd to true and can be toggled off", async () => {
-    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    const { loadContextSourcesConfig, saveContextSourcesConfig } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
     expect(loadContextSourcesConfig().claudeMd).toBe(true);
     saveContextSourcesConfig({ claudeMd: false });
     expect(loadContextSourcesConfig().claudeMd).toBe(false);

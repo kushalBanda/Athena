@@ -25,7 +25,11 @@ function createClient(): Client {
   return new Client({ name: CLIENT_NAME, version: CLIENT_VERSION }, { capabilities: {} });
 }
 
-async function connectLocal(name: string, cfg: Extract<McpServerConfig, { type: "local" }>, cwd: string): Promise<McpConnectResult> {
+async function connectLocal(
+  name: string,
+  cfg: Extract<McpServerConfig, { type: "local" }>,
+  cwd: string,
+): Promise<McpConnectResult> {
   const [command, ...args] = cfg.command;
   if (!command) return { status: "failed", error: `MCP server "${name}" has an empty command` };
 
@@ -76,7 +80,10 @@ async function connectRemote(
     ...(cfg.headers ? { requestInit: { headers: cfg.headers } } : {}),
   };
 
-  const attempts: Array<{ label: string; transport: StreamableHTTPClientTransport | SSEClientTransport }> = [
+  const attempts: Array<{
+    label: string;
+    transport: StreamableHTTPClientTransport | SSEClientTransport;
+  }> = [
     { label: "StreamableHTTP", transport: new StreamableHTTPClientTransport(url, transportOpts) },
     { label: "SSE", transport: new SSEClientTransport(url, transportOpts) },
   ];
@@ -106,14 +113,21 @@ async function connectRemote(
   return { status: "failed", error: lastError ?? "Failed to connect to remote MCP server" };
 }
 
-async function finishConnection(name: string, client: Client, timeout?: number): Promise<McpConnectResult> {
+async function finishConnection(
+  name: string,
+  client: Client,
+  timeout?: number,
+): Promise<McpConnectResult> {
   try {
     const listed = await client.listTools(undefined, { timeout: timeout ?? DEFAULT_TIMEOUT_MS });
     return { status: "connected", client, tools: listed.tools };
   } catch (error) {
     await client.close().catch(() => {});
     const message = error instanceof Error ? error.message : String(error);
-    return { status: "failed", error: `MCP server "${name}" connected but listTools() failed: ${message}` };
+    return {
+      status: "failed",
+      error: `MCP server "${name}" connected but listTools() failed: ${message}`,
+    };
   }
 }
 

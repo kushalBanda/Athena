@@ -24,14 +24,20 @@ function read(name: string): string {
 describe("EditFileTool", () => {
   it("applies an exact match edit", async () => {
     write("a.txt", "hello world\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "hello", newText: "goodbye" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "hello", newText: "goodbye" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("goodbye world\n");
   });
 
   it("returns diff metadata with additions/deletions", async () => {
     write("a.txt", "line1\nline2\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "line1", newText: "line1x" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "line1", newText: "line1x" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(r.metadata).toBeDefined();
     expect(typeof (r.metadata as any).diff).toBe("string");
@@ -41,21 +47,30 @@ describe("EditFileTool", () => {
 
   it("falls back to fuzzy match on trailing whitespace differences", async () => {
     write("a.txt", "foo   \nbar\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "foo", newText: "baz" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "foo", newText: "baz" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toContain("baz");
   });
 
   it("falls back to fuzzy match on smart quotes", async () => {
     write("a.txt", "say “hello”\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: 'say "hello"', newText: "say hi" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: 'say "hello"', newText: "say hi" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("say hi\n");
   });
 
   it("falls back to fuzzy match on unicode dashes", async () => {
     write("a.txt", "range 1–5\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "range 1-5", newText: "range 1 to 5" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "range 1-5", newText: "range 1 to 5" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("range 1 to 5\n");
   });
@@ -94,7 +109,10 @@ describe("EditFileTool", () => {
 
   it("preserves unchanged lines' original bytes when a fuzzy match is used elsewhere", async () => {
     write("a.txt", "keep me\nfoo   \n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "foo", newText: "bar" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "foo", newText: "bar" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("keep me\nbar   \n");
   });
@@ -124,7 +142,10 @@ describe("EditFileTool", () => {
 
   it("replaceAll replaces every occurrence", async () => {
     write("a.txt", "dup\ndup\ndup\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "dup", newText: "x", replaceAll: true }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "dup", newText: "x", replaceAll: true }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("x\nx\nx\n");
   });
@@ -132,27 +153,39 @@ describe("EditFileTool", () => {
   it("rejects disproportionate fuzzy match (line-count condition)", async () => {
     const bigBlock = Array.from({ length: 20 }, (_, i) => `line${i}`).join("\n");
     write("a.txt", `${bigBlock}\ntarget   \n`);
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "target", newText: "hit" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "target", newText: "hit" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
   });
 
   it("rejects a fuzzy match whose line-widened span dwarfs oldText", async () => {
     const hugeLine = "A".repeat(600) + "lo   ";
     write("a.txt", `${hugeLine}\nworld   \n`);
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "lo\nworld", newText: "X" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "lo\nworld", newText: "X" }] },
+      ctx,
+    );
     expect(r.isError).toBe(true);
     expect(r.content).toContain("much larger than oldText");
   });
 
   it("no-op guard errors when replacement produces identical content", async () => {
     write("a.txt", "same\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "same", newText: "same" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "same", newText: "same" }] },
+      ctx,
+    );
     expect(r.isError).toBe(true);
     expect(r.content).toContain("No changes");
   });
 
   it("creates a new file via empty oldText", async () => {
-    const r = await tool.execute({ path: "new.txt", edits: [{ oldText: "", newText: "hello\n" }] }, ctx);
+    const r = await tool.execute(
+      { path: "new.txt", edits: [{ oldText: "", newText: "hello\n" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("new.txt")).toBe("hello\n");
   });
@@ -172,20 +205,29 @@ describe("EditFileTool", () => {
 
   it("preserves BOM", async () => {
     write("a.txt", "﻿hello\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "hello", newText: "hi" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "hello", newText: "hi" }] },
+      ctx,
+    );
     expect(r.isError).toBe(false);
     expect(read("a.txt")).toBe("﻿hi\n");
   });
 
   it("errors when oldText not found", async () => {
     write("a.txt", "hello\n");
-    const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "nope", newText: "x" }] }, ctx);
+    const r = await tool.execute(
+      { path: "a.txt", edits: [{ oldText: "nope", newText: "x" }] },
+      ctx,
+    );
     expect(r.isError).toBe(true);
     expect(r.content).toContain("Could not find");
   });
 
   it("errors when file does not exist", async () => {
-    const r = await tool.execute({ path: "missing.txt", edits: [{ oldText: "a", newText: "b" }] }, ctx);
+    const r = await tool.execute(
+      { path: "missing.txt", edits: [{ oldText: "a", newText: "b" }] },
+      ctx,
+    );
     expect(r.isError).toBe(true);
     expect(r.content).toContain("not found");
   });

@@ -43,7 +43,9 @@ export function substituteArgs(content: string, args: string[]): string {
     (_match, defaultTarget, defaultValue, sliceStart, sliceLength, simple) => {
       if (defaultTarget) {
         const value =
-          defaultTarget === "@" || defaultTarget === "ARGUMENTS" ? allArgs : args[parseInt(defaultTarget, 10) - 1];
+          defaultTarget === "@" || defaultTarget === "ARGUMENTS"
+            ? allArgs
+            : args[parseInt(defaultTarget, 10) - 1];
         return value ? value : defaultValue;
       }
       if (sliceStart) {
@@ -98,8 +100,7 @@ function loadTemplatesFromDir(dir: string): CommandTemplate[] {
         if (template) templates.push(template);
       }
     }
-  } catch {
-  }
+  } catch {}
   return templates;
 }
 

@@ -45,7 +45,12 @@ describe("runAgent smoke — read_file tool call", () => {
   it("executes read_file and returns content in tool_result", async () => {
     const provider = makeSequentialProvider([
       [
-        { type: "tool_call", id: "tc1", name: "read_file", inputChunk: `{"path":"${tmpDir}/target.ts"}` },
+        {
+          type: "tool_call",
+          id: "tc1",
+          name: "read_file",
+          inputChunk: `{"path":"${tmpDir}/target.ts"}`,
+        },
         { type: "done" },
       ],
       [{ type: "text", text: "File read successfully." }, { type: "done" }],
@@ -77,7 +82,12 @@ describe("runAgent smoke — write_file then read_file", () => {
     const outPath = `${tmpDir}/written.txt`;
     const provider = makeSequentialProvider([
       [
-        { type: "tool_call", id: "tc1", name: "write_file", inputChunk: `{"path":"${outPath}","content":"athena wrote this"}` },
+        {
+          type: "tool_call",
+          id: "tc1",
+          name: "write_file",
+          inputChunk: `{"path":"${outPath}","content":"athena wrote this"}`,
+        },
         { type: "done" },
       ],
       [
@@ -120,7 +130,9 @@ describe("runAgent smoke — grep tool call", () => {
     let grepResult = "";
     const callbacks = {
       ...makeNoopCallbacks(),
-      onToolResult: (_id: string, result: string) => { grepResult = result; },
+      onToolResult: (_id: string, result: string) => {
+        grepResult = result;
+      },
     };
 
     await runAgent("grep for FOO", { provider, tools, cwd: tmpDir, callbacks });
@@ -135,7 +147,12 @@ describe("runAgent smoke — permission denied for shell_exec", () => {
 
     const provider = makeSequentialProvider([
       [
-        { type: "tool_call", id: "tc1", name: "shell_exec", inputChunk: '{"command":"echo pwned"}' },
+        {
+          type: "tool_call",
+          id: "tc1",
+          name: "shell_exec",
+          inputChunk: '{"command":"echo pwned"}',
+        },
         { type: "done" },
       ],
       [{ type: "text", text: "Denied." }, { type: "done" }],
@@ -145,7 +162,9 @@ describe("runAgent smoke — permission denied for shell_exec", () => {
     const callbacks = {
       ...makeNoopCallbacks(),
       onPermissionRequest: async () => false,
-      onToolResult: (_id: string, result: string) => { resultContent = result; },
+      onToolResult: (_id: string, result: string) => {
+        resultContent = result;
+      },
     };
 
     await runAgent("run shell", { provider, tools: allTools, cwd: tmpDir, callbacks });

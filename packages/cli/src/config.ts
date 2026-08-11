@@ -227,7 +227,11 @@ export function loadProjectMcpServers(projectRoot: string): Record<string, McpSe
   return readProjectMcpConfig(projectRoot);
 }
 
-export function saveProjectMcpServer(projectRoot: string, name: string, server: McpServerConfig): void {
+export function saveProjectMcpServer(
+  projectRoot: string,
+  name: string,
+  server: McpServerConfig,
+): void {
   toolsSaveProjectMcpServer(projectRoot, name, server);
 }
 

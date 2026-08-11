@@ -11,7 +11,10 @@ export interface ClaudeMdFile {
 
 function findGitRoot(cwd: string): string | null {
   try {
-    const out = execSync("git rev-parse --show-toplevel", { cwd, stdio: ["ignore", "pipe", "ignore"] });
+    const out = execSync("git rev-parse --show-toplevel", {
+      cwd,
+      stdio: ["ignore", "pipe", "ignore"],
+    });
     return out.toString("utf-8").trim() || null;
   } catch {
     return null;
@@ -45,7 +48,9 @@ function realpathOrSelf(p: string): string {
 export function loadClaudeMd(cwd: string): ClaudeMdFile[] {
   const resolvedCwd = realpathOrSelf(resolve(cwd));
   const gitRoot = findGitRoot(resolvedCwd);
-  const ancestorDirs = gitRoot ? collectAncestors(resolvedCwd, realpathOrSelf(gitRoot)) : [resolvedCwd];
+  const ancestorDirs = gitRoot
+    ? collectAncestors(resolvedCwd, realpathOrSelf(gitRoot))
+    : [resolvedCwd];
 
   const files: ClaudeMdFile[] = [];
   for (const dir of ancestorDirs) {
@@ -53,8 +58,7 @@ export function loadClaudeMd(cwd: string): ClaudeMdFile[] {
     if (!existsSync(candidate)) continue;
     try {
       files.push({ path: candidate, content: readFileSync(candidate, "utf-8") });
-    } catch {
-    }
+    } catch {}
   }
 
   return files;

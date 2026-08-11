@@ -150,8 +150,7 @@ function loadSkillsFromDirInternal(
         if (skill) skills.push(skill);
       }
     }
-  } catch {
-  }
+  } catch {}
 
   return skills;
 }
@@ -175,10 +174,24 @@ export function loadSkills(options: LoadSkillsOptions): Skill[] {
   const enabled = { claude: true, ...options.enabledSources };
 
   const sourceDirs: SourceDir[] = [
-    ...(enabled.claude ? [{ source: "claude" as const, scope: "user" as const, dir: join(home, ".claude", "skills") }] : []),
+    ...(enabled.claude
+      ? [
+          {
+            source: "claude" as const,
+            scope: "user" as const,
+            dir: join(home, ".claude", "skills"),
+          },
+        ]
+      : []),
     { source: "athena", scope: "user", dir: join(resolve(options.agentDir), "skills") },
     ...(enabled.claude
-      ? [{ source: "claude" as const, scope: "project" as const, dir: join(projectRoot, ".claude", "skills") }]
+      ? [
+          {
+            source: "claude" as const,
+            scope: "project" as const,
+            dir: join(projectRoot, ".claude", "skills"),
+          },
+        ]
       : []),
     { source: "athena", scope: "project", dir: join(projectRoot, PROJECT_CONFIG_DIR, "skills") },
   ];

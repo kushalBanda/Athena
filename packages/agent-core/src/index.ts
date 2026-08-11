@@ -7,14 +7,27 @@ import { runLoop } from "./loop.js";
 import { newId } from "./session.js";
 import { DEFAULT_COMPACTION_SETTINGS, compact } from "./compaction/index.js";
 
-export type { AgentCallbacks, AgentMessage, AgentSession, CompactionSettings, ActiveToolCall, TokenUsage } from "./types.js";
+export type {
+  AgentCallbacks,
+  AgentMessage,
+  AgentSession,
+  CompactionSettings,
+  ActiveToolCall,
+  TokenUsage,
+} from "./types.js";
 export { DEFAULT_COMPACTION_SETTINGS, compact } from "./compaction/index.js";
 export { newId } from "./session.js";
 export { SessionManager, getDefaultSessionDir, diffNewMessages } from "./session-manager.js";
 export type { SessionInfo, SessionContext } from "./session-manager.js";
 export { parseFrontmatter } from "./frontmatter.js";
 export { loadSkills } from "./skills.js";
-export type { Skill, LoadSkillsOptions, SkillSource, SkillScope, SkillSourceToggles } from "./skills.js";
+export type {
+  Skill,
+  LoadSkillsOptions,
+  SkillSource,
+  SkillScope,
+  SkillSourceToggles,
+} from "./skills.js";
 export { formatSkillsForPrompt, formatClaudeMdForPrompt } from "./system-prompt.js";
 export { loadClaudeMd } from "./claude-md.js";
 export type { ClaudeMdFile } from "./claude-md.js";
@@ -32,6 +45,7 @@ export interface AgentRunOptions {
   effort?: string;
   skills?: Skill[];
   includeClaudeMd?: boolean;
+  retry?: { maxAttempts?: number; baseDelayMs?: number };
 }
 
 export async function runAgent(
@@ -80,5 +94,6 @@ export async function runAgent(
     compactionSettings,
     ...(signal !== undefined ? { signal } : {}),
     ...(sessionId !== undefined ? { sessionId } : {}),
+    ...(options.retry !== undefined ? { retry: options.retry } : {}),
   });
 }

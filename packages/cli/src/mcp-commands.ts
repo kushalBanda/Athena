@@ -1,4 +1,9 @@
-import { connectMcpServer, isServerEnabled, loadMcpConfig, type McpServerConfig } from "@athena/tools";
+import {
+  connectMcpServer,
+  isServerEnabled,
+  loadMcpConfig,
+  type McpServerConfig,
+} from "@athena/tools";
 import { FileMcpOAuthStore } from "./auth.js";
 import {
   loadGlobalMcpServers,
@@ -23,29 +28,35 @@ export interface McpAddResult {
   message: string;
 }
 
-/** Splits a shell-style command string into argv, respecting simple quoting. */
 export function splitCommand(command: string): string[] {
   const matches = command.match(/(?:[^\s"']+|"[^"]*"|'[^']*')+/g) ?? [];
   return matches.map((part) => part.replace(/^["']|["']$/g, ""));
 }
 
-/** Adds a server to the global or project-local MCP config. Pure/testable — no process.exit. */
 export function mcpAdd(opts: McpAddOptions, projectRoot: string): McpAddResult {
-  if (!opts.name) return { ok: false, message: "Usage: athena mcp add <name> --local \"<cmd>\" | --remote <url>" };
+  if (!opts.name)
+    return { ok: false, message: 'Usage: athena mcp add <name> --local "<cmd>" | --remote <url>' };
   if (!opts.local && !opts.remote) {
-    return { ok: false, message: "Specify either --local \"<command>\" or --remote <url>" };
+    return { ok: false, message: 'Specify either --local "<command>" or --remote <url>' };
   }
   if (opts.local && opts.remote) {
     return { ok: false, message: "Specify only one of --local or --remote, not both" };
   }
 
   const server: McpServerConfig = opts.local
-    ? { type: "local", command: splitCommand(opts.local), ...(opts.timeout ? { timeout: opts.timeout } : {}) }
+    ? {
+        type: "local",
+        command: splitCommand(opts.local),
+        ...(opts.timeout ? { timeout: opts.timeout } : {}),
+      }
     : { type: "remote", url: opts.remote!, ...(opts.timeout ? { timeout: opts.timeout } : {}) };
 
   if (opts.project) {
     saveProjectMcpServer(projectRoot, opts.name, server);
-    return { ok: true, message: `Added MCP server "${opts.name}" to ${projectRoot}/.athena/mcp.json` };
+    return {
+      ok: true,
+      message: `Added MCP server "${opts.name}" to ${projectRoot}/.athena/mcp.json`,
+    };
   }
   saveGlobalMcpServer(opts.name, server);
   return { ok: true, message: `Added MCP server "${opts.name}" to global config` };
@@ -56,7 +67,6 @@ export interface McpRemoveResult {
   message: string;
 }
 
-/** Removes a server by name from whichever config (project takes precedence, then global) has it. */
 export function mcpRemove(name: string, projectRoot: string): McpRemoveResult {
   if (removeProjectMcpServer(projectRoot, name)) {
     return { ok: true, message: `Removed "${name}" from project config (.athena/mcp.json)` };
@@ -76,8 +86,10 @@ export interface McpListEntry {
   toolCount?: number;
 }
 
-/** Lists configured servers and, unless `skipConnect`, attempts a live connection to report status. */
-export async function mcpList(projectRoot: string, opts: { skipConnect?: boolean } = {}): Promise<McpListEntry[]> {
+export async function mcpList(
+  projectRoot: string,
+  opts: { skipConnect?: boolean } = {},
+): Promise<McpListEntry[]> {
   const project = loadProjectMcpServers(projectRoot);
   const merged = loadMcpConfig(projectRoot);
 
@@ -113,7 +125,6 @@ export interface McpToggleResult {
   enabled?: boolean;
 }
 
-/** Flips a server's `enabled` flag in whichever config (project, else global) has it. */
 export function mcpToggle(name: string, projectRoot: string): McpToggleResult {
   const project = loadProjectMcpServers(projectRoot);
   if (name in project) {
@@ -157,7 +168,6 @@ export interface McpPickerOption {
   tone: "success" | "muted";
 }
 
-/** Structured picker row: name/scope/type as the label, enabled state as a colored hint. */
 export function formatMcpPickerOption(entry: McpPickerEntry): McpPickerOption {
   return {
     label: `${entry.name}  [${entry.scope}/${entry.type}]`,

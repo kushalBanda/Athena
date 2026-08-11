@@ -8,7 +8,8 @@ function messageChars(msg: AgentMessage): number {
   if (typeof msg.content === "string") return msg.content.length;
   return msg.content.reduce((sum, block) => {
     if (block.type === "text") return sum + block.text.length;
-    if (block.type === "tool_call") return sum + JSON.stringify(block.input).length + block.name.length;
+    if (block.type === "tool_call")
+      return sum + JSON.stringify(block.input).length + block.name.length;
     if (block.type === "tool_result") return sum + block.content.length;
     return sum;
   }, 0);
