@@ -1,6 +1,7 @@
+import { spawn } from "node:child_process";
 import { Type } from "@sinclair/typebox";
 import { BaseTool, err, ok } from "../base.js";
-import type { ToolContext } from "../types.js";
+import type { ToolContext, ToolResult } from "../types.js";
 
 const Schema = Type.Object({
   command: Type.String({ description: "Shell command to execute" }),
@@ -16,41 +17,45 @@ export class ShellExecTool extends BaseTool<typeof Schema> {
   readonly permission = "prompt" as const;
   readonly schema = Schema;
 
-  protected async run(input: { command: string; timeoutMs?: number }, ctx: ToolContext) {
+  protected run(input: { command: string; timeoutMs?: number }, ctx: ToolContext): Promise<ToolResult> {
     const timeoutMs = input.timeoutMs ?? 30_000;
 
-    const proc = Bun.spawn(["bash", "-c", input.command], {
-      cwd: ctx.workingDir,
-      stdout: "pipe",
-      stderr: "pipe",
-    });
+    return new Promise((resolve) => {
+      const child = spawn("bash", ["-c", input.command], {
+        cwd: ctx.workingDir,
+        stdio: ["ignore", "pipe", "pipe"],
+      });
 
-    const timer = setTimeout(() => proc.kill(), timeoutMs);
+      const stdoutChunks: Buffer[] = [];
+      const stderrChunks: Buffer[] = [];
+      child.stdout?.on("data", (chunk: Buffer) => stdoutChunks.push(chunk));
+      child.stderr?.on("data", (chunk: Buffer) => stderrChunks.push(chunk));
 
-    try {
-      const [stdoutBuf, stderrBuf, exitCode] = await Promise.all([
-        Bun.readableStreamToArrayBuffer(proc.stdout),
-        Bun.readableStreamToArrayBuffer(proc.stderr),
-        proc.exited,
-      ]);
+      const timer = setTimeout(() => child.kill(), timeoutMs);
 
-      const decode = (buf: ArrayBuffer) => {
-        const text = new TextDecoder().decode(buf);
-        return text.length > MAX_OUTPUT_BYTES
-          ? `${text.slice(0, MAX_OUTPUT_BYTES)}\n[truncated]`
-          : text;
+      const decode = (chunks: Buffer[]) => {
+        const text = Buffer.concat(chunks).toString("utf-8");
+        return text.length > MAX_OUTPUT_BYTES ? `${text.slice(0, MAX_OUTPUT_BYTES)}\n[truncated]` : text;
       };
 
-      const stdout = decode(stdoutBuf);
-      const stderr = decode(stderrBuf);
-      const combined = stdout + (stderr ? `\nSTDERR:\n${stderr}` : "");
+      child.on("error", (e) => {
+        clearTimeout(timer);
+        resolve(err(`Failed to start command: ${e.message}`));
+      });
 
-      if (exitCode !== 0) {
-        return err(`Exit ${exitCode}:\n${combined}`);
-      }
-      return ok(combined || "(no output)");
-    } finally {
-      clearTimeout(timer);
-    }
+      child.on("close", (exitCode) => {
+        clearTimeout(timer);
+
+        const stdout = decode(stdoutChunks);
+        const stderr = decode(stderrChunks);
+        const combined = stdout + (stderr ? `\nSTDERR:\n${stderr}` : "");
+
+        if (exitCode !== 0) {
+          resolve(err(`Exit ${exitCode}:\n${combined}`));
+        } else {
+          resolve(ok(combined || "(no output)"));
+        }
+      });
+    });
   }
 }

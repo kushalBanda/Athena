@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { readFile, stat } from "node:fs/promises";
 import path from "node:path";
 import { formatFromExtension, toMarkdown } from "@firecrawl/anydoc";
 import { Type } from "@sinclair/typebox";
@@ -18,9 +20,8 @@ export class ReadFileTool extends BaseTool<typeof Schema> {
 
   protected async run(input: { path: string; maxBytes?: number }, ctx: ToolContext) {
     const resolved = path.resolve(ctx.workingDir, input.path);
-    const file = Bun.file(resolved);
 
-    if (!(await file.exists())) {
+    if (!existsSync(resolved)) {
       return err(`File not found: ${resolved}`);
     }
 
@@ -33,14 +34,14 @@ export class ReadFileTool extends BaseTool<typeof Schema> {
     }
 
     const maxBytes = input.maxBytes ?? 200_000;
-    const size = file.size;
+    const { size } = await stat(resolved);
 
     if (size > maxBytes) {
-      const buffer = await file.arrayBuffer();
-      const text = new TextDecoder().decode(buffer.slice(0, maxBytes));
+      const buffer = await readFile(resolved);
+      const text = new TextDecoder().decode(buffer.subarray(0, maxBytes));
       return ok(`${text}\n\n[truncated — ${size} bytes total, showed first ${maxBytes}]`);
     }
 
-    return ok(await file.text());
+    return ok(await readFile(resolved, "utf-8"));
   }
 }

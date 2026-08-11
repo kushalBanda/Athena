@@ -1,6 +1,7 @@
 import { Type } from "@sinclair/typebox";
+import { existsSync } from "node:fs";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import { mkdir } from "node:fs/promises";
 import { BaseTool, err } from "../base.js";
 import type { ToolContext, ToolResult } from "../types.js";
 import {
@@ -37,14 +38,13 @@ export class EditFileTool extends BaseTool<typeof Schema> {
     ctx: ToolContext,
   ): Promise<ToolResult> {
     const resolved = path.resolve(ctx.workingDir, input.path);
-    const file = Bun.file(resolved);
-    const exists = await file.exists();
+    const exists = existsSync(resolved);
 
     if (!exists) {
       if (input.edits.length === 1 && input.edits[0]!.oldText === "") {
         try {
           await mkdir(path.dirname(resolved), { recursive: true });
-          await Bun.write(resolved, input.edits[0]!.newText);
+          await writeFile(resolved, input.edits[0]!.newText, "utf-8");
           const { additions } = countDiffChanges("", input.edits[0]!.newText);
           return {
             content: `Created ${resolved} (+${additions} -0)`,
@@ -58,7 +58,8 @@ export class EditFileTool extends BaseTool<typeof Schema> {
       return err(`File not found: ${resolved}`);
     }
 
-    const rawContent = new TextDecoder("utf-8", { ignoreBOM: true }).decode(await file.arrayBuffer());
+    const rawBuffer = await readFile(resolved);
+    const rawContent = new TextDecoder("utf-8", { ignoreBOM: true }).decode(rawBuffer);
     const { bom, text } = stripBom(rawContent);
     const lineEnding = detectLineEnding(text);
     const normalizedContent = normalizeToLF(text);
@@ -80,7 +81,7 @@ export class EditFileTool extends BaseTool<typeof Schema> {
     const finalContent = bom + restoreLineEndings(newContent, lineEnding);
 
     try {
-      await Bun.write(resolved, finalContent);
+      await writeFile(resolved, finalContent, "utf-8");
     } catch (e) {
       return err(`Write failed: ${e instanceof Error ? e.message : String(e)}`);
     }

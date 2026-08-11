@@ -1,6 +1,6 @@
 import { Type } from "@sinclair/typebox";
 import path from "node:path";
-import { mkdir } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { BaseTool, err, ok } from "../base.js";
 import type { ToolContext } from "../types.js";
 
@@ -20,7 +20,7 @@ export class WriteFileTool extends BaseTool<typeof Schema> {
 
     try {
       await mkdir(path.dirname(resolved), { recursive: true });
-      await Bun.write(resolved, input.content);
+      await writeFile(resolved, input.content, "utf-8");
       return ok(`Wrote ${input.content.length} bytes to ${resolved}`);
     } catch (e) {
       return err(`Write failed: ${e instanceof Error ? e.message : String(e)}`);

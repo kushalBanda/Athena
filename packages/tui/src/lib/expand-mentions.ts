@@ -1,3 +1,5 @@
+import { existsSync } from "node:fs";
+import { readFile } from "node:fs/promises";
 import path from "node:path";
 
 const MENTION_PATTERN = /@(\S+)/g;
@@ -13,10 +15,9 @@ export async function expandMentions(text: string, cwd: string): Promise<string>
     seen.add(relPath);
 
     const resolved = path.resolve(cwd, relPath);
-    const file = Bun.file(resolved);
-    if (!(await file.exists())) continue;
+    if (!existsSync(resolved)) continue;
 
-    const content = await file.text();
+    const content = await readFile(resolved, "utf-8");
     const truncated = content.length > MAX_CONTENT_CHARS;
     const body = truncated ? content.slice(0, MAX_CONTENT_CHARS) : content;
     const suffix = truncated ? `\n[truncated, ${content.length - MAX_CONTENT_CHARS} more chars omitted]` : "";

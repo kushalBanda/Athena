@@ -132,18 +132,11 @@ describe("EditFileTool", () => {
   it("rejects disproportionate fuzzy match (line-count condition)", async () => {
     const bigBlock = Array.from({ length: 20 }, (_, i) => `line${i}`).join("\n");
     write("a.txt", `${bigBlock}\ntarget   \n`);
-    // oldText is 1 line; force fuzzy by using trailing-space diff, but matched span
-    // itself is still 1 line so this should NOT trigger disproportionate guard.
     const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "target", newText: "hit" }] }, ctx);
     expect(r.isError).toBe(false);
   });
 
   it("rejects a fuzzy match whose line-widened span dwarfs oldText", async () => {
-    // oldText only covers the tail of line 1 ("lo") + all of line 2 ("world").
-    // The line-widening overlay must pull in the *entire* first line, which is
-    // deliberately huge — that widened span is what the guard should measure.
-    // Trailing whitespace after "lo" forces the fuzzy pass (exact match would
-    // otherwise short-circuit before the line-widening overlay ever runs).
     const hugeLine = "A".repeat(600) + "lo   ";
     write("a.txt", `${hugeLine}\nworld   \n`);
     const r = await tool.execute({ path: "a.txt", edits: [{ oldText: "lo\nworld", newText: "X" }] }, ctx);

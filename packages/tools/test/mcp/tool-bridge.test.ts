@@ -74,7 +74,6 @@ describe("McpToolBridge", () => {
   it("does not validate input against the schema (trusts the MCP server)", async () => {
     const callTool = mock(async () => ({ content: [{ type: "text", text: "ok" }] }));
     const bridge = new McpToolBridge("exa", def, fakeClient(callTool));
-    // missing required `q` — would fail TypeBox validation on a BaseTool, but not here
     const result = await bridge.execute({}, { workingDir: "/tmp" });
     expect(result.isError).toBe(false);
   });
