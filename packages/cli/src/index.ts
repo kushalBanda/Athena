@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { existsSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, loadSkills, newId, runAgent } from "@athena/agent-core";
@@ -25,8 +26,8 @@ import {
   listKeys,
   setApiKey,
 } from "./auth.js";
-import { loadConfig, loadObservabilityConfig, loadSkillSourcesConfig, saveConfig, saveSkillSourcesConfig } from "./config.js";
-import type { SkillSourcesSettings } from "./config.js";
+import { loadConfig, loadObservabilityConfig, loadContextSourcesConfig, saveConfig, saveContextSourcesConfig } from "./config.js";
+import type { ContextSourcesSettings } from "./config.js";
 import {
   formatMcpListEntry,
   formatMcpPickerOption,
@@ -359,9 +360,27 @@ async function main() {
   }
   const tools = registry.all();
 
-  let skillSources: SkillSourcesSettings = loadSkillSourcesConfig();
-  let skills: Skill[] = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+  let contextSources: ContextSourcesSettings = loadContextSourcesConfig();
+  let skills: Skill[] = loadSkills({
+    cwd,
+    agentDir: agentDir(),
+    enabledSources: { claude: contextSources.claudeSkills },
+  });
   let commandTemplates: CommandTemplate[] = loadCommandTemplates({ cwd, agentDir: agentDir() });
+
+  function skillCommandName(skill: Skill): string {
+    return `${skill.scope}:${skill.name}`;
+  }
+
+  function buildCustomCommandList(): { name: string; description: string }[] {
+    return [
+      ...commandTemplates.map((t) => ({ name: t.name, description: t.description })),
+      ...skills.map((s) => ({
+        name: skillCommandName(s),
+        description: `${s.description} (${s.source} · ${s.scope}${s.disableModelInvocation ? " · manual-only" : ""})`,
+      })),
+    ];
+  }
 
   if (args.print) {
     const message = args.message ?? "";
@@ -388,6 +407,7 @@ async function main() {
       sessionHistory: printHistory,
       signal: printAbort.signal,
       skills,
+      includeClaudeMd: contextSources.claudeMd,
       ...(printEffort !== undefined ? { effort: printEffort } : {}),
       callbacks: {
         onThinking: () => {},
@@ -455,7 +475,9 @@ async function main() {
           "/compact                 manually compact the session context",
           "/resume                  pick a previous session to resume",
           "/skills                  list loaded skills (name, description, path)",
-          "/skills-config           toggle which ecosystems Athena pulls skills from",
+          "/<scope>:<skill-name>    manually invoke a loaded skill (also shown in autocomplete)",
+          "/context-config          toggle CLAUDE.md loading and claude skill loading",
+          "/init                    generate CLAUDE.md for this repo",
           "/reload                  reload skills and custom commands",
           "/exit  /quit             quit athena",
         ].join("\n"),
@@ -668,12 +690,10 @@ async function main() {
         sysMsg(
           tui,
           [
-            "no skills loaded. Athena also reads skills written for other agents — add a SKILL.md under any of:",
+            "no skills loaded. Athena also reads skills written for Claude — add a SKILL.md under any of:",
             `  ~/.claude/skills/<name>/       or  ${join(cwd, ".claude", "skills", "<name>")}`,
-            `  ~/.codex/skills/<name>/        or  ${join(cwd, ".codex", "skills", "<name>")}`,
-            `  ~/.cursor/skills/<name>/       or  ${join(cwd, ".cursor", "skills", "<name>")}`,
             `  ${join(agentDir(), "skills", "<name>")}  or  ${join(cwd, ".athena", "skills", "<name>")}`,
-            "then run /reload. Use /skills-config to turn a source on or off.",
+            "then run /reload. Use /context-config to turn a source on or off.",
           ].join("\n"),
         );
         return true;
@@ -697,37 +717,60 @@ async function main() {
       return true;
     }
 
-    if (cmd === "skills-config") {
+    if (cmd === "context-config") {
       await (async () => {
+        const rows = ["claudeMd", "claudeSkills"] as const;
+        const labels: Record<(typeof rows)[number], string> = {
+          claudeMd: "CLAUDE.md",
+          claudeSkills: "claude skills",
+        };
         const buildOptions = (): PickerOption[] =>
-          (["claude", "codex", "cursor"] as const).map((src) => ({
-            label: src,
-            value: src,
-            hint: skillSources[src] ? "✓ enabled" : "○ disabled",
-            tone: skillSources[src] ? "success" : "muted",
+          rows.map((key) => ({
+            label: labels[key],
+            value: key,
+            hint: contextSources[key] ? "✓ enabled" : "○ disabled",
+            tone: contextSources[key] ? "success" : "muted",
           }));
 
-        await tui.pickFromList("skill sources — space to toggle (athena's own skills are always on)", buildOptions(), {
+        await tui.pickFromList("context sources — space to toggle (athena's own skills are always on)", buildOptions(), {
           onToggle: (name) => {
-            const key = name as "claude" | "codex" | "cursor";
-            skillSources = { ...skillSources, [key]: !skillSources[key] };
-            saveSkillSourcesConfig({ [key]: skillSources[key] });
-            skills = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+            const key = name as (typeof rows)[number];
+            contextSources = { ...contextSources, [key]: !contextSources[key] };
+            saveContextSourcesConfig({ [key]: contextSources[key] });
+            skills = loadSkills({
+              cwd,
+              agentDir: agentDir(),
+              enabledSources: { claude: contextSources.claudeSkills },
+            });
+            tui.setCustomCommands(buildCustomCommandList());
             return buildOptions();
           },
         });
         sysMsg(
           tui,
-          `skill sources → claude: ${skillSources.claude ? "on" : "off"}, codex: ${skillSources.codex ? "on" : "off"}, cursor: ${skillSources.cursor ? "on" : "off"} — ${skills.length} skill(s) loaded`,
+          `context sources → CLAUDE.md: ${contextSources.claudeMd ? "on" : "off"}, claude skills: ${contextSources.claudeSkills ? "on" : "off"} — ${skills.length} skill(s) loaded`,
         );
       })();
       return true;
     }
 
+    if (cmd === "init") {
+      const existing = existsSync(join(cwd, "CLAUDE.md"));
+      const instruction = existing
+        ? "Read the existing CLAUDE.md at the repo root, then update it: explore the current codebase (stack, structure, build/test/lint commands, conventions) and merge any new or changed information in, keeping what's still accurate. Write the result back to CLAUDE.md with write_file."
+        : "Explore this repo (stack, structure, build/test/lint commands, conventions) and write a new CLAUDE.md at the repo root with write_file, following the style of a typical project-instructions file for an AI coding agent: concise, factual, organized by section.";
+      await processOneMessage(instruction, tui);
+      return true;
+    }
+
     if (cmd === "reload") {
-      skills = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+      skills = loadSkills({
+        cwd,
+        agentDir: agentDir(),
+        enabledSources: { claude: contextSources.claudeSkills },
+      });
       commandTemplates = loadCommandTemplates({ cwd, agentDir: agentDir() });
-      tui.setCustomCommands(commandTemplates.map((t) => ({ name: t.name, description: t.description })));
+      tui.setCustomCommands(buildCustomCommandList());
       sysMsg(tui, `reloaded: ${skills.length} skill(s), ${commandTemplates.length} command(s)`);
       return true;
     }
@@ -736,6 +779,19 @@ async function main() {
     if (customTemplate) {
       const expanded = expandPromptTemplate(text, commandTemplates);
       await processOneMessage(expanded, tui);
+      return true;
+    }
+
+    const invokedSkill = skills.find((s) => skillCommandName(s) === cmd);
+    if (invokedSkill) {
+      const rest = text.slice(1 + skillCommandName(invokedSkill).length).trim();
+      const instruction = [
+        `Read the skill file at ${invokedSkill.filePath} and follow its instructions now.`,
+        rest ? `Additional context from the user: ${rest}` : "",
+      ]
+        .filter(Boolean)
+        .join("\n");
+      await processOneMessage(instruction, tui);
       return true;
     }
 
@@ -780,6 +836,7 @@ async function main() {
         sessionHistory: history,
         signal: abortController.signal,
         skills,
+        includeClaudeMd: contextSources.claudeMd,
         ...(turnEffort !== undefined ? { effort: turnEffort } : {}),
       });
     } catch (err) {
@@ -848,7 +905,7 @@ async function main() {
         cwd,
         contextLimit: session.provider.contextLimit,
         messages: agentMessagesToTuiMessages(history),
-        customCommands: commandTemplates.map((t) => ({ name: t.name, description: t.description })),
+        customCommands: buildCustomCommandList(),
       },
       onUserMessage: handleUserMessage,
       onRecallQueued: recallLastQueued,

@@ -47,7 +47,7 @@ interface ConfigFile {
     backendPreset?: "new-relic" | "custom";
   };
   mcp?: Record<string, McpServerConfig>;
-  skillSources?: { claude?: boolean; codex?: boolean; cursor?: boolean };
+  contextSources?: { claudeSkills?: boolean; claudeMd?: boolean };
 }
 
 function readConfigFile(): ConfigFile {
@@ -142,27 +142,25 @@ export function saveObservabilityConfig(patch: {
   writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
 }
 
-export interface SkillSourcesSettings {
-  claude: boolean;
-  codex: boolean;
-  cursor: boolean;
+export interface ContextSourcesSettings {
+  claudeSkills: boolean;
+  claudeMd: boolean;
 }
 
-export function loadSkillSourcesConfig(): SkillSourcesSettings {
+export function loadContextSourcesConfig(): ContextSourcesSettings {
   const file = readConfigFile();
   return {
-    claude: file.skillSources?.claude ?? true,
-    codex: file.skillSources?.codex ?? true,
-    cursor: file.skillSources?.cursor ?? true,
+    claudeSkills: file.contextSources?.claudeSkills ?? true,
+    claudeMd: file.contextSources?.claudeMd ?? true,
   };
 }
 
-export function saveSkillSourcesConfig(patch: Partial<SkillSourcesSettings>): void {
+export function saveContextSourcesConfig(patch: Partial<ContextSourcesSettings>): void {
   const dir = dirname(configPath());
   if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
 
   const file = readConfigFile();
-  file.skillSources = { ...loadSkillSourcesConfig(), ...patch };
+  file.contextSources = { ...loadContextSourcesConfig(), ...patch };
 
   writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
 }

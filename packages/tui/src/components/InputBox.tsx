@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import { Box, Text, useInput } from "ink";
 import { rankMentionCandidates } from "../lib/mention-autocomplete.js";
+import { fuzzyMatch } from "../lib/fuzzy-match.js";
+import { HighlightedLabel } from "./HighlightedLabel.js";
 
 interface SlashCommand {
   name: string;
@@ -18,7 +20,8 @@ const SLASH_COMMANDS: SlashCommand[] = [
   { name: "/resume",                            hint: "pick a previous session to resume" },
   { name: "/mcp",                               hint: "view/toggle configured MCP servers" },
   { name: "/skills",                            hint: "list loaded skills" },
-  { name: "/skills-config",                     hint: "toggle claude/codex/cursor skill sources" },
+  { name: "/context-config",                    hint: "toggle CLAUDE.md and claude skill loading" },
+  { name: "/init",                              hint: "generate CLAUDE.md for this repo" },
   { name: "/reload",                            hint: "reload skills and custom commands" },
   { name: "/help",                              hint: "list all commands" },
   { name: "/exit",                              hint: "quit athena" },
@@ -70,17 +73,39 @@ export function InputBox({
   const [cursor, setCursor] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
-  const allSlashCommands: SlashCommand[] = [
-    ...SLASH_COMMANDS,
-    ...customCommands.map((c) => ({ name: `/${c.name}`, hint: c.description })),
-  ];
+  const allSlashCommands: SlashCommand[] = useMemo(
+    () => [
+      ...SLASH_COMMANDS,
+      ...customCommands.map((c) => ({ name: `/${c.name}`, hint: c.description })),
+    ],
+    [customCommands],
+  );
   const isSlash = value.startsWith("/") && !value.includes(" ");
-  const slashSuggestions = isSlash ? allSlashCommands.filter((c) => c.name.startsWith(value)) : [];
+  const slashMatches = useMemo(() => {
+    if (!isSlash) return [];
+    const scored = allSlashCommands
+      .map((cmd) => {
+        const m = fuzzyMatch(value, cmd.name);
+        return m ? { cmd, indices: m.indices, score: m.score } : null;
+      })
+      .filter((r): r is { cmd: SlashCommand; indices: number[]; score: number } => r !== null);
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map(({ cmd, indices }) => ({ cmd, indices }));
+  }, [allSlashCommands, isSlash, value]);
+  const slashSuggestions = slashMatches.map((m) => m.cmd);
   const hasSlashSuggestions = slashSuggestions.length > 0;
 
   const mentionTrigger = !hasSlashSuggestions ? findMentionTrigger(value, cursor) : null;
   const mentionSuggestions = mentionTrigger ? rankMentionCandidates(mentionCandidates, mentionTrigger.query) : [];
   const hasMentionSuggestions = mentionTrigger !== null && mentionSuggestions.length > 0;
+  const mentionIndices = useMemo(() => {
+    if (!mentionTrigger) return new Map<string, number[]>();
+    const map = new Map<string, number[]>();
+    for (const path of mentionSuggestions) {
+      map.set(path, fuzzyMatch(mentionTrigger.query, path)?.indices ?? []);
+    }
+    return map;
+  }, [mentionTrigger, mentionSuggestions]);
 
   const hasSuggestions = hasSlashSuggestions || hasMentionSuggestions;
 
@@ -203,19 +228,28 @@ export function InputBox({
     <Box flexDirection="column">
       {hasSlashSuggestions && (
         <Box flexDirection="column" borderStyle="single" borderColor="#444455" paddingX={1} marginX={1}>
-          {slashSuggestions.map((cmd, i) => {
-            const active = i === selectedIdx;
-            return (
-              <Box key={cmd.name}>
-                <Text color={active ? "green" : "#888899"} bold={active}>
-                  {active ? "▶ " : "  "}
-                  {cmd.name}
-                  {cmd.args ? " " + cmd.args : ""}
-                </Text>
-                <Text color="#555566">{"  " + cmd.hint}</Text>
-              </Box>
-            );
-          })}
+          {(() => {
+            const maxNameWidth = Math.max(...slashMatches.map(({ cmd }) => cmd.name.length + (cmd.args ? cmd.args.length + 1 : 0)));
+            return slashMatches.map(({ cmd, indices }, i) => {
+              const active = i === selectedIdx;
+              const nameWidth = cmd.name.length + (cmd.args ? cmd.args.length + 1 : 0);
+              const pad = " ".repeat(Math.max(0, maxNameWidth - nameWidth));
+              return (
+                <Box key={cmd.name}>
+                  <Text color={active ? "green" : "#888899"} bold={active}>
+                    {active ? "▶ " : "  "}
+                  </Text>
+                  <HighlightedLabel label={cmd.name} indices={indices} active={active} />
+                  {cmd.args && (
+                    <Text color={active ? "green" : "#888899"} bold={active}>
+                      {" " + cmd.args}
+                    </Text>
+                  )}
+                  <Text color="#555566">{pad + "  " + cmd.hint}</Text>
+                </Box>
+              );
+            });
+          })()}
           <Text color="#444455" dimColor>Tab to complete · ↑↓ to navigate</Text>
         </Box>
       )}
@@ -224,10 +258,12 @@ export function InputBox({
           {mentionSuggestions.map((path, i) => {
             const active = i === selectedIdx;
             return (
-              <Text key={path} color={active ? "green" : "#888899"} bold={active}>
-                {active ? "▶ " : "  "}
-                {path}
-              </Text>
+              <Box key={path}>
+                <Text color={active ? "green" : "#888899"} bold={active}>
+                  {active ? "▶ " : "  "}
+                </Text>
+                <HighlightedLabel label={path} indices={mentionIndices.get(path) ?? []} active={active} />
+              </Box>
             );
           })}
           <Text color="#444455" dimColor>Tab to complete · ↑↓ to navigate</Text>

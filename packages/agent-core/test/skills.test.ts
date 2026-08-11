@@ -6,7 +6,6 @@ import { loadSkills } from "../src/skills.js";
 const tmpRoot = "/tmp/athena-skills-test";
 const userDir = join(tmpRoot, "user-agent-dir");
 const projectDir = join(tmpRoot, "project-cwd");
-// Isolate from the real ~/.claude and ~/.codex — loadSkills now scans those too.
 const isolatedHome = join(tmpRoot, "isolated-home");
 
 function writeSkill(dir: string, relPath: string, frontmatter: string, body = "Body.") {
@@ -85,19 +84,10 @@ describe("loadSkills", () => {
   });
 });
 
-describe("loadSkills — ecosystem interop (.claude, .codex)", () => {
+describe("loadSkills — ecosystem interop (.claude only)", () => {
   const fakeHome = join(tmpRoot, "fake-home");
-  const priorCodexHome = process.env.CODEX_HOME;
 
-  beforeEach(() => {
-    mkdirSync(fakeHome, { recursive: true });
-    delete process.env.CODEX_HOME;
-  });
-
-  afterEach(() => {
-    if (priorCodexHome !== undefined) process.env.CODEX_HOME = priorCodexHome;
-    else delete process.env.CODEX_HOME;
-  });
+  beforeEach(() => mkdirSync(fakeHome, { recursive: true }));
 
   it("loads a user-level skill from ~/.claude/skills", () => {
     writeSkill(fakeHome, ".claude/skills/from-claude/SKILL.md", "description: From claude");
@@ -105,31 +95,26 @@ describe("loadSkills — ecosystem interop (.claude, .codex)", () => {
     expect(skills.some((s) => s.name === "from-claude" && s.description === "From claude")).toBe(true);
   });
 
-  it("loads a user-level skill from ~/.codex/skills", () => {
-    writeSkill(fakeHome, ".codex/skills/from-codex/SKILL.md", "description: From codex");
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.some((s) => s.name === "from-codex" && s.description === "From codex")).toBe(true);
-  });
-
-  it("respects CODEX_HOME override for the codex skills dir", () => {
-    const customCodexHome = join(tmpRoot, "custom-codex-home");
-    writeSkill(customCodexHome, "skills/from-custom-codex/SKILL.md", "description: Custom codex home");
-    process.env.CODEX_HOME = customCodexHome;
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.some((s) => s.name === "from-custom-codex")).toBe(true);
-  });
-
-  it("loads a project-level skill from <cwd>/.claude/skills and <cwd>/.codex/skills", () => {
+  it("loads a project-level skill from <cwd>/.claude/skills", () => {
     writeSkill(projectDir, ".claude/skills/proj-claude/SKILL.md", "description: Project claude skill");
-    writeSkill(projectDir, ".codex/skills/proj-codex/SKILL.md", "description: Project codex skill");
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     expect(skills.some((s) => s.name === "proj-claude")).toBe(true);
-    expect(skills.some((s) => s.name === "proj-codex")).toBe(true);
   });
 
-  it("athena's own skill wins over a same-named claude/codex skill in the same scope", () => {
+  it("does not load skills from .codex or .cursor even if present", () => {
+    writeSkill(fakeHome, ".codex/skills/from-codex/SKILL.md", "description: From codex");
+    writeSkill(fakeHome, ".cursor/skills/from-cursor/SKILL.md", "description: From cursor");
+    writeSkill(projectDir, ".codex/skills/proj-codex/SKILL.md", "description: Project codex skill");
+    writeSkill(projectDir, ".cursor/skills/proj-cursor/SKILL.md", "description: Project cursor skill");
+    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
+    expect(skills.some((s) => s.name === "from-codex")).toBe(false);
+    expect(skills.some((s) => s.name === "from-cursor")).toBe(false);
+    expect(skills.some((s) => s.name === "proj-codex")).toBe(false);
+    expect(skills.some((s) => s.name === "proj-cursor")).toBe(false);
+  });
+
+  it("athena's own skill wins over a same-named claude skill in the same scope", () => {
     writeSkill(fakeHome, ".claude/skills/shared/SKILL.md", "description: Claude version");
-    writeSkill(fakeHome, ".codex/skills/shared/SKILL.md", "description: Codex version");
     writeSkill(userDir, "skills/shared/SKILL.md", "description: Athena version");
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     const shared = skills.filter((s) => s.name === "shared");
@@ -137,25 +122,13 @@ describe("loadSkills — ecosystem interop (.claude, .codex)", () => {
     expect(shared[0]?.description).toBe("Athena version");
   });
 
-  it("a project-level claude/codex skill still wins over any user-level skill", () => {
+  it("a project-level claude skill still wins over any user-level skill", () => {
     writeSkill(fakeHome, ".claude/skills/shared/SKILL.md", "description: User claude version");
-    writeSkill(projectDir, ".codex/skills/shared/SKILL.md", "description: Project codex version");
+    writeSkill(projectDir, ".claude/skills/shared/SKILL.md", "description: Project claude version");
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
     const shared = skills.filter((s) => s.name === "shared");
     expect(shared).toHaveLength(1);
-    expect(shared[0]?.description).toBe("Project codex version");
-  });
-
-  it("loads a user-level skill from ~/.cursor/skills", () => {
-    writeSkill(fakeHome, ".cursor/skills/from-cursor/SKILL.md", "description: From cursor");
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.some((s) => s.name === "from-cursor" && s.description === "From cursor")).toBe(true);
-  });
-
-  it("loads a project-level skill from <cwd>/.cursor/skills", () => {
-    writeSkill(projectDir, ".cursor/skills/proj-cursor/SKILL.md", "description: Project cursor skill");
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.some((s) => s.name === "proj-cursor")).toBe(true);
+    expect(shared[0]?.description).toBe("Project claude version");
   });
 });
 
@@ -188,14 +161,6 @@ describe("loadSkills — source/scope tagging", () => {
     expect(skills.find((s) => s.name === "user-claude")?.scope).toBe("user");
     expect(skills.find((s) => s.name === "proj-claude")?.scope).toBe("project");
   });
-
-  it("tags a codex skill with source codex and a cursor skill with source cursor", () => {
-    writeSkill(fakeHome, ".codex/skills/from-codex/SKILL.md", "description: From codex");
-    writeSkill(fakeHome, ".cursor/skills/from-cursor/SKILL.md", "description: From cursor");
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.find((s) => s.name === "from-codex")?.source).toBe("codex");
-    expect(skills.find((s) => s.name === "from-cursor")?.source).toBe("cursor");
-  });
 });
 
 describe("loadSkills — enabledSources toggle", () => {
@@ -204,31 +169,17 @@ describe("loadSkills — enabledSources toggle", () => {
   beforeEach(() => {
     mkdirSync(fakeHome, { recursive: true });
     writeSkill(fakeHome, ".claude/skills/claude-skill/SKILL.md", "description: Claude skill");
-    writeSkill(fakeHome, ".codex/skills/codex-skill/SKILL.md", "description: Codex skill");
-    writeSkill(fakeHome, ".cursor/skills/cursor-skill/SKILL.md", "description: Cursor skill");
     writeSkill(userDir, "skills/athena-skill/SKILL.md", "description: Athena skill");
   });
 
-  it("includes all sources by default when enabledSources is omitted", () => {
+  it("includes claude by default when enabledSources is omitted", () => {
     const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome });
-    expect(skills.map((s) => s.name).sort()).toEqual(["athena-skill", "claude-skill", "codex-skill", "cursor-skill"]);
-  });
-
-  it("excludes claude skills when enabledSources.claude is false", () => {
-    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome, enabledSources: { claude: false } });
-    expect(skills.some((s) => s.name === "claude-skill")).toBe(false);
-    expect(skills.some((s) => s.name === "codex-skill")).toBe(true);
-    expect(skills.some((s) => s.name === "cursor-skill")).toBe(true);
-  });
-
-  it("excludes codex and cursor skills when both toggled off, but keeps athena's own", () => {
-    const skills = loadSkills({
-      cwd: projectDir,
-      agentDir: userDir,
-      homeDir: fakeHome,
-      enabledSources: { codex: false, cursor: false },
-    });
     expect(skills.map((s) => s.name).sort()).toEqual(["athena-skill", "claude-skill"]);
+  });
+
+  it("excludes claude skills when enabledSources.claude is false, but keeps athena's own", () => {
+    const skills = loadSkills({ cwd: projectDir, agentDir: userDir, homeDir: fakeHome, enabledSources: { claude: false } });
+    expect(skills.map((s) => s.name)).toEqual(["athena-skill"]);
   });
 
   it("athena's own source cannot be disabled via enabledSources (no such option)", () => {
@@ -236,7 +187,7 @@ describe("loadSkills — enabledSources toggle", () => {
       cwd: projectDir,
       agentDir: userDir,
       homeDir: fakeHome,
-      enabledSources: { claude: false, codex: false, cursor: false },
+      enabledSources: { claude: false },
     });
     expect(skills.map((s) => s.name)).toEqual(["athena-skill"]);
   });

@@ -1,6 +1,8 @@
 import { Box, Text, useInput } from "ink";
 import { useMemo, useState } from "react";
 import type { PickerOption } from "../types.js";
+import { fuzzyMatch } from "../lib/fuzzy-match.js";
+import { HighlightedLabel } from "./HighlightedLabel.js";
 
 interface Props {
   title: string;
@@ -20,22 +22,9 @@ const TONE_COLOR: Record<NonNullable<PickerOption["tone"]>, string> = {
   danger: "#FF5C7A",
 };
 
-function fuzzyScore(query: string, target: string): number | null {
-  if (query === "") return 0;
-  const q = query.toLowerCase();
-  const t = target.toLowerCase();
-  let qi = 0;
-  let firstMatch = -1;
-  let lastMatch = -1;
-  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
-    if (t[ti] === q[qi]) {
-      if (firstMatch === -1) firstMatch = ti;
-      lastMatch = ti;
-      qi++;
-    }
-  }
-  if (qi < q.length) return null;
-  return lastMatch - firstMatch;
+interface ScoredOption {
+  opt: PickerOption;
+  indices: number[];
 }
 
 const WINDOW_SIZE = 8;
@@ -48,10 +37,13 @@ export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) 
 
   const filtered = useMemo(() => {
     const scored = normalized
-      .map((opt) => ({ opt, score: fuzzyScore(query, opt.label) }))
-      .filter((r): r is { opt: PickerOption; score: number } => r.score !== null);
-    scored.sort((a, b) => a.score - b.score);
-    return scored.map((r) => r.opt);
+      .map((opt) => {
+        const m = fuzzyMatch(query, opt.label);
+        return m ? { opt, indices: m.indices, score: m.score } : null;
+      })
+      .filter((r): r is ScoredOption & { score: number } => r !== null);
+    scored.sort((a, b) => b.score - a.score);
+    return scored.map(({ opt, indices }) => ({ opt, indices }));
   }, [normalized, query]);
 
   const clampedIdx = Math.min(idx, Math.max(filtered.length - 1, 0));
@@ -76,7 +68,7 @@ export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) 
         return;
       }
       const picked = filtered[clampedIdx];
-      if (picked) onSelect(picked.value);
+      if (picked) onSelect(picked.opt.value);
       return;
     }
     if (key.upArrow) {
@@ -94,7 +86,7 @@ export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) 
     }
     if (onToggle && input === " ") {
       const picked = filtered[clampedIdx];
-      if (picked) onToggle(picked.value);
+      if (picked) onToggle(picked.opt.value);
       return;
     }
     if (!key.ctrl && !key.meta && input) {
@@ -102,6 +94,8 @@ export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) 
       setIdx(0);
     }
   });
+
+  const maxLabelWidth = Math.max(0, ...visible.map(({ opt }) => opt.label.length));
 
   return (
     <Box
@@ -116,32 +110,37 @@ export function Picker({ title, options, onSelect, onCancel, onToggle }: Props) 
         <Text bold color="#00D9FF">
           {title}{" "}
         </Text>
-        <Text dimColor>{query || "type to filter…"}</Text>
+        <Text color={query ? "#DDDDEE" : "#555566"}>{query || "type to filter…"}</Text>
         {filtered.length > WINDOW_SIZE && (
           <Text color="#444455">{`  ${clampedIdx + 1}/${filtered.length}`}</Text>
         )}
       </Box>
       <Box flexDirection="column">
-        {filtered.length === 0 && <Text color="#888899">no matches</Text>}
-        {hiddenAbove > 0 && <Text color="#444455">{`  ↑ ${hiddenAbove} more`}</Text>}
-        {visible.map((opt, i) => {
+        {filtered.length === 0 && (
+          <Text color="#888899" italic>
+            no matches
+          </Text>
+        )}
+        {hiddenAbove > 0 && <Text color="#444455">{`  ↑ ${hiddenAbove} more above`}</Text>}
+        {visible.map(({ opt, indices }, i) => {
           const actualIdx = windowStart + i;
           const active = actualIdx === clampedIdx;
+          const pad = " ".repeat(Math.max(0, maxLabelWidth - opt.label.length));
           return (
             <Box key={opt.value}>
               <Text color={active ? "green" : "#888899"} bold={active}>
                 {active ? "▶ " : "  "}
-                {opt.label}
               </Text>
+              <HighlightedLabel label={opt.label} indices={indices} active={active} />
               {opt.hint && (
                 <Text color={active ? "green" : TONE_COLOR[opt.tone ?? "muted"]} bold={active}>
-                  {"  " + opt.hint}
+                  {pad + "  " + opt.hint}
                 </Text>
               )}
             </Box>
           );
         })}
-        {hiddenBelow > 0 && <Text color="#444455">{`  ↓ ${hiddenBelow} more`}</Text>}
+        {hiddenBelow > 0 && <Text color="#444455">{`  ↓ ${hiddenBelow} more below`}</Text>}
       </Box>
       <Box marginTop={1}>
         <Text dimColor>

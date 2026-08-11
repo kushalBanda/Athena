@@ -1,6 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { buildAthenaSystemPrompt, buildEnvBlock, buildToolsList, formatSkillsForPrompt } from "../src/system-prompt.js";
+import { ATHENA_SYSTEM_PROMPT_BASE, buildAthenaSystemPrompt, buildEnvBlock, buildToolsList, formatSkillsForPrompt, formatClaudeMdForPrompt } from "../src/system-prompt.js";
 import type { Skill } from "../src/skills.js";
+import type { ClaudeMdFile } from "../src/claude-md.js";
 
 const baseEnv = {
   cwd: "/my/project",
@@ -138,5 +139,50 @@ describe("buildAthenaSystemPrompt with skills", () => {
   it("omits the skills block when no skills provided", () => {
     const prompt = buildAthenaSystemPrompt({ env: baseEnv, toolNames: [] });
     expect(prompt).not.toContain("<available_skills>");
+  });
+});
+
+describe("formatClaudeMdForPrompt", () => {
+  it("returns empty string for no files", () => {
+    expect(formatClaudeMdForPrompt([])).toBe("");
+  });
+
+  it("wraps each file in a project_instructions block with its path", () => {
+    const files: ClaudeMdFile[] = [{ path: "/repo/CLAUDE.md", content: "Use pnpm, not npm." }];
+    const block = formatClaudeMdForPrompt(files);
+    expect(block).toContain("<project_context>");
+    expect(block).toContain('<project_instructions path="/repo/CLAUDE.md">');
+    expect(block).toContain("Use pnpm, not npm.");
+    expect(block).toContain("</project_instructions>");
+    expect(block).toContain("</project_context>");
+  });
+
+  it("preserves file order (root-most first) in the output", () => {
+    const files: ClaudeMdFile[] = [
+      { path: "/repo/CLAUDE.md", content: "Root rule." },
+      { path: "/repo/pkg/CLAUDE.md", content: "Package rule." },
+    ];
+    const block = formatClaudeMdForPrompt(files);
+    expect(block.indexOf("Root rule.")).toBeLessThan(block.indexOf("Package rule."));
+  });
+});
+
+describe("buildAthenaSystemPrompt with CLAUDE.md files", () => {
+  it("appends the project_context block when files are provided", () => {
+    const files: ClaudeMdFile[] = [{ path: "/repo/CLAUDE.md", content: "Root rule." }];
+    const prompt = buildAthenaSystemPrompt({ env: baseEnv, toolNames: [], claudeMdFiles: files });
+    expect(prompt).toContain("<project_context>");
+  });
+
+  it("omits the block when no files are provided", () => {
+    const prompt = buildAthenaSystemPrompt({ env: baseEnv, toolNames: [] });
+    expect(prompt).not.toContain("<project_context>");
+  });
+});
+
+describe("CLAUDE.md section", () => {
+  it("documents the automatic injection and precedence rule", () => {
+    expect(ATHENA_SYSTEM_PROMPT_BASE).toContain("CLAUDE.md");
+    expect(ATHENA_SYSTEM_PROMPT_BASE).toMatch(/deeper|more specific/i);
   });
 });

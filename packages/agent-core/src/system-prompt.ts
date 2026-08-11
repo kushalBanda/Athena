@@ -1,4 +1,5 @@
 import type { Skill } from "./skills.js";
+import type { ClaudeMdFile } from "./claude-md.js";
 
 function escapeXml(str: string): string {
   return str
@@ -30,6 +31,18 @@ export function formatSkillsForPrompt(skills: Skill[]): string {
   }
 
   lines.push("</available_skills>");
+  return lines.join("\n");
+}
+
+export function formatClaudeMdForPrompt(files: ClaudeMdFile[]): string {
+  if (files.length === 0) return "";
+
+  const lines = ["\n\n<project_context>", "", "Project-specific instructions and guidelines:", ""];
+  for (const { path, content } of files) {
+    lines.push(`<project_instructions path="${path}">\n${content}\n</project_instructions>`, "");
+  }
+  lines.push("</project_context>");
+
   return lines.join("\n");
 }
 
@@ -109,7 +122,10 @@ The user will primarily request software engineering tasks: solving bugs, adding
 1. Use the available tools to understand the codebase and the user's query — search extensively, in parallel when possible.
 2. Implement the solution using all tools available.
 3. Verify the solution if possible with tests. NEVER assume a specific test framework — check the README or codebase first.
-4. Run lint and typecheck commands if available (e.g. \`bun run typecheck\`, \`bun run lint\`) to ensure correctness. If you don't know the commands, ask the user — then suggest writing them to AGENTS.md.
+4. Run lint and typecheck commands if available (e.g. \`bun run typecheck\`, \`bun run lint\`) to ensure correctness. If you don't know the commands, ask the user — then suggest writing them to CLAUDE.md.
+
+# CLAUDE.md
+Repos may contain CLAUDE.md files with human-written conventions, structure notes, or run/test instructions. Athena already loads every CLAUDE.md from the project root down to the working directory into the project-context section below (when present), you do not need to re-read them. A more specific (deeper) file's instructions take precedence over a more general one on conflict, and direct instructions from the user always take precedence over either.
 
 # Tool usage policy
 - You can call multiple tools in a single response. When multiple independent pieces of information are needed, make all independent tool calls in parallel. Only call tools sequentially when one result is needed to determine the next call.
@@ -128,8 +144,9 @@ export function buildAthenaSystemPrompt(options: {
   customPrompt?: string;
   codeContext?: string;
   skills?: Skill[];
+  claudeMdFiles?: ClaudeMdFile[];
 }): string {
-  const { env, toolNames, customPrompt, codeContext, skills } = options;
+  const { env, toolNames, customPrompt, codeContext, skills, claudeMdFiles } = options;
 
   const envBlock = buildEnvBlock(env);
   const toolsBlock =
@@ -141,6 +158,8 @@ export function buildAthenaSystemPrompt(options: {
     ? `\n\n<code-context>\n${codeContext}\n</code-context>`
     : "";
 
+  const claudeMdBlock = claudeMdFiles ? formatClaudeMdForPrompt(claudeMdFiles) : "";
+
   const skillsBlock = skills ? formatSkillsForPrompt(skills) : "";
 
   const customBlock = customPrompt ? `\n\n${customPrompt}` : "";
@@ -150,6 +169,7 @@ export function buildAthenaSystemPrompt(options: {
     toolsBlock +
     `\n\n${envBlock}` +
     codeCtxBlock +
+    claudeMdBlock +
     skillsBlock +
     customBlock
   );

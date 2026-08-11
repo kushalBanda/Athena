@@ -1,4 +1,7 @@
-import { describe, expect, it } from "bun:test";
+import { describe, expect, it, beforeAll, afterAll } from "bun:test";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+import { join } from "node:path";
 import { buildSystemPrompt } from "../src/context-loader.js";
 
 describe("buildSystemPrompt", () => {
@@ -48,5 +51,27 @@ describe("buildSystemPrompt", () => {
   it("omits the skills block when no skills passed", async () => {
     const prompt = await buildSystemPrompt("/tmp", "task", []);
     expect(prompt).not.toContain("<available_skills>");
+  });
+});
+
+describe("buildSystemPrompt with CLAUDE.md", () => {
+  const repoRoot = "/tmp/athena-context-loader-claude-md-test";
+
+  beforeAll(() => {
+    mkdirSync(repoRoot, { recursive: true });
+    execSync("git init -q", { cwd: repoRoot });
+    writeFileSync(join(repoRoot, "CLAUDE.md"), "Always run tests before committing.");
+  });
+
+  afterAll(() => rmSync(repoRoot, { recursive: true, force: true }));
+
+  it("includes CLAUDE.md content in the built prompt by default", async () => {
+    const prompt = await buildSystemPrompt(repoRoot, "task", []);
+    expect(prompt).toContain("Always run tests before committing.");
+  });
+
+  it("omits CLAUDE.md content when the toggle is explicitly false", async () => {
+    const prompt = await buildSystemPrompt(repoRoot, "task", [], undefined, undefined, undefined, undefined, false);
+    expect(prompt).not.toContain("Always run tests before committing.");
   });
 });

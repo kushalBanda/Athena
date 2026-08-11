@@ -11,7 +11,7 @@ const IGNORE_FILE_NAMES = [".gitignore", ".ignore", ".fdignore"];
 
 type IgnoreMatcher = ReturnType<typeof ignore>;
 
-export type SkillSource = "athena" | "claude" | "codex" | "cursor";
+export type SkillSource = "athena" | "claude";
 export type SkillScope = "user" | "project";
 
 export interface Skill {
@@ -25,8 +25,6 @@ export interface Skill {
 
 export interface SkillSourceToggles {
   claude?: boolean;
-  codex?: boolean;
-  cursor?: boolean;
 }
 
 interface SkillFrontmatter {
@@ -165,35 +163,22 @@ export interface LoadSkillsOptions {
   enabledSources?: SkillSourceToggles;
 }
 
-function codexSkillsDir(homeDir: string): string {
-  return join(process.env.CODEX_HOME ?? join(homeDir, ".codex"), "skills");
-}
-
 interface SourceDir {
   source: SkillSource;
   scope: SkillScope;
   dir: string;
 }
 
-
 export function loadSkills(options: LoadSkillsOptions): Skill[] {
   const home = options.homeDir ?? homedir();
   const projectRoot = resolve(options.cwd);
-  const enabled = { claude: true, codex: true, cursor: true, ...options.enabledSources };
+  const enabled = { claude: true, ...options.enabledSources };
 
   const sourceDirs: SourceDir[] = [
-    ...(enabled.codex ? [{ source: "codex" as const, scope: "user" as const, dir: codexSkillsDir(home) }] : []),
     ...(enabled.claude ? [{ source: "claude" as const, scope: "user" as const, dir: join(home, ".claude", "skills") }] : []),
-    ...(enabled.cursor ? [{ source: "cursor" as const, scope: "user" as const, dir: join(home, ".cursor", "skills") }] : []),
     { source: "athena", scope: "user", dir: join(resolve(options.agentDir), "skills") },
-    ...(enabled.codex
-      ? [{ source: "codex" as const, scope: "project" as const, dir: join(projectRoot, ".codex", "skills") }]
-      : []),
     ...(enabled.claude
       ? [{ source: "claude" as const, scope: "project" as const, dir: join(projectRoot, ".claude", "skills") }]
-      : []),
-    ...(enabled.cursor
-      ? [{ source: "cursor" as const, scope: "project" as const, dir: join(projectRoot, ".cursor", "skills") }]
       : []),
     { source: "athena", scope: "project", dir: join(projectRoot, PROJECT_CONFIG_DIR, "skills") },
   ];

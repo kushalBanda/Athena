@@ -15,7 +15,9 @@ export type { SessionInfo, SessionContext } from "./session-manager.js";
 export { parseFrontmatter } from "./frontmatter.js";
 export { loadSkills } from "./skills.js";
 export type { Skill, LoadSkillsOptions, SkillSource, SkillScope, SkillSourceToggles } from "./skills.js";
-export { formatSkillsForPrompt } from "./system-prompt.js";
+export { formatSkillsForPrompt, formatClaudeMdForPrompt } from "./system-prompt.js";
+export { loadClaudeMd } from "./claude-md.js";
+export type { ClaudeMdFile } from "./claude-md.js";
 
 export interface AgentRunOptions {
   provider: LLMProvider;
@@ -29,6 +31,7 @@ export interface AgentRunOptions {
   sessionId?: string;
   effort?: string;
   skills?: Skill[];
+  includeClaudeMd?: boolean;
 }
 
 export async function runAgent(
@@ -55,6 +58,7 @@ export async function runAgent(
     provider.model,
     effort,
     options.skills,
+    options.includeClaudeMd,
   );
 
   const userMsg: AgentMessage = {
