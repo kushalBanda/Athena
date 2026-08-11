@@ -1,4 +1,5 @@
 import { TuiAltScreen } from "./tui-alt-screen.ts";
+import { matchesKey } from "./keys.ts";
 import type { Component, TUI } from "./tui.ts";
 import type { Terminal } from "./terminal.ts";
 import { ProcessTerminal } from "./terminal.ts";
@@ -64,6 +65,7 @@ export interface TuiAppOptions {
   onUserMessage?: (msg: string, callbacks: AgentCallbacks) => Promise<void>;
   onReady?: (callbacks: AgentCallbacks) => void;
   onRecallQueued?: () => void;
+  onCtrlC?: () => void;
   /** Injectable terminal, primarily for tests (e.g. VirtualTerminal). Defaults to ProcessTerminal. */
   terminal?: Terminal;
 }
@@ -139,12 +141,14 @@ export class TuiApp {
   private readonly onUserMessage: TuiAppOptions["onUserMessage"];
   // Known gap: stored but not yet bound to any editor keystroke.
   private readonly onRecallQueuedCb: TuiAppOptions["onRecallQueued"];
+  private readonly onCtrlC: TuiAppOptions["onCtrlC"];
   private exitResolve: (() => void) | null = null;
 
   constructor(options: TuiAppOptions) {
     this.state = { ...DEFAULT_STATE, ...options.initialState };
     this.onUserMessage = options.onUserMessage;
     this.onRecallQueuedCb = options.onRecallQueued;
+    this.onCtrlC = options.onCtrlC;
 
     const terminal = options.terminal ?? new ProcessTerminal();
     this.ui = new TuiAltScreen(terminal);
@@ -192,10 +196,20 @@ export class TuiApp {
     this.setLayoutRootByMessages();
 
     this.ui.addInputListener((data: string) => {
-      if (data === "\x04") {
+      // matchesKey (not a literal byte check) is required here: the terminal negotiates the
+      // Kitty keyboard protocol at startup (terminal.ts), so modern terminals (Kitty, iTerm2,
+      // Ghostty, WezTerm) send ctrl+c/ctrl+d as a CSI-u escape sequence, not the raw \x03/\x04
+      // control byte — a literal-byte comparison silently never matches on those terminals.
+      if (matchesKey(data, "ctrl+d")) {
         // ctrl+d — exit
         this.stop();
-        return undefined;
+        return { consume: true };
+      }
+      if (matchesKey(data, "ctrl+c")) {
+        // raw mode disables ISIG, so this never arrives as SIGINT; the caller (cli's
+        // handleSigint) owns abort-current-turn / double-press-to-exit semantics.
+        this.onCtrlC?.();
+        return { consume: true };
       }
       return undefined;
     });

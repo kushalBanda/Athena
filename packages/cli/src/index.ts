@@ -939,6 +939,7 @@ async function main() {
     },
     onUserMessage: handleUserMessage,
     onRecallQueued: recallLastQueued,
+    onCtrlC: handleSigint,
     onReady: (callbacks: TuiCallbacks) => {
       liveTui = callbacks;
     },
