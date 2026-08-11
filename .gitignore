@@ -147,4 +147,5 @@ vite.config.ts.timestamp-*
 .codegraph/
 docs/
 scripts/
+skills-lock.json
 CLAUDE.md

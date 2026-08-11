@@ -10,7 +10,9 @@
     "@athena/providers": "workspace:*",
     "@athena/tools": "workspace:*",
     "@athena/observability": "workspace:*",
-    "@opentelemetry/api": "^1.9.0"
+    "@opentelemetry/api": "^1.9.0",
+    "ignore": "^6.0.0",
+    "yaml": "^2.6.0"
   },
   "devDependencies": {
     "@opentelemetry/sdk-trace-base": "^1.28.0",

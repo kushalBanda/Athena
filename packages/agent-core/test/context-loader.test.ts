@@ -36,4 +36,17 @@ describe("buildSystemPrompt", () => {
     expect(prompt).toContain("Platform:");
     expect(prompt).toContain("Today's date:");
   });
+
+  it("includes the skills block when skills are passed in", async () => {
+    const skills = [
+      { name: "my-skill", description: "Does a thing", filePath: "/x/SKILL.md", disableModelInvocation: false },
+    ];
+    const prompt = await buildSystemPrompt("/tmp", "task", [], undefined, undefined, undefined, skills);
+    expect(prompt).toContain("<available_skills>");
+  });
+
+  it("omits the skills block when no skills passed", async () => {
+    const prompt = await buildSystemPrompt("/tmp", "task", []);
+    expect(prompt).not.toContain("<available_skills>");
+  });
 });

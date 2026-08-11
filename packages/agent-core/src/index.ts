@@ -1,6 +1,7 @@
 import type { LLMProvider } from "@athena/providers";
 import type { Tool } from "@athena/tools";
 import type { AgentCallbacks, AgentMessage, AgentSession, CompactionSettings } from "./types.js";
+import type { Skill } from "./skills.js";
 import { buildSystemPrompt } from "./context-loader.js";
 import { runLoop } from "./loop.js";
 import { newId } from "./session.js";
@@ -11,6 +12,10 @@ export { DEFAULT_COMPACTION_SETTINGS, compact } from "./compaction/index.js";
 export { newId } from "./session.js";
 export { SessionManager, getDefaultSessionDir, diffNewMessages } from "./session-manager.js";
 export type { SessionInfo, SessionContext } from "./session-manager.js";
+export { parseFrontmatter } from "./frontmatter.js";
+export { loadSkills } from "./skills.js";
+export type { Skill, LoadSkillsOptions, SkillSource, SkillScope, SkillSourceToggles } from "./skills.js";
+export { formatSkillsForPrompt } from "./system-prompt.js";
 
 export interface AgentRunOptions {
   provider: LLMProvider;
@@ -23,6 +28,7 @@ export interface AgentRunOptions {
   compactionSettings?: CompactionSettings;
   sessionId?: string;
   effort?: string;
+  skills?: Skill[];
 }
 
 export async function runAgent(
@@ -48,6 +54,7 @@ export async function runAgent(
     options.systemPrompt,
     provider.model,
     effort,
+    options.skills,
   );
 
   const userMsg: AgentMessage = {

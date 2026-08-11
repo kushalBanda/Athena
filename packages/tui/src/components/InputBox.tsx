@@ -17,6 +17,9 @@ const SLASH_COMMANDS: SlashCommand[] = [
   { name: "/compact",                           hint: "manually compact the session context" },
   { name: "/resume",                            hint: "pick a previous session to resume" },
   { name: "/mcp",                               hint: "view/toggle configured MCP servers" },
+  { name: "/skills",                            hint: "list loaded skills" },
+  { name: "/skills-config",                     hint: "toggle claude/codex/cursor skill sources" },
+  { name: "/reload",                            hint: "reload skills and custom commands" },
   { name: "/help",                              hint: "list all commands" },
   { name: "/exit",                              hint: "quit athena" },
 ];
@@ -27,6 +30,7 @@ interface Props {
   mentionCandidates?: string[];
   queuedMessages?: string[];
   onRecallQueued?: () => void;
+  customCommands?: { name: string; description: string }[];
 }
 
 interface MentionTrigger {
@@ -60,13 +64,18 @@ export function InputBox({
   mentionCandidates = [],
   queuedMessages = [],
   onRecallQueued,
+  customCommands = [],
 }: Props) {
   const [value, setValue] = useState("");
   const [cursor, setCursor] = useState(0);
   const [selectedIdx, setSelectedIdx] = useState(0);
 
+  const allSlashCommands: SlashCommand[] = [
+    ...SLASH_COMMANDS,
+    ...customCommands.map((c) => ({ name: `/${c.name}`, hint: c.description })),
+  ];
   const isSlash = value.startsWith("/") && !value.includes(" ");
-  const slashSuggestions = isSlash ? SLASH_COMMANDS.filter((c) => c.name.startsWith(value)) : [];
+  const slashSuggestions = isSlash ? allSlashCommands.filter((c) => c.name.startsWith(value)) : [];
   const hasSlashSuggestions = slashSuggestions.length > 0;
 
   const mentionTrigger = !hasSlashSuggestions ? findMentionTrigger(value, cursor) : null;

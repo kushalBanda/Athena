@@ -1,17 +1,21 @@
 #!/usr/bin/env node
-import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, newId, runAgent } from "@athena/agent-core";
-import type { ActiveToolCall, AgentMessage } from "@athena/agent-core";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { DEFAULT_COMPACTION_SETTINGS, SessionManager, compact, diffNewMessages, loadSkills, newId, runAgent } from "@athena/agent-core";
+import type { ActiveToolCall, AgentMessage, Skill } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { createProvider, PROVIDER_EFFORT_LEVELS } from "@athena/providers";
 import type { EffortLevel, ProviderName } from "@athena/providers";
 import { createRegistryWithMcp } from "@athena/tools";
 import { App } from "@athena/tui";
-import type { AgentCallbacks as TuiCallbacks } from "@athena/tui";
+import type { AgentCallbacks as TuiCallbacks, PickerOption } from "@athena/tui";
 import { SpanKind } from "@opentelemetry/api";
 import { render } from "ink";
 import React from "react";
 import { agentMessagesToTuiMessages, createCallbacks, finalizeStream } from "./adapter.js";
 import type { AdapterState } from "./adapter.js";
+import { expandPromptTemplate, loadCommandTemplates } from "./commands.js";
+import type { CommandTemplate } from "./commands.js";
 import {
   autoDetectProvider,
   FileMcpOAuthStore,
@@ -21,7 +25,8 @@ import {
   listKeys,
   setApiKey,
 } from "./auth.js";
-import { loadConfig, loadObservabilityConfig, saveConfig } from "./config.js";
+import { loadConfig, loadObservabilityConfig, loadSkillSourcesConfig, saveConfig, saveSkillSourcesConfig } from "./config.js";
+import type { SkillSourcesSettings } from "./config.js";
 import {
   formatMcpListEntry,
   formatMcpPickerOption,
@@ -209,6 +214,10 @@ async function handleMcpCommand(argv: string[]): Promise<void> {
   process.exit(1);
 }
 
+function agentDir(): string {
+  return process.env.ATHENA_CONFIG_DIR ?? join(homedir(), ".config", "athena");
+}
+
 function resolveProvider(args: CliArgs, cfg: ReturnType<typeof loadConfig>): string {
   if (args.provider) return args.provider;
   if (cfg.provider !== "anthropic") return cfg.provider;
@@ -350,6 +359,10 @@ async function main() {
   }
   const tools = registry.all();
 
+  let skillSources: SkillSourcesSettings = loadSkillSourcesConfig();
+  let skills: Skill[] = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+  let commandTemplates: CommandTemplate[] = loadCommandTemplates({ cwd, agentDir: agentDir() });
+
   if (args.print) {
     const message = args.message ?? "";
     if (!message) {
@@ -374,6 +387,7 @@ async function main() {
       cwd,
       sessionHistory: printHistory,
       signal: printAbort.signal,
+      skills,
       ...(printEffort !== undefined ? { effort: printEffort } : {}),
       callbacks: {
         onThinking: () => {},
@@ -440,6 +454,9 @@ async function main() {
           "/clear                   clear chat history, start a new session",
           "/compact                 manually compact the session context",
           "/resume                  pick a previous session to resume",
+          "/skills                  list loaded skills (name, description, path)",
+          "/skills-config           toggle which ecosystems Athena pulls skills from",
+          "/reload                  reload skills and custom commands",
           "/exit  /quit             quit athena",
         ].join("\n"),
       );
@@ -646,6 +663,82 @@ async function main() {
       return true;
     }
 
+    if (cmd === "skills") {
+      if (skills.length === 0) {
+        sysMsg(
+          tui,
+          [
+            "no skills loaded. Athena also reads skills written for other agents — add a SKILL.md under any of:",
+            `  ~/.claude/skills/<name>/       or  ${join(cwd, ".claude", "skills", "<name>")}`,
+            `  ~/.codex/skills/<name>/        or  ${join(cwd, ".codex", "skills", "<name>")}`,
+            `  ~/.cursor/skills/<name>/       or  ${join(cwd, ".cursor", "skills", "<name>")}`,
+            `  ${join(agentDir(), "skills", "<name>")}  or  ${join(cwd, ".athena", "skills", "<name>")}`,
+            "then run /reload. Use /skills-config to turn a source on or off.",
+          ].join("\n"),
+        );
+        return true;
+      }
+      await (async () => {
+        const options: PickerOption[] = skills.map((s) => ({
+          label: s.name,
+          value: s.name,
+          hint: `${s.scope} · ${s.source}${s.disableModelInvocation ? " · manual-only" : ""}`,
+          tone: s.disableModelInvocation ? "muted" : "success",
+        }));
+        const picked = await tui.pickFromList(`Skills — ${skills.length} loaded`, options);
+        if (!picked) return;
+        const skill = skills.find((s) => s.name === picked);
+        if (!skill) return;
+        sysMsg(
+          tui,
+          `**${skill.name}** \`${skill.source} · ${skill.scope}\`${skill.disableModelInvocation ? " · manual-only" : ""}\n${skill.description}\n\`${skill.filePath}\``,
+        );
+      })();
+      return true;
+    }
+
+    if (cmd === "skills-config") {
+      await (async () => {
+        const buildOptions = (): PickerOption[] =>
+          (["claude", "codex", "cursor"] as const).map((src) => ({
+            label: src,
+            value: src,
+            hint: skillSources[src] ? "✓ enabled" : "○ disabled",
+            tone: skillSources[src] ? "success" : "muted",
+          }));
+
+        await tui.pickFromList("skill sources — space to toggle (athena's own skills are always on)", buildOptions(), {
+          onToggle: (name) => {
+            const key = name as "claude" | "codex" | "cursor";
+            skillSources = { ...skillSources, [key]: !skillSources[key] };
+            saveSkillSourcesConfig({ [key]: skillSources[key] });
+            skills = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+            return buildOptions();
+          },
+        });
+        sysMsg(
+          tui,
+          `skill sources → claude: ${skillSources.claude ? "on" : "off"}, codex: ${skillSources.codex ? "on" : "off"}, cursor: ${skillSources.cursor ? "on" : "off"} — ${skills.length} skill(s) loaded`,
+        );
+      })();
+      return true;
+    }
+
+    if (cmd === "reload") {
+      skills = loadSkills({ cwd, agentDir: agentDir(), enabledSources: skillSources });
+      commandTemplates = loadCommandTemplates({ cwd, agentDir: agentDir() });
+      tui.setCustomCommands(commandTemplates.map((t) => ({ name: t.name, description: t.description })));
+      sysMsg(tui, `reloaded: ${skills.length} skill(s), ${commandTemplates.length} command(s)`);
+      return true;
+    }
+
+    const customTemplate = commandTemplates.find((t) => t.name === cmd);
+    if (customTemplate) {
+      const expanded = expandPromptTemplate(text, commandTemplates);
+      await processOneMessage(expanded, tui);
+      return true;
+    }
+
     sysMsg(tui, `unknown command: /${cmd}. Type /help for a list.`);
     return true;
   }
@@ -686,6 +779,7 @@ async function main() {
         callbacks,
         sessionHistory: history,
         signal: abortController.signal,
+        skills,
         ...(turnEffort !== undefined ? { effort: turnEffort } : {}),
       });
     } catch (err) {
@@ -754,6 +848,7 @@ async function main() {
         cwd,
         contextLimit: session.provider.contextLimit,
         messages: agentMessagesToTuiMessages(history),
+        customCommands: commandTemplates.map((t) => ({ name: t.name, description: t.description })),
       },
       onUserMessage: handleUserMessage,
       onRecallQueued: recallLastQueued,

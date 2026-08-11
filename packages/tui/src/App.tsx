@@ -24,6 +24,7 @@ export interface AgentCallbacks {
   clearMessages: () => void;
   setCtrlCArmed: (armed: boolean) => void;
   setQueuedMessages: (messages: string[]) => void;
+  setCustomCommands: (commands: { name: string; description: string }[]) => void;
   pickFromList: (
     title: string,
     options: readonly (string | PickerOption)[],
@@ -55,6 +56,7 @@ const DEFAULT_STATE: AppState = {
   textPrompt: null,
   ctrlCArmed: false,
   queuedMessages: [],
+  customCommands: [],
 };
 
 export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Props) {
@@ -152,6 +154,7 @@ export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Pr
     },
     setCtrlCArmed: (armed) => setState((s) => ({ ...s, ctrlCArmed: armed })),
     setQueuedMessages: (messages) => setState((s) => ({ ...s, queuedMessages: messages })),
+    setCustomCommands: (commands) => setState((s) => ({ ...s, customCommands: commands })),
     pickFromList,
     promptForText,
   };
@@ -226,6 +229,7 @@ export function App({ initialState, onUserMessage, onReady, onRecallQueued }: Pr
         mentionCandidates={mentionCandidates}
         queuedMessages={state.queuedMessages}
         onRecallQueued={handleRecallQueued}
+        customCommands={state.customCommands}
       />
       <StatusBar
         model={state.model}

@@ -47,6 +47,7 @@ interface ConfigFile {
     backendPreset?: "new-relic" | "custom";
   };
   mcp?: Record<string, McpServerConfig>;
+  skillSources?: { claude?: boolean; codex?: boolean; cursor?: boolean };
 }
 
 function readConfigFile(): ConfigFile {
@@ -137,6 +138,31 @@ export function saveObservabilityConfig(patch: {
   if (patch.otlpEndpoint !== undefined) observability.otlpEndpoint = patch.otlpEndpoint;
   if (patch.backendPreset !== undefined) observability.backendPreset = patch.backendPreset;
   file.observability = observability;
+
+  writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
+}
+
+export interface SkillSourcesSettings {
+  claude: boolean;
+  codex: boolean;
+  cursor: boolean;
+}
+
+export function loadSkillSourcesConfig(): SkillSourcesSettings {
+  const file = readConfigFile();
+  return {
+    claude: file.skillSources?.claude ?? true,
+    codex: file.skillSources?.codex ?? true,
+    cursor: file.skillSources?.cursor ?? true,
+  };
+}
+
+export function saveSkillSourcesConfig(patch: Partial<SkillSourcesSettings>): void {
+  const dir = dirname(configPath());
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
+
+  const file = readConfigFile();
+  file.skillSources = { ...loadSkillSourcesConfig(), ...patch };
 
   writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
 }

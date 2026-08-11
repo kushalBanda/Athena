@@ -4,6 +4,7 @@ import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
 import type { Tool } from "@athena/tools";
 import { buildAthenaSystemPrompt } from "./system-prompt.js";
+import type { Skill } from "./skills.js";
 
 type CodegraphModule = {
   ContextBuilder: new (dbPath: string) => {
@@ -54,6 +55,7 @@ export async function buildSystemPrompt(
   customPrompt?: string,
   modelId?: string,
   effort?: string,
+  skills?: Skill[],
 ): Promise<string> {
   const codeContext = await loadCodegraphContext(cwd, userMessage);
 
@@ -69,5 +71,6 @@ export async function buildSystemPrompt(
     toolNames: tools.map((t) => t.name),
     ...(customPrompt !== undefined ? { customPrompt } : {}),
     ...(codeContext !== null ? { codeContext } : {}),
+    ...(skills !== undefined ? { skills } : {}),
   });
 }

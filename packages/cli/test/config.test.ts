@@ -42,3 +42,30 @@ describe("observability config", () => {
     });
   });
 });
+
+describe("skill sources config", () => {
+  it("defaults every source to enabled when nothing is saved", async () => {
+    const { loadSkillSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    expect(loadSkillSourcesConfig()).toEqual({ claude: true, codex: true, cursor: true });
+  });
+
+  it("round-trips a partial toggle through save/load, leaving other sources at their default", async () => {
+    const { loadSkillSourcesConfig, saveSkillSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    saveSkillSourcesConfig({ claude: false });
+    expect(loadSkillSourcesConfig()).toEqual({ claude: false, codex: true, cursor: true });
+  });
+
+  it("accumulates multiple toggles across separate save calls", async () => {
+    const { loadSkillSourcesConfig, saveSkillSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    saveSkillSourcesConfig({ claude: false });
+    saveSkillSourcesConfig({ codex: false });
+    expect(loadSkillSourcesConfig()).toEqual({ claude: false, codex: false, cursor: true });
+  });
+
+  it("re-enabling a previously disabled source flips it back", async () => {
+    const { loadSkillSourcesConfig, saveSkillSourcesConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    saveSkillSourcesConfig({ cursor: false });
+    saveSkillSourcesConfig({ cursor: true });
+    expect(loadSkillSourcesConfig()).toEqual({ claude: true, codex: true, cursor: true });
+  });
+});

@@ -63,4 +63,5 @@ export interface AppState {
   textPrompt: TextPromptState | null;
   ctrlCArmed: boolean;
   queuedMessages: string[];
+  customCommands: { name: string; description: string }[];
 }
