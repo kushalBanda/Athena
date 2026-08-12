@@ -1,5 +1,5 @@
 {
-  "name": "@athena/cli",
+  "name": "@kushalbanda/athena-cli",
   "version": "0.1.2",
   "type": "module",
   "bin": {
