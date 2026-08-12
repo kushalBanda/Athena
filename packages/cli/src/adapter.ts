@@ -48,13 +48,18 @@ export function agentMessagesToTuiMessages(messages: AgentMessage[]): Message[] 
       const blocks = Array.isArray(msg.content) ? msg.content : [];
       const toolCalls = blocks
         .filter((b): b is Extract<typeof b, { type: "tool_result" }> => b.type === "tool_result")
-        .map((b) => ({
-          id: b.toolCallId,
-          name: "",
-          args: "",
-          status: b.isError ? ("err" as const) : ("ok" as const),
-          summary: b.content.slice(0, 120),
-        }));
+        .map((b) => {
+          const firstLine = b.content.split("\n", 1)[0] ?? "";
+          const hasMoreThanSummary = b.content.length > 120 || b.content.includes("\n");
+          return {
+            id: b.toolCallId,
+            name: "",
+            args: "",
+            status: b.isError ? ("err" as const) : ("ok" as const),
+            summary: firstLine.slice(0, 120),
+            ...(hasMoreThanSummary ? { resultText: b.content.slice(0, 4000) } : {}),
+          };
+        });
       if (toolCalls.length > 0) out.push({ id: msg.id, role: "assistant", toolCalls });
     }
   }
@@ -132,6 +137,10 @@ export function createCallbacks(
         tui.setStatus({ kind: "error", message: result.slice(0, 120) });
       }
       const diffPatch = typeof metadata?.diff === "string" ? metadata.diff : undefined;
+      const firstLine = result.split("\n", 1)[0] ?? "";
+      // Only surface a separate result block when there's more to show than the summary
+      // line already covers — avoids repeating a short single-line result twice.
+      const hasMoreThanSummary = result.length > 120 || result.includes("\n");
       const msg: Message = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -141,7 +150,8 @@ export function createCallbacks(
             name: "",
             args: "",
             status,
-            summary: result.slice(0, 120),
+            summary: firstLine.slice(0, 120),
+            ...(hasMoreThanSummary ? { resultText: result.slice(0, 4000) } : {}),
             ...(diffPatch !== undefined ? { diff: parseUnifiedDiff(diffPatch) } : {}),
           },
         ],

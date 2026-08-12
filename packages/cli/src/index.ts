@@ -836,6 +836,13 @@ async function main() {
       return;
     }
 
+    // The user's own turn was never pushed to the live TUI transcript — only the assistant
+    // side goes through `createCallbacks()`. Under the old alt-screen renderer this was masked
+    // (the editor's pre-submit text got overwritten every frame regardless); under native
+    // scrollback (TuiMainScreen) that pre-submit text becomes permanent, uncolored scrollback
+    // instead of a real, styled UserMessageComponent bubble. Add it explicitly.
+    tui.addMessage({ id: crypto.randomUUID(), role: "user", content: msg });
+
     const adapterState: AdapterState = {
       currentToolCallId: null,
       streamingMessageId: null,

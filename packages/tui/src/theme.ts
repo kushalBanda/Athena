@@ -12,6 +12,13 @@ export interface AthenaTheme {
     primary: (s: string) => string;
     muted: (s: string) => string;
     accent: (s: string) => string;
+    thinking: (s: string) => string;
+  };
+  bg: {
+    userMessage: (s: string) => string;
+    toolPending: (s: string) => string;
+    toolSuccess: (s: string) => string;
+    toolError: (s: string) => string;
   };
   border: (s: string) => string;
 }
@@ -30,6 +37,13 @@ export const defaultTheme: AthenaTheme = {
     primary: (s: string) => s,
     muted: (s: string) => chalk.dim(s),
     accent: (s: string) => chalk.blue(s),
+    thinking: (s: string) => chalk.dim(chalk.italic(s)),
+  },
+  bg: {
+    userMessage: (s: string) => chalk.bgHex("#28304a")(s),
+    toolPending: (s: string) => chalk.bgHex("#26262a")(s),
+    toolSuccess: (s: string) => chalk.bgHex("#1c2b20")(s),
+    toolError: (s: string) => chalk.bgHex("#33201f")(s),
   },
   border: (s: string) => chalk.dim(s),
 };

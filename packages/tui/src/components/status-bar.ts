@@ -98,7 +98,9 @@ export class StatusBar implements Component {
       parts.push(muted(`${pct}% ctx`));
     }
     if (cacheReadTokens > 0 || cacheWriteTokens > 0) {
-      parts.push(muted(`cache ${formatTokenCount(cacheReadTokens)}r/${formatTokenCount(cacheWriteTokens)}w`));
+      parts.push(
+        muted(`cache ${formatTokenCount(cacheReadTokens)}r/${formatTokenCount(cacheWriteTokens)}w`),
+      );
     }
     if (costUsd !== undefined) {
       parts.push(muted(formatCost(costUsd)));

@@ -11,6 +11,8 @@ export interface ToolCall {
   args: string;
   status: "pending" | "ok" | "err";
   summary?: string;
+  /** Full tool result text (e.g. web_search's formatted results), shown below the summary line. */
+  resultText?: string;
   diff?: DiffLine[];
 }
 

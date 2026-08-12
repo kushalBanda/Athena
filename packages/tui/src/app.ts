@@ -1,25 +1,25 @@
-import { TuiAltScreen } from "./tui-alt-screen.ts";
-import { matchesKey } from "./keys.ts";
-import type { Component, TUI } from "./tui.ts";
-import type { Terminal } from "./terminal.ts";
-import { ProcessTerminal } from "./terminal.ts";
-import { VStack } from "./components/v-stack.ts";
-import { Box } from "./components/box.ts";
-import { Transcript } from "./components/transcript.ts";
-import { Header } from "./components/header.ts";
-import { StatusBar } from "./components/status-bar.ts";
-import { Welcome } from "./components/welcome.ts";
-import { Editor } from "./components/editor.ts";
-import { Input } from "./components/input.ts";
-import { SelectList, type SelectItem } from "./components/select-list.ts";
-import {
-  WorkingStatusIndicator,
-  RetryStatusIndicator,
-  CompactionStatusIndicator,
-} from "./components/status-indicator.ts";
-import { defaultTheme } from "./theme.ts";
 import type { AgentStatus, AppState, Message, PickerOption } from "./app-types.ts";
 import { CombinedAutocompleteProvider, type SlashCommand } from "./autocomplete.ts";
+import { Box } from "./components/box.ts";
+import { Editor } from "./components/editor.ts";
+import { Header } from "./components/header.ts";
+import { Input } from "./components/input.ts";
+import { type SelectItem, SelectList } from "./components/select-list.ts";
+import { StatusBar } from "./components/status-bar.ts";
+import {
+  CompactionStatusIndicator,
+  RetryStatusIndicator,
+  WorkingStatusIndicator,
+} from "./components/status-indicator.ts";
+import { Transcript } from "./components/transcript.ts";
+import { VStack } from "./components/v-stack.ts";
+import { Welcome } from "./components/welcome.ts";
+import { matchesKey } from "./keys.ts";
+import type { Terminal } from "./terminal.ts";
+import { ProcessTerminal } from "./terminal.ts";
+import { defaultTheme } from "./theme.ts";
+import { TuiMainScreen } from "./tui-main-screen.ts";
+import type { Component, TUI } from "./tui.ts";
 
 const BUILTIN_SLASH_COMMANDS: SlashCommand[] = [
   { name: "help", description: "list available commands" },
@@ -151,24 +151,28 @@ export class TuiApp {
     this.onCtrlC = options.onCtrlC;
 
     const terminal = options.terminal ?? new ProcessTerminal();
-    this.ui = new TuiAltScreen(terminal);
+    this.ui = new TuiMainScreen(terminal);
 
-    this.transcript = new Transcript(this.ui, {
-      heading: (s) => defaultTheme.text.accent(s),
-      link: (s) => defaultTheme.text.accent(s),
-      linkUrl: (s) => defaultTheme.text.muted(s),
-      code: (s) => defaultTheme.text.accent(s),
-      codeBlock: (s) => s,
-      codeBlockBorder: (s) => defaultTheme.border(s),
-      quote: (s) => defaultTheme.text.muted(s),
-      quoteBorder: (s) => defaultTheme.border(s),
-      hr: (s) => defaultTheme.border(s),
-      listBullet: (s) => defaultTheme.text.accent(s),
-      bold: (s) => s,
-      italic: (s) => s,
-      strikethrough: (s) => s,
-      underline: (s) => s,
-    });
+    this.transcript = new Transcript(
+      this.ui,
+      {
+        heading: (s) => defaultTheme.text.accent(s),
+        link: (s) => defaultTheme.text.accent(s),
+        linkUrl: (s) => defaultTheme.text.muted(s),
+        code: (s) => defaultTheme.text.accent(s),
+        codeBlock: (s) => s,
+        codeBlockBorder: (s) => defaultTheme.border(s),
+        quote: (s) => defaultTheme.text.muted(s),
+        quoteBorder: (s) => defaultTheme.border(s),
+        hr: (s) => defaultTheme.border(s),
+        listBullet: (s) => defaultTheme.text.accent(s),
+        bold: (s) => s,
+        italic: (s) => s,
+        strikethrough: (s) => s,
+        underline: (s) => s,
+      },
+      defaultTheme,
+    );
     this.transcript.setMessages(this.state.messages);
 
     this.header = new Header(this.state.cwd);
@@ -231,8 +235,11 @@ export class TuiApp {
 
   private setLayoutRootByMessages(): void {
     // VStack has no "replace child at index", so rebuild the root to swap Welcome/Transcript.
+    // TuiMainScreen has no ViewportTUI.setLayoutRoot (that's alt-screen-only) — it renders
+    // its own Container children directly, so the root is set via clear()+addChild().
     const first = this.state.messages.length === 0 ? this.welcome : this.transcript;
-    (this.ui as unknown as { setLayoutRoot: (c: unknown) => void }).setLayoutRoot(
+    this.ui.clear();
+    this.ui.addChild(
       new VStack([
         first,
         new Box(0, 0),
@@ -303,7 +310,6 @@ export class TuiApp {
         this.state.messages.push(m);
         if (this.state.messages.length === 1) this.setLayoutRootByMessages();
         this.transcript.appendMessage(m);
-        this.transcript.scrollToEnd();
         this.ui.requestRender();
       },
       updateMessage: (id: string, patch: Partial<Omit<Message, "id">>) => {

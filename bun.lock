@@ -12,7 +12,7 @@
     },
     "packages/agent-core": {
       "name": "@athena/agent-core",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "@athena/observability": "workspace:*",
         "@athena/providers": "workspace:*",
@@ -27,8 +27,8 @@
       },
     },
     "packages/cli": {
-      "name": "@athena/cli",
-      "version": "0.1.0",
+      "name": "@kushalbanda/athena-cli",
+      "version": "0.1.3",
       "bin": {
         "athena": "./dist/index.js",
       },
@@ -46,7 +46,7 @@
     },
     "packages/observability": {
       "name": "@athena/observability",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "@opentelemetry/api": "^1.9.0",
         "@opentelemetry/exporter-trace-otlp-http": "^0.55.0",
@@ -61,7 +61,7 @@
     },
     "packages/providers": {
       "name": "@athena/providers",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "@anthropic-ai/sdk": "^0.115.0",
         "@google/genai": "^2.13.0",
@@ -73,7 +73,7 @@
     },
     "packages/tools": {
       "name": "@athena/tools",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "@firecrawl/anydoc": "^0.1.7",
         "@modelcontextprotocol/sdk": "^1.30.0",
@@ -89,7 +89,7 @@
     },
     "packages/tui": {
       "name": "@athena/tui",
-      "version": "0.1.0",
+      "version": "0.1.3",
       "dependencies": {
         "chalk": "5.6.2",
         "get-east-asian-width": "1.6.0",
@@ -105,8 +105,6 @@
     "@anthropic-ai/sdk": ["@anthropic-ai/sdk@0.115.0", "", { "dependencies": { "json-schema-to-ts": "^3.1.1", "standardwebhooks": "^1.0.0" }, "peerDependencies": { "zod": "^3.25.0 || ^4.0.0" }, "optionalPeers": ["zod"], "bin": { "anthropic-ai-sdk": "bin/cli" } }, "sha512-BJrFIVyjNuU8lfDyIJTvlRYzgQg+zEl78BxE7fq8esULsGz9IRQvGtW5spq3tydmtjQb/GFdooKGdGsetpx+lQ=="],
 
     "@athena/agent-core": ["@athena/agent-core@workspace:packages/agent-core"],
-
-    "@athena/cli": ["@athena/cli@workspace:packages/cli"],
 
     "@athena/observability": ["@athena/observability@workspace:packages/observability"],
 
@@ -155,6 +153,8 @@
     "@google/genai": ["@google/genai@2.13.0", "", { "dependencies": { "google-auth-library": "^10.3.0", "p-retry": "^4.6.2", "protobufjs": "^7.5.4", "ws": "^8.18.0" }, "peerDependencies": { "@modelcontextprotocol/sdk": "^1.25.2" }, "optionalPeers": ["@modelcontextprotocol/sdk"] }, "sha512-GM7C8Kaomvjz05x5JEO6+l3d/pciL9LxAG9dUjJLD7nTPZ9X0Cfsf2Z7eET6UjgWyUmxXCHtYnQoQ77F9+ZIOQ=="],
 
     "@hono/node-server": ["@hono/node-server@2.1.0", "", { "peerDependencies": { "hono": "^4" } }, "sha512-XovyyCCnBzW+zKu+z/zq8hwNs4KOR5rEMAOxo2f40Q5xoOI37IMm6MIg2COOUtUApo0i6850MTBKH2u4QLGIqg=="],
+
+    "@kushalbanda/athena-cli": ["@kushalbanda/athena-cli@workspace:packages/cli"],
 
     "@mixmark-io/domino": ["@mixmark-io/domino@2.2.0", "", {}, "sha512-Y28PR25bHXUg88kCV7nivXrP2Nj2RueZ3/l/jdx6J9f8J4nsEGcgX0Qe6lt7Pa+J79+kPiJU3LguR6O/6zrLOw=="],
 
