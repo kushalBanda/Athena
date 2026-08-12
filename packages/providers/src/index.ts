@@ -21,6 +21,8 @@ export { AzureOpenAIProvider } from "./azure/index.js";
 export { BedrockProvider } from "./bedrock/index.js";
 export type { BedrockConfig } from "./bedrock/index.js";
 export { BEDROCK_MODEL_IDS } from "./bedrock/models.js";
+export { OpenAICodexProvider } from "./openai-codex/index.js";
+export { isAnthropicOAuthToken } from "./anthropic/index.js";
 export { createProvider } from "./factory.js";
 export type { ProviderName, ProviderConfig } from "./factory.js";
 export { EFFORT_LEVELS, PROVIDER_EFFORT_LEVELS, supportsEffort } from "./effort.js";

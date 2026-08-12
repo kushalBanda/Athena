@@ -3,7 +3,16 @@ import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 import type { McpOAuthStore, OAuthClientInformationMixed, OAuthTokens } from "@athena/tools";
 
-type AuthEntry = { type: "api_key"; key: string };
+type ApiKeyEntry = { type: "api_key"; key: string };
+/** A stored subscription (Claude Pro/Max, ChatGPT Plus/Pro) OAuth credential. */
+type OAuthEntry = {
+  type: "oauth";
+  access: string;
+  refresh: string;
+  expires: number;
+  accountId?: string;
+};
+type AuthEntry = ApiKeyEntry | OAuthEntry;
 type AuthData = Record<string, AuthEntry>;
 
 interface RawAuthFile {
@@ -12,12 +21,18 @@ interface RawAuthFile {
 }
 
 function isAuthEntry(value: unknown): value is AuthEntry {
-  return (
-    typeof value === "object" &&
-    value !== null &&
-    (value as { type?: unknown }).type === "api_key" &&
-    typeof (value as { key?: unknown }).key === "string"
-  );
+  if (typeof value !== "object" || value === null) return false;
+  const v = value as { type?: unknown };
+  if (v.type === "api_key") {
+    return typeof (value as { key?: unknown }).key === "string";
+  }
+  if (v.type === "oauth") {
+    const o = value as { access?: unknown; refresh?: unknown; expires?: unknown };
+    return (
+      typeof o.access === "string" && typeof o.refresh === "string" && typeof o.expires === "number"
+    );
+  }
+  return false;
 }
 
 function authDir(): string {
@@ -94,15 +109,15 @@ export function listKeys(): void {
     return;
   }
   for (const [provider, cred] of entries) {
-    const masked = cred.key.slice(0, 8) + "…";
-    console.log(`  ${provider}: ${masked}`);
+    const label = cred.type === "api_key" ? `${cred.key.slice(0, 8)}…` : "OAuth (subscription)";
+    console.log(`  ${provider}: ${label}`);
   }
 }
 
 export function getConfiguredProviders(): string[] {
   const data = readAuthData();
   const fromFile = Object.entries(data)
-    .filter(([, cred]) => !!cred.key)
+    .filter(([, cred]) => (cred.type === "api_key" ? !!cred.key : !!cred.access))
     .map(([p]) => p);
 
   const fromEnv = Object.entries(ENV_VARS)
@@ -115,6 +130,77 @@ export function getConfiguredProviders(): string[] {
 export function autoDetectProvider(): string | undefined {
   const configured = getConfiguredProviders();
   return configured[0];
+}
+
+export interface StoredOAuthCredential {
+  access: string;
+  refresh: string;
+  expires: number;
+  accountId?: string;
+}
+
+export function getOAuthCredential(provider: string): StoredOAuthCredential | undefined {
+  const stored = readAuthData()[provider];
+  if (stored?.type !== "oauth") return undefined;
+  return {
+    access: stored.access,
+    refresh: stored.refresh,
+    expires: stored.expires,
+    ...(stored.accountId !== undefined ? { accountId: stored.accountId } : {}),
+  };
+}
+
+export function setOAuthCredential(provider: string, cred: StoredOAuthCredential): void {
+  writeRawAuthFile((raw) => {
+    raw[provider] = { type: "oauth", ...cred } satisfies AuthEntry;
+  });
+}
+
+/** Providers that support subscription (OAuth) login, mapped to their refresh function. */
+type RefreshFn = (refreshToken: string) => Promise<StoredOAuthCredential>;
+const OAUTH_REFRESHERS: Partial<Record<string, RefreshFn>> = {};
+
+export function registerOAuthRefresher(provider: string, refresh: RefreshFn): void {
+  OAUTH_REFRESHERS[provider] = refresh;
+}
+
+const REFRESH_SKEW_MS = 60_000;
+
+/**
+ * Resolves the credential to authenticate `provider` with: a stored OAuth
+ * token (refreshed first if within a minute of expiry) if present, else a
+ * stored/env API key. Refresh runs at most once per call — callers making
+ * many requests in a session should resolve once and reuse.
+ */
+export async function resolveCredential(
+  provider: string,
+): Promise<{ apiKey: string; isOAuth: boolean; accountId?: string } | undefined> {
+  const oauth = getOAuthCredential(provider);
+  if (oauth) {
+    if (Date.now() < oauth.expires - REFRESH_SKEW_MS) {
+      return {
+        apiKey: oauth.access,
+        isOAuth: true,
+        ...(oauth.accountId ? { accountId: oauth.accountId } : {}),
+      };
+    }
+    const refresh = OAUTH_REFRESHERS[provider];
+    if (!refresh) {
+      throw new Error(
+        `Stored OAuth credential for "${provider}" expired and no refresher registered`,
+      );
+    }
+    const refreshed = await refresh(oauth.refresh);
+    setOAuthCredential(provider, refreshed);
+    return {
+      apiKey: refreshed.access,
+      isOAuth: true,
+      ...(refreshed.accountId ? { accountId: refreshed.accountId } : {}),
+    };
+  }
+
+  const apiKey = getApiKey(provider);
+  return apiKey ? { apiKey, isOAuth: false } : undefined;
 }
 
 export function getOtlpHeaders(): Record<string, string> | undefined {

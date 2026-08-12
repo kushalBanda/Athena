@@ -1,10 +1,30 @@
 import Anthropic from "@anthropic-ai/sdk";
-import { THINKING_BUDGET_TOKENS, type EffortLevel } from "../effort.js";
+import { type EffortLevel, THINKING_BUDGET_TOKENS } from "../effort.js";
 import type { Delta, LLMProvider, Message, ToolDef } from "../types.js";
 import { cacheableSystemBlock } from "./cache.js";
 import { toAnthropicMessages, toAnthropicTools } from "./transform.js";
 
 const BASE_MAX_TOKENS = 8096;
+
+/**
+ * Claude Pro/Max OAuth access tokens are always prefixed this way; this is
+ * the same substring check pi (github.com/earendil-works/pi) uses to decide
+ * whether a credential is an OAuth token vs a plain API key.
+ */
+const OAUTH_TOKEN_MARKER = "sk-ant-oat";
+
+export function isAnthropicOAuthToken(apiKey: string): boolean {
+  return apiKey.includes(OAUTH_TOKEN_MARKER);
+}
+
+/**
+ * Anthropic's official CLI identity string. The Anthropic API silently
+ * requires this exact system-prompt prefix (plus the beta headers below) to
+ * accept requests authenticated with a Claude Pro/Max OAuth token — this is
+ * reverse-engineered, undocumented behavior shared with pi and Claude Code
+ * itself, not a cosmetic choice.
+ */
+const CLAUDE_CODE_IDENTITY = "You are Claude Code, Anthropic's official CLI for Claude.";
 
 export class AnthropicProvider implements LLMProvider {
   readonly name = "anthropic";
@@ -13,6 +33,7 @@ export class AnthropicProvider implements LLMProvider {
 
   private client: Anthropic;
   private effort: EffortLevel | undefined;
+  private isOAuth: boolean;
 
   constructor(
     apiKey: string,
@@ -20,7 +41,18 @@ export class AnthropicProvider implements LLMProvider {
     contextLimit = 200_000,
     effort?: EffortLevel,
   ) {
-    this.client = new Anthropic({ apiKey });
+    this.isOAuth = isAnthropicOAuthToken(apiKey);
+    this.client = this.isOAuth
+      ? new Anthropic({
+          apiKey: null,
+          authToken: apiKey,
+          defaultHeaders: {
+            "anthropic-beta": "claude-code-20250219,oauth-2025-04-20",
+            "anthropic-dangerous-direct-browser-access": "true",
+            "x-app": "cli",
+          },
+        })
+      : new Anthropic({ apiKey });
     this.model = model;
     this.contextLimit = contextLimit;
     this.effort = effort;
@@ -39,7 +71,11 @@ export class AnthropicProvider implements LLMProvider {
       model: this.model,
       max_tokens: budgetTokens ? budgetTokens + BASE_MAX_TOKENS : BASE_MAX_TOKENS,
       messages: toAnthropicMessages(messages, { cacheLastBlock: true }),
-      ...(systemPrompt ? { system: cacheableSystemBlock(systemPrompt) } : {}),
+      ...(this.isOAuth
+        ? { system: this.oauthSystemBlock(systemPrompt) }
+        : systemPrompt
+          ? { system: cacheableSystemBlock(systemPrompt) }
+          : {}),
       ...(tools.length > 0 ? { tools: toAnthropicTools(tools, { cacheLastTool: true }) } : {}),
       ...(budgetTokens
         ? { thinking: { type: "enabled" as const, budget_tokens: budgetTokens } }
@@ -92,6 +128,13 @@ export class AnthropicProvider implements LLMProvider {
     }
 
     yield { type: "done" };
+  }
+
+  private oauthSystemBlock(systemPrompt: string | undefined): Anthropic.TextBlockParam[] {
+    const blocks: Anthropic.TextBlockParam[] = [{ type: "text", text: CLAUDE_CODE_IDENTITY }];
+    if (systemPrompt) blocks.push(...cacheableSystemBlock(systemPrompt));
+    else blocks[0]!.cache_control = { type: "ephemeral" };
+    return blocks;
   }
 
   async countTokens(messages: Message[]): Promise<number> {

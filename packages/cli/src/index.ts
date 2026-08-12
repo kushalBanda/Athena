@@ -13,29 +13,34 @@ import {
 } from "@athena/agent-core";
 import type { ActiveToolCall, AgentMessage, Skill } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
-import { createProvider, PROVIDER_EFFORT_LEVELS } from "@athena/providers";
+import { PROVIDER_EFFORT_LEVELS, createProvider } from "@athena/providers";
 import type { EffortLevel, ProviderName } from "@athena/providers";
 import { createRegistryWithMcp } from "@athena/tools";
 import { TuiApp } from "@athena/tui";
-import type { AgentCallbacks as TuiCallbacks, PickerOption } from "@athena/tui";
+import type { PickerOption, AgentCallbacks as TuiCallbacks } from "@athena/tui";
 import { SpanKind } from "@opentelemetry/api";
 import { agentMessagesToTuiMessages, createCallbacks, finalizeStream } from "./adapter.js";
 import type { AdapterState } from "./adapter.js";
+import {
+  FileMcpOAuthStore,
+  autoDetectProvider,
+  getApiKey,
+  getConfiguredProviders,
+  getOAuthCredential,
+  getOtlpHeaders,
+  listKeys,
+  registerOAuthRefresher,
+  setApiKey,
+  setOAuthCredential,
+} from "./auth.js";
+import type { StoredOAuthCredential } from "./auth.js";
 import { expandPromptTemplate, loadCommandTemplates } from "./commands.js";
 import type { CommandTemplate } from "./commands.js";
 import {
-  autoDetectProvider,
-  FileMcpOAuthStore,
-  getApiKey,
-  getConfiguredProviders,
-  getOtlpHeaders,
-  listKeys,
-  setApiKey,
-} from "./auth.js";
-import {
   loadConfig,
-  loadObservabilityConfig,
   loadContextSourcesConfig,
+  loadObservabilityConfig,
+  resolveProviderConfig,
   saveConfig,
   saveContextSourcesConfig,
 } from "./config.js";
@@ -50,6 +55,9 @@ import {
   mcpToggle,
 } from "./mcp-commands.js";
 import { MODEL_CATALOG } from "./models.js";
+import { loginAnthropic, refreshAnthropic } from "./oauth/anthropic-oauth.js";
+import { loginCodex, refreshCodex } from "./oauth/codex-oauth.js";
+import type { LoginUI } from "./oauth/login-ui.js";
 import { PROVIDER_META, getProviderMeta } from "./provider-meta.js";
 import { runSetup } from "./setup.js";
 import type { SetupResult } from "./setup.js";
@@ -119,12 +127,13 @@ Usage:
   athena --continue, -c               resume the most recent session for this directory
                                       (also works with -p, to continue a scripted session)
   athena --resume <session-id>        resume a specific session by id (printed on exit)
-  athena --provider <name>            override provider: anthropic|ollama|gemini|azure|bedrock
+  athena --provider <name>            override provider: anthropic|ollama|gemini|azure|bedrock|openai-codex
   athena --model <id>                 override model id
 
   athena setup                        interactive first-run setup (choose provider + key)
   athena status                       show current config and stored keys
   athena auth set <provider> <key>    store API key in ~/.config/athena/auth.json
+  athena auth login <provider>        sign in via subscription OAuth (anthropic|openai-codex)
   athena auth list                    list stored providers
 
   athena mcp add <name>               add an MCP server (--local "<cmd>" | --remote <url>) [--project]
@@ -133,7 +142,32 @@ Usage:
 `);
 }
 
-function handleAuthCommand(argv: string[]): boolean {
+const OAUTH_LOGINS: Partial<Record<string, () => Promise<StoredOAuthCredential>>> = {
+  anthropic: loginAnthropic,
+  "openai-codex": loginCodex,
+};
+
+/**
+ * `/login` targets — deliberately separate from `PROVIDER_META`/`/provider`.
+ * `/provider` picks *how a configured provider is used*; `/login` is the
+ * one place that starts a subscription OAuth flow (Claude Code, Codex).
+ * Anthropic api-key auth and Gemini/Azure/Bedrock have no subscription
+ * login and stay `/provider`-only.
+ */
+const LOGIN_TARGETS: readonly {
+  provider: string;
+  label: string;
+  login: (ui: LoginUI) => Promise<StoredOAuthCredential>;
+}[] = [
+  {
+    provider: "anthropic",
+    label: "Claude Code (Claude Pro/Max subscription)",
+    login: loginAnthropic,
+  },
+  { provider: "openai-codex", label: "Codex (ChatGPT Plus/Pro subscription)", login: loginCodex },
+];
+
+async function handleAuthCommand(argv: string[]): Promise<boolean> {
   if (argv[2] !== "auth") return false;
 
   const action = argv[3];
@@ -147,11 +181,32 @@ function handleAuthCommand(argv: string[]): boolean {
     setApiKey(provider, key);
     return true;
   }
+  if (action === "login") {
+    const provider = argv[4];
+    const login = provider ? OAUTH_LOGINS[provider] : undefined;
+    if (!provider || !login) {
+      console.error(
+        `Usage: athena auth login <provider>\nSupported: ${Object.keys(OAUTH_LOGINS).join(", ")}`,
+      );
+      process.exit(1);
+    }
+    try {
+      const cred = await login();
+      setOAuthCredential(provider, cred);
+      console.log(`\nSigned in to ${provider} via subscription. Run "athena" to start using it.`);
+    } catch (err) {
+      console.error(`Login failed: ${err instanceof Error ? err.message : String(err)}`);
+      process.exit(1);
+    }
+    return true;
+  }
   if (action === "list" || action === undefined) {
     listKeys();
     return true;
   }
-  console.error(`Unknown auth action: ${action}. Use: athena auth set <provider> <key>`);
+  console.error(
+    `Unknown auth action: ${action}. Use: athena auth set <provider> <key> | athena auth login <provider>`,
+  );
   process.exit(1);
 }
 
@@ -245,11 +300,14 @@ function resolveProvider(args: CliArgs, cfg: ReturnType<typeof loadConfig>): str
   return detected ?? cfg.provider;
 }
 
+registerOAuthRefresher("anthropic", refreshAnthropic);
+registerOAuthRefresher("openai-codex", refreshCodex);
+
 async function main() {
   const args = parseArgs(process.argv);
 
   if (args.subcommand === "auth") {
-    handleAuthCommand(process.argv);
+    await handleAuthCommand(process.argv);
     return;
   }
   if (args.subcommand === "setup") {
@@ -345,11 +403,14 @@ async function main() {
   let providerName = resolveProvider(args, cfg) as Parameters<typeof createProvider>[0];
 
   const needsKey = providerName !== "ollama";
-  const hasKey = (cfg.providerConfig as Record<string, { apiKey?: string }>)[providerName]?.apiKey;
+  const staticHasKey = (cfg.providerConfig as Record<string, { apiKey?: string }>)[providerName]
+    ?.apiKey;
+  const hasKey = staticHasKey || !!getOAuthCredential(providerName);
   if (needsKey && !hasKey) {
     if (args.print) {
+      const oauthHint = OAUTH_LOGINS[providerName] ? ` or athena auth login ${providerName}` : "";
       console.error(
-        `athena: no API key for "${providerName}". Run: athena auth set ${providerName} <key>`,
+        `athena: no credential for "${providerName}". Run: athena auth set ${providerName} <key>${oauthHint}`,
       );
       await shutdown();
       process.exit(1);
@@ -364,7 +425,7 @@ async function main() {
   }
 
   const session = {
-    provider: createProvider(providerName, cfg.providerConfig),
+    provider: createProvider(providerName, await resolveProviderConfig(cfg)),
     cfg,
   };
 
@@ -476,6 +537,47 @@ async function main() {
     tui.addMessage({ id: crypto.randomUUID(), role: "system", content });
   }
 
+  /** Bridges the OAuth login flows' `LoginUI` seam onto the TUI's own prompt/message primitives. */
+  function tuiLoginUI(tui: TuiCallbacks): LoginUI {
+    return {
+      // Login prints the raw OAuth authorize URL as a fallback for when the
+      // browser doesn't auto-open — it's one ~250-char token with no spaces
+      // to break on. Left as a single message, the terminal wraps it across
+      // rows the overlay's positioning doesn't account for, so the
+      // paste-code prompt box paints on top of the wrapped remainder
+      // instead of below it. Hard-wrapping to terminal width before each
+      // `addMessage` keeps every message within one terminal row.
+      info: (message) => {
+        const width = Math.max(20, (process.stdout.columns || 80) - 4);
+        for (const rawLine of message.split("\n")) {
+          if (rawLine.length <= width) {
+            sysMsg(tui, rawLine);
+            continue;
+          }
+          for (let i = 0; i < rawLine.length; i += width) {
+            sysMsg(tui, rawLine.slice(i, i + width));
+          }
+        }
+      },
+      // Deliberately no paste-code prompt in the TUI. Locally this always
+      // completes via the callback server the moment the browser redirects
+      // — the manual-code fallback exists for `athena auth login <provider>`
+      // (SSH/headless, no local browser reachable), not for the common
+      // local-desktop `/login` path, where showing an input box the user
+      // has to look past just to watch it get skipped is pure noise. Wait
+      // quietly for the server; resolve `null` only if the login is aborted
+      // (server won the race, or the whole login failed).
+      promptCode: (_message, signal) =>
+        new Promise<string | null>((resolve) => {
+          if (signal.aborted) {
+            resolve(null);
+            return;
+          }
+          signal.addEventListener("abort", () => resolve(null), { once: true });
+        }),
+    };
+  }
+
   function currentEffort(provName: ProviderName): EffortLevel | undefined {
     return (session.cfg.providerConfig[provName] as { effort?: EffortLevel } | undefined)?.effort;
   }
@@ -490,6 +592,7 @@ async function main() {
         [
           "/model                   switch model (opens picker)",
           "/provider                switch provider (opens picker)",
+          "/login                   sign in to Claude Code or Codex via subscription OAuth",
           "/effort                  switch reasoning effort (opens picker)",
           "/status                  show current provider + model",
           "/clear                   clear chat history, start a new session",
@@ -613,7 +716,7 @@ async function main() {
             [provName]: { ...session.cfg.providerConfig[provName], effort: level },
           },
         };
-        session.provider = createProvider(provName, session.cfg.providerConfig);
+        session.provider = createProvider(provName, await resolveProviderConfig(session.cfg));
         saveConfig({ provider: provName, effort: level });
         tui.setEffort(level);
         sysMsg(tui, `effort → ${level}`);
@@ -638,7 +741,7 @@ async function main() {
             [provName]: { ...session.cfg.providerConfig[provName], model: modelId },
           },
         };
-        session.provider = createProvider(provName, session.cfg.providerConfig);
+        session.provider = createProvider(provName, await resolveProviderConfig(session.cfg));
         tui.setContextLimit(session.provider.contextLimit);
         saveConfig({ provider: provName, model: modelId });
         tui.setModel(modelId);
@@ -652,7 +755,7 @@ async function main() {
         let pName = parts[1] as ProviderName | undefined;
         if (!pName) {
           const options = PROVIDER_META.map((p) => ({
-            label: `${p.label}${p.needsKey ? (getApiKey(p.id) ? " ✓" : " — needs key") : ""}`,
+            label: `${p.label}${p.needsKey ? (getApiKey(p.id) || getOAuthCredential(p.id) ? " ✓" : " — needs key") : ""}`,
             value: p.id,
           }));
           const picked = await tui.pickFromList("provider", options);
@@ -661,7 +764,7 @@ async function main() {
         }
 
         const meta = getProviderMeta(pName);
-        if (meta.needsKey && !getApiKey(pName)) {
+        if (meta.needsKey && !getApiKey(pName) && !getOAuthCredential(pName)) {
           const key = await tui.promptForText(`${meta.label} — API key`, { mask: true });
           if (!key) {
             sysMsg(tui, "provider switch cancelled");
@@ -678,15 +781,52 @@ async function main() {
         }
 
         try {
-          session.provider = createProvider(pName, session.cfg.providerConfig);
+          session.provider = createProvider(pName, await resolveProviderConfig(session.cfg));
           tui.setContextLimit(session.provider.contextLimit);
           session.cfg = { ...session.cfg, provider: pName };
           saveConfig({ provider: pName });
           tui.setModel(session.provider.model);
           tui.setEffort(currentEffort(pName));
           sysMsg(tui, `provider → ${pName}`);
-        } catch {
-          sysMsg(tui, `unknown provider: ${pName}`);
+        } catch (err) {
+          sysMsg(tui, err instanceof Error ? err.message : `failed to switch to ${pName}`);
+        }
+      })();
+      return true;
+    }
+
+    if (cmd === "login") {
+      await (async () => {
+        const providerId = parts[1];
+        let target = providerId ? LOGIN_TARGETS.find((t) => t.provider === providerId) : undefined;
+        if (!target) {
+          const picked = await tui.pickFromList(
+            "sign in via subscription",
+            LOGIN_TARGETS.map((t) => ({ label: t.label, value: t.provider })),
+          );
+          if (!picked) return;
+          target = LOGIN_TARGETS.find((t) => t.provider === picked);
+        }
+        if (!target) {
+          sysMsg(tui, `unknown login target: ${providerId}`);
+          return;
+        }
+
+        try {
+          const cred = await target.login(tuiLoginUI(tui));
+          setOAuthCredential(target.provider, cred);
+          sysMsg(tui, `signed in to ${target.label}. Switching provider...`);
+          session.provider = createProvider(
+            target.provider as ProviderName,
+            await resolveProviderConfig(session.cfg),
+          );
+          tui.setContextLimit(session.provider.contextLimit);
+          session.cfg = { ...session.cfg, provider: target.provider as ProviderName };
+          saveConfig({ provider: target.provider as ProviderName });
+          tui.setModel(session.provider.model);
+          sysMsg(tui, `provider → ${target.provider}`);
+        } catch (err) {
+          sysMsg(tui, `login failed: ${err instanceof Error ? err.message : String(err)}`);
         }
       })();
       return true;

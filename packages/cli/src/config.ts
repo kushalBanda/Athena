@@ -6,12 +6,12 @@ import type { McpServerConfig } from "@athena/tools";
 import {
   readGlobalMcpConfig,
   readProjectMcpConfig,
-  saveGlobalMcpServer as toolsSaveGlobalMcpServer,
   removeGlobalMcpServer as toolsRemoveGlobalMcpServer,
-  saveProjectMcpServer as toolsSaveProjectMcpServer,
   removeProjectMcpServer as toolsRemoveProjectMcpServer,
+  saveGlobalMcpServer as toolsSaveGlobalMcpServer,
+  saveProjectMcpServer as toolsSaveProjectMcpServer,
 } from "@athena/tools";
-import { getApiKey } from "./auth.js";
+import { getApiKey, resolveCredential } from "./auth.js";
 
 function configDir(): string {
   return process.env.ATHENA_CONFIG_DIR ?? join(homedir(), ".config", "athena");
@@ -206,9 +206,37 @@ export function loadConfig(): AthenaConfig {
     };
   }
 
+  const codexModel = file.model;
+  providerConfig["openai-codex"] = {
+    apiKey: "",
+    accountId: "",
+    ...(codexModel !== undefined && provider === "openai-codex" ? { model: codexModel } : {}),
+  };
+
   const result: AthenaConfig = { provider, providerConfig };
   if (file.model !== undefined) result.model = file.model;
   return result;
+}
+
+
+export async function resolveProviderConfig(cfg: AthenaConfig): Promise<ProviderConfig> {
+  const providerConfig: ProviderConfig = { ...cfg.providerConfig };
+
+  const anthropicCred = await resolveCredential("anthropic");
+  if (anthropicCred) {
+    providerConfig.anthropic = { ...providerConfig.anthropic, apiKey: anthropicCred.apiKey };
+  }
+
+  const codexCred = await resolveCredential("openai-codex");
+  if (codexCred) {
+    providerConfig["openai-codex"] = {
+      ...providerConfig["openai-codex"],
+      apiKey: codexCred.apiKey,
+      accountId: codexCred.accountId ?? providerConfig["openai-codex"]?.accountId ?? "",
+    };
+  }
+
+  return providerConfig;
 }
 
 export function loadGlobalMcpServers(): Record<string, McpServerConfig> {

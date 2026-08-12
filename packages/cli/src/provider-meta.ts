@@ -12,6 +12,11 @@ export const PROVIDER_META: readonly ProviderMeta[] = [
   { id: "azure", label: "Azure OpenAI", needsKey: true },
   { id: "bedrock", label: "AWS Bedrock", needsKey: true },
   { id: "ollama", label: "Ollama (local, no key)", needsKey: false },
+  {
+    id: "openai-codex",
+    label: "OpenAI Codex (ChatGPT subscription — athena auth login openai-codex)",
+    needsKey: false,
+  },
 ];
 
 export function getProviderMeta(id: ProviderName): ProviderMeta {

@@ -25,6 +25,7 @@ const BUILTIN_SLASH_COMMANDS: SlashCommand[] = [
   { name: "help", description: "list available commands" },
   { name: "model", description: "switch model (opens picker)" },
   { name: "provider", description: "switch provider (opens picker)" },
+  { name: "login", description: "sign in to Claude Code or Codex via subscription OAuth" },
   { name: "effort", description: "switch reasoning effort (opens picker)" },
   { name: "status", description: "show current provider + model" },
   { name: "clear", description: "clear chat history, start a new session" },

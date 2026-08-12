@@ -10,6 +10,8 @@ export const PROVIDER_EFFORT_LEVELS: Record<ProviderName, readonly EffortLevel[]
   azure: ["low", "medium", "high"],
   bedrock: [],
   ollama: [],
+  // Codex's Responses API supports reasoning.effort, not wired up yet.
+  "openai-codex": [],
 };
 
 export const THINKING_BUDGET_TOKENS: Record<EffortLevel, number> = {
