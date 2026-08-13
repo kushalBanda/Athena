@@ -19,8 +19,7 @@ export function resolveCodegraphCore(): CodegraphModule | null {
   try {
     cached = require(CODEGRAPH_PACKAGE_NAME) as CodegraphModule;
     return cached;
-  } catch {
-  }
+  } catch {}
 
   try {
     const globalPath = globalBunInstallPath();
@@ -28,8 +27,7 @@ export function resolveCodegraphCore(): CodegraphModule | null {
       cached = require(globalPath) as CodegraphModule;
       return cached;
     }
-  } catch {
-  }
+  } catch {}
 
   cached = null;
   return cached;
