@@ -1,25 +1,9 @@
-import { Type } from "@sinclair/typebox";
 import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { createRequire } from "node:module";
+import { Type } from "@sinclair/typebox";
 import { BaseTool, err, ok } from "../base.js";
+import { resolveCodegraphCore } from "../codegraph/core-module.js";
+import { getIndexDbPath } from "../codegraph/paths.js";
 import type { ToolContext } from "../types.js";
-
-type CodegraphModule = {
-  ContextBuilder: new (
-    dbPath: string,
-  ) => {
-    buildContext(
-      query: string,
-      options?: {
-        format?: "markdown" | "json";
-        maxNodes?: number;
-        maxCodeBlocks?: number;
-        traversalDepth?: number;
-      },
-    ): Promise<string>;
-  };
-};
 
 const Schema = Type.Object({
   query: Type.String({
@@ -32,7 +16,7 @@ const Schema = Type.Object({
 export class CodegraphQueryTool extends BaseTool<typeof Schema> {
   readonly name = "codegraph_query";
   readonly description =
-    "Query the repository's CodeGraph index (if present) for symbols, source, and call relationships relevant to a question. Only available when a `.codegraph/index.db` exists.";
+    "Query the repository's CodeGraph index (if present) for symbols, source, and call relationships relevant to a question. Only available when a `.codegraph/codegraph.db` exists.";
   readonly permission = "auto" as const;
   readonly schema = Schema;
 
@@ -40,16 +24,20 @@ export class CodegraphQueryTool extends BaseTool<typeof Schema> {
     input: { query: string; maxNodes?: number; traversalDepth?: number },
     ctx: ToolContext,
   ) {
-    const dbPath = join(ctx.workingDir, ".codegraph", "index.db");
-    if (!existsSync(dbPath)) {
-      return err("No CodeGraph index found at .codegraph/index.db in this project.");
+    if (!existsSync(getIndexDbPath(ctx.workingDir))) {
+      return err("No CodeGraph index found at .codegraph/codegraph.db in this project.");
     }
 
+    const core = resolveCodegraphCore();
+    if (core === null) {
+      return err("@colbymchenry/codegraph is not installed.");
+    }
+
+    let graph: Awaited<ReturnType<typeof core.CodeGraph.open>> | null = null;
     try {
-      const require = createRequire(import.meta.url);
-      const pkg = require("@codegraph/core") as CodegraphModule;
-      const builder = new pkg.ContextBuilder(dbPath);
-      const context = await builder.buildContext(input.query, {
+      // open() takes the project root, not the db file — it resolves .codegraph/codegraph.db itself.
+      graph = await core.CodeGraph.open(ctx.workingDir);
+      const context = await graph.buildContext(input.query, {
         format: "markdown",
         maxNodes: input.maxNodes ?? 20,
         maxCodeBlocks: 5,
@@ -58,6 +46,8 @@ export class CodegraphQueryTool extends BaseTool<typeof Schema> {
       return ok(context || "No matching symbols found.");
     } catch (e) {
       return err(`CodeGraph query failed: ${e instanceof Error ? e.message : String(e)}`);
+    } finally {
+      if (graph !== null) graph.close();
     }
   }
 }

@@ -1,9 +1,9 @@
-import { Type } from "@sinclair/typebox";
 import { existsSync } from "node:fs";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import { Type } from "@sinclair/typebox";
 import { BaseTool, err } from "../base.js";
-import type { ToolContext, ToolResult } from "../types.js";
+import { formatBlastRadius, getBlastRadius } from "../codegraph/blast-radius.js";
 import {
   applyEditsToNormalizedContent,
   countDiffChanges,
@@ -13,6 +13,7 @@ import {
   restoreLineEndings,
   stripBom,
 } from "../lib/edit-diff.js";
+import type { ToolContext, ToolResult } from "../types.js";
 
 const EditSchema = Type.Object({
   oldText: Type.String({ description: "Exact text to replace" }),
@@ -100,8 +101,15 @@ export class EditFileTool extends BaseTool<typeof Schema> {
     const { additions, deletions } = countDiffChanges(baseContent, newContent);
     const diff = generateUnifiedPatch(resolved, baseContent, newContent);
 
+    // Scope symbol inference to the edited text only (not the whole file) so
+    // blast radius reports the symbol actually touched, not an unrelated one
+    // that happens to appear earlier in a large file.
+    const editedRegionText = input.edits.map((e) => e.newText).join("\n");
+    const blast = await getBlastRadius(ctx.workingDir, resolved, editedRegionText);
+    const blastLine = blast !== null ? formatBlastRadius(blast) : "";
+
     return {
-      content: `Edited ${resolved} (+${additions} -${deletions})`,
+      content: `Edited ${resolved} (+${additions} -${deletions})${blastLine}`,
       isError: false,
       metadata: { diff, additions, deletions },
     };

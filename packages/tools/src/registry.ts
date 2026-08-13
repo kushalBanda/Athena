@@ -1,18 +1,20 @@
-import type { Tool } from "./types.js";
-import { ReadFileTool } from "./impl/read-file.js";
-import { WriteFileTool } from "./impl/write-file.js";
-import { EditFileTool } from "./impl/edit-file.js";
-import { ListDirectoryTool } from "./impl/list-directory.js";
-import { GrepTool } from "./impl/grep.js";
-import { FindTool } from "./impl/find.js";
-import { ShellExecTool } from "./impl/shell-exec.js";
-import { WebSearchTool } from "./impl/web-search.js";
-import { WebFetchTool } from "./impl/web-fetch.js";
+import { withCodegraphHint } from "./codegraph/hint.js";
+import { CodegraphFederatedQueryTool } from "./impl/codegraph-federated-query.js";
 import { CodegraphQueryTool } from "./impl/codegraph-query.js";
-import { loadMcpConfig, isServerEnabled } from "./mcp/config.js";
+import { EditFileTool } from "./impl/edit-file.js";
+import { FindTool } from "./impl/find.js";
+import { GrepTool } from "./impl/grep.js";
+import { ListDirectoryTool } from "./impl/list-directory.js";
+import { ReadFileTool } from "./impl/read-file.js";
+import { ShellExecTool } from "./impl/shell-exec.js";
+import { WebFetchTool } from "./impl/web-fetch.js";
+import { WebSearchTool } from "./impl/web-search.js";
+import { WriteFileTool } from "./impl/write-file.js";
 import { connectMcpServer } from "./mcp/client.js";
-import { McpToolBridge } from "./mcp/tool-bridge.js";
+import { isServerEnabled, loadMcpConfig } from "./mcp/config.js";
 import { InMemoryMcpOAuthStore, type McpOAuthStore } from "./mcp/oauth.js";
+import { McpToolBridge } from "./mcp/tool-bridge.js";
+import type { Tool } from "./types.js";
 
 export class ToolRegistry {
   private tools = new Map<string, Tool>();
@@ -37,16 +39,17 @@ export interface DefaultToolsConfig {
 
 export function createDefaultRegistry(config: DefaultToolsConfig = {}): ToolRegistry {
   return new ToolRegistry()
-    .register(new ReadFileTool())
+    .register(withCodegraphHint(new ReadFileTool()))
     .register(new WriteFileTool())
     .register(new EditFileTool())
     .register(new ListDirectoryTool())
-    .register(new GrepTool())
-    .register(new FindTool())
+    .register(withCodegraphHint(new GrepTool()))
+    .register(withCodegraphHint(new FindTool()))
     .register(new ShellExecTool())
     .register(new WebSearchTool(config.exaApiKey))
     .register(new WebFetchTool())
-    .register(new CodegraphQueryTool());
+    .register(new CodegraphQueryTool())
+    .register(new CodegraphFederatedQueryTool());
 }
 
 export interface McpConnectionReport {

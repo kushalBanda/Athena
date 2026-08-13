@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { CodegraphQueryTool } from "../src/impl/codegraph-query.js";
 
 describe("CodegraphQueryTool", () => {
-  it("errors when no .codegraph/index.db exists", async () => {
+  it("errors when no .codegraph/codegraph.db exists", async () => {
     const dir = mkdtempSync(join(tmpdir(), "athena-codegraph-"));
     try {
       const tool = new CodegraphQueryTool();

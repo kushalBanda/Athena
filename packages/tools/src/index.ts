@@ -49,3 +49,18 @@ export { ShellExecTool } from "./impl/shell-exec.js";
 export { WebSearchTool } from "./impl/web-search.js";
 export { WebFetchTool } from "./impl/web-fetch.js";
 export { CodegraphQueryTool } from "./impl/codegraph-query.js";
+export { CodegraphFederatedQueryTool } from "./impl/codegraph-federated-query.js";
+
+export { runCodegraphSetup } from "./codegraph/setup.js";
+export { getIndexStatus, formatIndexStatusLine } from "./codegraph/status.js";
+export { federatedQuery } from "./codegraph/federated-query.js";
+export type { FederatedMatch } from "./codegraph/federated-query.js";
+export { resolveCodegraphCore } from "./codegraph/core-module.js";
+export { CODEGRAPH_PACKAGE_NAME, getIndexDbPath } from "./codegraph/paths.js";
+export type {
+  SetupResult,
+  IndexStatus,
+  CodegraphModule,
+  CodeGraphHandle,
+  GraphNode,
+} from "./codegraph/types.js";

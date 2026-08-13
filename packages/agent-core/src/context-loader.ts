@@ -1,27 +1,10 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { createRequire } from "node:module";
 import { execSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { getIndexDbPath, resolveCodegraphCore } from "@athena/tools";
 import type { Tool } from "@athena/tools";
-import { buildAthenaSystemPrompt } from "./system-prompt.js";
-import type { Skill } from "./skills.js";
 import { loadClaudeMd } from "./claude-md.js";
-
-type CodegraphModule = {
-  ContextBuilder: new (
-    dbPath: string,
-  ) => {
-    buildContext(
-      query: string,
-      options?: {
-        format?: "markdown" | "json";
-        maxNodes?: number;
-        maxCodeBlocks?: number;
-        traversalDepth?: number;
-      },
-    ): Promise<string>;
-  };
-};
+import type { Skill } from "./skills.js";
+import { buildAthenaSystemPrompt } from "./system-prompt.js";
 
 function isGitRepo(cwd: string): boolean {
   try {
@@ -33,14 +16,16 @@ function isGitRepo(cwd: string): boolean {
 }
 
 async function loadCodegraphContext(cwd: string, query: string): Promise<string | null> {
-  const dbPath = join(cwd, ".codegraph", "index.db");
-  if (!existsSync(dbPath)) return null;
+  if (!existsSync(getIndexDbPath(cwd))) return null;
 
+  const core = resolveCodegraphCore();
+  if (core === null) return null;
+
+  let graph: Awaited<ReturnType<typeof core.CodeGraph.open>> | null = null;
   try {
-    const require = createRequire(import.meta.url);
-    const pkg = require("@codegraph/core") as CodegraphModule;
-    const builder = new pkg.ContextBuilder(dbPath);
-    return await builder.buildContext(query, {
+    // open() takes the project root, not the db file — it resolves .codegraph/codegraph.db itself.
+    graph = await core.CodeGraph.open(cwd);
+    return await graph.buildContext(query, {
       format: "markdown",
       maxNodes: 20,
       maxCodeBlocks: 5,
@@ -48,6 +33,8 @@ async function loadCodegraphContext(cwd: string, query: string): Promise<string 
     });
   } catch {
     return null;
+  } finally {
+    if (graph !== null) graph.close();
   }
 }
 

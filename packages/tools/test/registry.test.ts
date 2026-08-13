@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { ToolRegistry, createDefaultRegistry } from "../src/registry.js";
 import { ReadFileTool } from "../src/impl/read-file.js";
 import { WriteFileTool } from "../src/impl/write-file.js";
+import { ToolRegistry, createDefaultRegistry } from "../src/registry.js";
 
 describe("ToolRegistry", () => {
   it("registers and retrieves tools by name", () => {
@@ -16,7 +16,7 @@ describe("ToolRegistry", () => {
     expect(reg.all().length).toBe(2);
   });
 
-  it("createDefaultRegistry includes all 10 tools", () => {
+  it("createDefaultRegistry includes all 11 tools", () => {
     const reg = createDefaultRegistry();
     const names = reg.all().map((t) => t.name);
     expect(names).toContain("read_file");
@@ -29,7 +29,8 @@ describe("ToolRegistry", () => {
     expect(names).toContain("web_search");
     expect(names).toContain("web_fetch");
     expect(names).toContain("codegraph_query");
-    expect(names.length).toBe(10);
+    expect(names).toContain("codegraph_federated_query");
+    expect(names.length).toBe(11);
   });
 
   it("toToolDef() produces valid ToolDef shape", () => {

@@ -15,7 +15,12 @@ import type { ActiveToolCall, AgentMessage, Skill } from "@athena/agent-core";
 import { getTracer, initTelemetry, shutdownTelemetry } from "@athena/observability";
 import { PROVIDER_EFFORT_LEVELS, createProvider } from "@athena/providers";
 import type { EffortLevel, ProviderName } from "@athena/providers";
-import { createRegistryWithMcp } from "@athena/tools";
+import {
+  createRegistryWithMcp,
+  formatIndexStatusLine,
+  getIndexStatus,
+  runCodegraphSetup,
+} from "@athena/tools";
 import { TuiApp } from "@athena/tui";
 import type { PickerOption, AgentCallbacks as TuiCallbacks } from "@athena/tui";
 import { SpanKind } from "@opentelemetry/api";
@@ -214,12 +219,14 @@ function handleStatusCommand() {
   const configured = getConfiguredProviders();
   const auto = autoDetectProvider();
   const cfg = loadConfig();
+  const codegraphStatus = getIndexStatus(process.cwd());
 
   console.log("athena status\n");
   console.log(`  config file : ~/.config/athena/config.json`);
   console.log(`  auth file   : ~/.config/athena/auth.json`);
   console.log(`  provider    : ${cfg.provider}${auto === cfg.provider ? " (auto-detected)" : ""}`);
   if (cfg.model) console.log(`  model       : ${cfg.model}`);
+  console.log(`  ${formatIndexStatusLine(codegraphStatus)}`);
   console.log("");
   if (configured.length === 0) {
     console.log("  No API keys stored. Run: athena setup");
@@ -322,6 +329,9 @@ async function main() {
     await handleMcpCommand(process.argv);
     return;
   }
+
+  // Auto-setup CodeGraph for this session, non-blocking.
+  void runCodegraphSetup(process.cwd());
 
   const obsConfig = loadObservabilityConfig();
   const otlpHeaders = getOtlpHeaders();
@@ -679,6 +689,7 @@ async function main() {
       const configured = getConfiguredProviders();
       const provName = session.provider.name as ProviderName;
       const effort = currentEffort(provName);
+      const codegraphStatus = getIndexStatus(process.cwd());
       sysMsg(
         tui,
         [
@@ -686,6 +697,7 @@ async function main() {
           `model    : ${session.cfg.model ?? "(default)"}`,
           `effort   : ${effort ?? (PROVIDER_EFFORT_LEVELS[provName].length > 0 ? "(default)" : "unsupported")}`,
           `keys     : ${configured.length === 0 ? "none" : configured.join(", ")}`,
+          formatIndexStatusLine(codegraphStatus),
         ].join("\n"),
       );
       return true;
