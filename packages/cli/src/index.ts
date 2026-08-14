@@ -45,7 +45,9 @@ import {
   loadConfig,
   loadContextSourcesConfig,
   loadObservabilityConfig,
+  loadPermissionsConfig,
   resolveProviderConfig,
+  saveAlwaysAllow,
   saveConfig,
   saveContextSourcesConfig,
 } from "./config.js";
@@ -307,6 +309,21 @@ function resolveProvider(args: CliArgs, cfg: ReturnType<typeof loadConfig>): str
   return detected ?? cfg.provider;
 }
 
+/**
+ * "Always allow" grants are scoped per tool, except `shell_exec`, which is scoped
+ * per command prefix (first two whitespace-delimited tokens, e.g. `"npm uninstall"`)
+ * so granting one command doesn't blanket-approve every future shell invocation.
+ */
+function permissionScope(toolName: string, input: unknown): { key: string; label: string } {
+  if (toolName === "shell_exec" && input !== null && typeof input === "object") {
+    const raw = (input as { command?: unknown }).command;
+    const command = typeof raw === "string" ? raw.trim() : "";
+    const prefix = command.split(/\s+/).filter(Boolean).slice(0, 2).join(" ");
+    if (prefix) return { key: `shell_exec:${prefix}`, label: `${prefix}:*` };
+  }
+  return { key: toolName, label: toolName };
+}
+
 registerOAuthRefresher("anthropic", refreshAnthropic);
 registerOAuthRefresher("openai-codex", refreshCodex);
 
@@ -451,6 +468,7 @@ async function main() {
       console.error(`[mcp] "${c.server}" needs authentication — run: athena mcp list`);
   }
   const tools = registry.all();
+  const alwaysAllowed = new Set(loadPermissionsConfig().alwaysAllow);
 
   let contextSources: ContextSourcesSettings = loadContextSourcesConfig();
   let skills: Skill[] = loadSkills({
@@ -1005,8 +1023,19 @@ async function main() {
       lastCacheWriteTokens: 0,
     };
     const requestPermission = async (toolName: string, input: unknown): Promise<boolean> => {
+      const scope = permissionScope(toolName, input);
+      if (alwaysAllowed.has(scope.key)) return true;
       const summary = JSON.stringify(input).slice(0, 200);
-      const choice = await tui.pickFromList(`Allow ${toolName}? ${summary}`, ["Allow", "Deny"]);
+      const choice = await tui.pickFromList(`Allow ${toolName}? ${summary}`, [
+        "Allow",
+        { label: `Yes, and don't ask again for: ${scope.label}`, value: "always-allow" },
+        "Deny",
+      ]);
+      if (choice === "always-allow") {
+        alwaysAllowed.add(scope.key);
+        saveAlwaysAllow(scope.key);
+        return true;
+      }
       return choice === "Allow";
     };
     const callbacks = createCallbacks(tui, adapterState, requestPermission);

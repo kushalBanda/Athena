@@ -48,6 +48,7 @@ interface ConfigFile {
   };
   mcp?: Record<string, McpServerConfig>;
   contextSources?: { claudeSkills?: boolean; claudeMd?: boolean };
+  permissions?: { alwaysAllow?: string[] };
 }
 
 function readConfigFile(): ConfigFile {
@@ -165,6 +166,27 @@ export function saveContextSourcesConfig(patch: Partial<ContextSourcesSettings>)
   writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
 }
 
+export interface PermissionSettings {
+  alwaysAllow: string[];
+}
+
+export function loadPermissionsConfig(): PermissionSettings {
+  const file = readConfigFile();
+  return { alwaysAllow: file.permissions?.alwaysAllow ?? [] };
+}
+
+export function saveAlwaysAllow(toolName: string): void {
+  const dir = dirname(configPath());
+  if (!existsSync(dir)) mkdirSync(dir, { recursive: true, mode: 0o700 });
+
+  const file = readConfigFile();
+  const current = new Set(file.permissions?.alwaysAllow ?? []);
+  current.add(toolName);
+  file.permissions = { alwaysAllow: [...current] };
+
+  writeFileSync(configPath(), JSON.stringify(file, null, 2), "utf8");
+}
+
 export function loadConfig(): AthenaConfig {
   const file: ConfigFile = readConfigFile();
 
@@ -217,7 +239,6 @@ export function loadConfig(): AthenaConfig {
   if (file.model !== undefined) result.model = file.model;
   return result;
 }
-
 
 export async function resolveProviderConfig(cfg: AthenaConfig): Promise<ProviderConfig> {
   const providerConfig: ProviderConfig = { ...cfg.providerConfig };

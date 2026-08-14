@@ -370,6 +370,22 @@ export class TuiApp {
     };
   }
 
+  // Rows below the overlay to clear the status bar + editor, from their actual render output.
+  private bottomReserveRows(): number {
+    const width = this.ui.terminal.columns;
+    const statusLines = this.statusRegion.render(width).length;
+    const editorLines = this.editor.render(width).length;
+    return statusLines + editorLines + 1;
+  }
+
+  // TuiMainScreen is scrollback, not alt-screen, so the editor isn't pinned to the last
+  // row on a short screen — dock the overlay above whatever's actually rendered there.
+  private overlayDockRow(): number {
+    const width = this.ui.terminal.columns;
+    const content = this.state.messages.length === 0 ? this.welcome : this.transcript;
+    return content.render(width).length + this.header.render(width).length;
+  }
+
   private showPicker(
     title: string,
     options: readonly (string | PickerOption)[],
@@ -384,7 +400,12 @@ export class TuiApp {
         noMatch: (s) => defaultTheme.text.muted(s),
       });
       const box = new TitledOverlay(title, list);
-      const handle = this.ui.showOverlay(box, { anchor: "center" });
+      const handle = this.ui.showOverlay(box, {
+        anchor: "bottom-center",
+        width: "100%",
+        row: this.overlayDockRow(),
+        margin: { bottom: this.bottomReserveRows() },
+      });
       list.onSelect = (item) => {
         handle.hide();
         resolve(item.value);
@@ -402,7 +423,12 @@ export class TuiApp {
     return new Promise((resolve) => {
       const input = new Input();
       const box = new TitledOverlay(title, input);
-      const handle = this.ui.showOverlay(box, { anchor: "center" });
+      const handle = this.ui.showOverlay(box, {
+        anchor: "bottom-center",
+        width: "100%",
+        row: this.overlayDockRow(),
+        margin: { bottom: this.bottomReserveRows() },
+      });
       input.onSubmit = (value: string) => {
         handle.hide();
         resolve(value);

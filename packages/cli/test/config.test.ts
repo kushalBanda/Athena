@@ -84,3 +84,36 @@ describe("context sources config", () => {
     expect(loadContextSourcesConfig().claudeMd).toBe(false);
   });
 });
+
+describe("permissions config", () => {
+  it("defaults to an empty always-allow list when nothing is saved", async () => {
+    const { loadPermissionsConfig } = await import(`../src/config.js?t=${Date.now()}`);
+    expect(loadPermissionsConfig()).toEqual({ alwaysAllow: [] });
+  });
+
+  it("round-trips a saved tool name through save/load", async () => {
+    const { loadPermissionsConfig, saveAlwaysAllow } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
+    saveAlwaysAllow("shell_exec");
+    expect(loadPermissionsConfig()).toEqual({ alwaysAllow: ["shell_exec"] });
+  });
+
+  it("accumulates distinct tool names across multiple saves", async () => {
+    const { loadPermissionsConfig, saveAlwaysAllow } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
+    saveAlwaysAllow("shell_exec");
+    saveAlwaysAllow("web_fetch");
+    expect(loadPermissionsConfig()).toEqual({ alwaysAllow: ["shell_exec", "web_fetch"] });
+  });
+
+  it("does not duplicate an entry when the same tool name is saved twice", async () => {
+    const { loadPermissionsConfig, saveAlwaysAllow } = await import(
+      `../src/config.js?t=${Date.now()}`
+    );
+    saveAlwaysAllow("shell_exec");
+    saveAlwaysAllow("shell_exec");
+    expect(loadPermissionsConfig()).toEqual({ alwaysAllow: ["shell_exec"] });
+  });
+});
