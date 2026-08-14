@@ -11,6 +11,7 @@ import {
   RetryStatusIndicator,
   WorkingStatusIndicator,
 } from "./components/status-indicator.ts";
+import { TitledOverlay } from "./components/titled-overlay.ts";
 import { Transcript } from "./components/transcript.ts";
 import { VStack } from "./components/v-stack.ts";
 import { Welcome } from "./components/welcome.ts";
@@ -69,30 +70,6 @@ export interface TuiAppOptions {
   onCtrlC?: () => void;
   /** Injectable terminal, primarily for tests (e.g. VirtualTerminal). Defaults to ProcessTerminal. */
   terminal?: Terminal;
-}
-
-/**
- * Titled overlay wrapper that delegates input to the inner component — a plain VStack has no
- * handleInput, so the wrapped SelectList/Input would be unreachable by the keyboard.
- * Known gap: no `focused` field, so Input's hardware cursor positioning stays inactive here.
- */
-class TitledOverlay implements Component {
-  constructor(
-    private readonly title: string,
-    private readonly inner: Component,
-  ) {}
-
-  render(width: number): string[] {
-    return [defaultTheme.text.accent(this.title), "", ...this.inner.render(width)];
-  }
-
-  handleInput(data: string): void {
-    this.inner.handleInput?.(data);
-  }
-
-  invalidate(): void {
-    this.inner.invalidate();
-  }
 }
 
 function toSelectItems(options: readonly (string | PickerOption)[]): SelectItem[] {

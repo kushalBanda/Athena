@@ -3,10 +3,9 @@ import {
   ProcessTerminal,
   SelectList,
   type SelectItem,
-  Text,
+  TitledOverlay,
   type TUI,
   TuiMainScreen,
-  VStack,
 } from "@athena/tui";
 import { setApiKey, setOtlpHeaders } from "./auth.js";
 import { saveObservabilityConfig } from "./config.js";
@@ -110,7 +109,7 @@ export function runSetup(): Promise<SetupResult> {
         }
       };
       list.onCancel = () => finish({ provider: chosenProvider, cancelled: true });
-      showStep(new VStack([new Text(HEADING("choose a provider")), list]));
+      showStep(new TitledOverlay(HEADING("choose a provider"), list));
     }
 
     function keyStep(providerId: ProviderId, label: string): void {
@@ -121,7 +120,7 @@ export function runSetup(): Promise<SetupResult> {
         setApiKey(providerId, trimmed);
         if (nextStepAfterAuth("key") === "observability") observabilityStep();
       };
-      showStep(new VStack([new Text(HEADING(label)), input]));
+      showStep(new TitledOverlay(HEADING(label), input));
     }
 
     function observabilityStep(): void {
@@ -138,7 +137,7 @@ export function runSetup(): Promise<SetupResult> {
         saveObservabilityConfig({ enabled: false });
         finish({ provider: chosenProvider, cancelled: false });
       };
-      showStep(new VStack([new Text(HEADING("enable observability?")), list]));
+      showStep(new TitledOverlay(HEADING("enable observability?"), list));
     }
 
     function observabilityPresetStep(): void {
@@ -151,7 +150,7 @@ export function runSetup(): Promise<SetupResult> {
         if (item.value === "0") newRelicKeyStep();
         else customEndpointStep();
       };
-      showStep(new VStack([new Text(HEADING("choose an observability backend")), list]));
+      showStep(new TitledOverlay(HEADING("choose an observability backend"), list));
     }
 
     function newRelicKeyStep(): void {
@@ -161,7 +160,7 @@ export function runSetup(): Promise<SetupResult> {
         if (!trimmed) return;
         newRelicRegionStep(trimmed);
       };
-      showStep(new VStack([new Text(HEADING("New Relic license key")), input]));
+      showStep(new TitledOverlay(HEADING("New Relic license key"), input));
     }
 
     function newRelicRegionStep(licenseKey: string): void {
@@ -173,7 +172,7 @@ export function runSetup(): Promise<SetupResult> {
         setOtlpHeaders(otlpHeaders);
         finish({ provider: chosenProvider, cancelled: false });
       };
-      showStep(new VStack([new Text(HEADING("New Relic region")), list]));
+      showStep(new TitledOverlay(HEADING("New Relic region"), list));
     }
 
     function customEndpointStep(): void {
@@ -183,7 +182,7 @@ export function runSetup(): Promise<SetupResult> {
         if (!trimmed) return;
         customHeadersStep(trimmed, {});
       };
-      showStep(new VStack([new Text(HEADING("custom OTLP/HTTP traces endpoint")), input]));
+      showStep(new TitledOverlay(HEADING("custom OTLP/HTTP traces endpoint"), input));
     }
 
     function customHeadersStep(endpoint: string, headers: Record<string, string>): void {
@@ -208,7 +207,7 @@ export function runSetup(): Promise<SetupResult> {
         customHeadersStep(endpoint, { ...headers, [name]: headerValue });
       };
       showStep(
-        new VStack([new Text(HEADING("headers (name: value, submit empty when done)")), input]),
+        new TitledOverlay(HEADING("headers (name: value, submit empty when done)"), input),
       );
     }
 

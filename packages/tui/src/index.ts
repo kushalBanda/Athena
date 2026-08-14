@@ -161,6 +161,7 @@ export {
 
 // Primitive components
 export { Box } from "./components/box.ts";
+export { TitledOverlay } from "./components/titled-overlay.ts";
 export { VStack } from "./components/v-stack.ts";
 export { HStack } from "./components/h-stack.ts";
 export { Text } from "./components/text.ts";
