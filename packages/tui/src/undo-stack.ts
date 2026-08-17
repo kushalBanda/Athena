@@ -1,19 +1,28 @@
+/**
+ * Generic undo stack with clone-on-push semantics.
+ *
+ * Stores deep clones of state snapshots. Popped snapshots are returned
+ * directly (no re-cloning) since they are already detached.
+ */
 export class UndoStack<S> {
-  private stack: S[] = [];
+	private stack: S[] = [];
 
-  push(state: S): void {
-    this.stack.push(structuredClone(state));
-  }
+	/** Push a deep clone of the given state onto the stack. */
+	push(state: S): void {
+		this.stack.push(structuredClone(state));
+	}
 
-  pop(): S | undefined {
-    return this.stack.pop();
-  }
+	/** Pop and return the most recent snapshot, or undefined if empty. */
+	pop(): S | undefined {
+		return this.stack.pop();
+	}
 
-  clear(): void {
-    this.stack.length = 0;
-  }
+	/** Remove all snapshots. */
+	clear(): void {
+		this.stack.length = 0;
+	}
 
-  get length(): number {
-    return this.stack.length;
-  }
+	get length(): number {
+		return this.stack.length;
+	}
 }

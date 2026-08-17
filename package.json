@@ -1,19 +1,47 @@
 {
-  "name": "athena",
-  "version": "0.1.6",
-  "private": true,
-  "workspaces": [
-    "packages/*"
-  ],
-  "scripts": {
-    "build": "bun run --filter '*' build",
-    "dev": "bun run --cwd packages/cli src/index.ts",
-    "check": "biome check .",
-    "format": "biome format --write ."
-  },
-  "devDependencies": {
-    "@biomejs/biome": "^1.9.0",
-    "@firecrawl/anydoc": "^0.1.7",
-    "typescript": "7.1.0-dev.20260811.1"
-  }
+	"name": "athena-monorepo",
+	"private": true,
+	"type": "module",
+	"workspaces": [
+		"packages/*",
+		"packages/session-backends/*",
+		"packages/coding-agent/examples/extensions/with-deps",
+		"packages/coding-agent/examples/extensions/custom-provider-anthropic",
+		"packages/coding-agent/examples/extensions/custom-provider-gitlab-duo",
+		"packages/coding-agent/examples/extensions/sandbox",
+		"packages/coding-agent/examples/extensions/gondolin"
+	],
+	"scripts": {
+		"clean": "npm run clean --workspaces",
+		"build": "cd packages/tui && npm run build && cd ../telemetry && npm run build && cd ../ai && npm run build && cd ../agent && npm run build && cd ../session-backends/sqlite-node && npm run build && cd ../../protocol && npm run build && cd ../client && npm run build && cd ../coding-agent && npm run build",
+		"build:offline": "cd packages/tui && npm run build && cd ../telemetry && npm run build && cd ../ai && npm run build:offline && cd ../agent && npm run build && cd ../session-backends/sqlite-node && npm run build && cd ../../protocol && npm run build && cd ../client && npm run build && cd ../coding-agent && npm run build",
+		"check": "biome check --write --error-on-warnings . && tsgo --noEmit",
+		"generate:models": "npm --prefix packages/ai run generate-models && npm --prefix packages/ai run generate-image-models",
+		"hydrate:model-data": "npm --prefix packages/ai run hydrate-model-data",
+		"check:model-data": "npm --prefix packages/ai run check:model-data",
+		"generate:model-catalog": "npm --prefix packages/ai run generate-model-catalog",
+		"test": "npm run test --workspaces --if-present"
+	},
+	"devDependencies": {
+		"@anthropic-ai/sandbox-runtime": "0.0.26",
+		"@biomejs/biome": "2.3.5",
+		"@types/node": "22.19.19",
+		"@typescript/native-preview": "7.0.0-dev.20260120.1",
+		"esbuild": "0.28.1",
+		"jiti": "2.7.0",
+		"shx": "0.4.0",
+		"tsx": "4.22.1",
+		"typescript": "5.9.3"
+	},
+	"engines": {
+		"node": ">=22.19.0"
+	},
+	"version": "0.0.3",
+	"overrides": {
+		"protobufjs": "7.6.5",
+		"rimraf": "6.1.2",
+		"gaxios": {
+			"rimraf": "6.1.2"
+		}
+	}
 }
