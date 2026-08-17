@@ -5,8 +5,8 @@
  * and converting the ANSI output to HTML.
  */
 
-import type { ImageContent, TextContent } from "@athena/ai";
-import type { Component } from "@athena/tui";
+import type { ImageContent, TextContent } from "@kushalbanda/ai";
+import type { Component } from "@kushalbanda/tui";
 import type { Theme } from "../../modes/interactive/theme/theme.ts";
 import type { ToolDefinition, ToolRenderContext } from "../extensions/types.ts";
 import { ansiLinesToHtml } from "./ansi-to-html.ts";

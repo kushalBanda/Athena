@@ -5,10 +5,10 @@
  * a summary of the branch being left so context isn't lost.
  */
 
-import type { AgentMessage, StreamFn } from "@athena/agent-core";
-import type { RetryCallbacks, RetryPolicy } from "@athena/ai";
-import { contentText } from "@athena/ai";
-import type { Model, SimpleStreamOptions, Usage } from "@athena/ai/compat";
+import type { AgentMessage, StreamFn } from "@kushalbanda/agent-core";
+import type { RetryCallbacks, RetryPolicy } from "@kushalbanda/ai";
+import { contentText } from "@kushalbanda/ai";
+import type { Model, SimpleStreamOptions, Usage } from "@kushalbanda/ai/compat";
 import {
 	convertToLlm,
 	createBranchSummaryMessage,

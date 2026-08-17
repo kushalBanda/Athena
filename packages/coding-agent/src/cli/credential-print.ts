@@ -1,4 +1,4 @@
-import type { Api, CredentialInfo, Model } from "@athena/ai";
+import type { Api, CredentialInfo, Model } from "@kushalbanda/ai";
 import { resolveCliModel } from "../core/model-resolver.ts";
 import type { ModelRuntime } from "../core/model-runtime.ts";
 import type { Args } from "./args.ts";

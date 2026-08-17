@@ -1,6 +1,6 @@
 # Extension Examples
 
-Example extensions for @athena/coding-agent.
+Example extensions for @kushalbanda/coding-agent.
 
 ## Usage
 
@@ -128,7 +128,7 @@ cp permission-gate.ts ~/.athena/agent/extensions/
 | Extension | Description |
 |-----------|-------------|
 | `custom-provider-anthropic/` | Custom Anthropic provider with OAuth support and custom streaming implementation |
-| `custom-provider-gitlab-duo/` | GitLab Duo provider using @athena/ai's built-in Anthropic/OpenAI streaming via proxy |
+| `custom-provider-gitlab-duo/` | GitLab Duo provider using @kushalbanda/ai's built-in Anthropic/OpenAI streaming via proxy |
 
 ### External Dependencies
 
@@ -142,7 +142,7 @@ cp permission-gate.ts ~/.athena/agent/extensions/
 See [docs/extensions.md](../../docs/extensions.md) for full documentation.
 
 ```typescript
-import type { ExtensionAPI } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 import { Type } from "typebox";
 
 export default function (athena: ExtensionAPI) {
@@ -184,7 +184,7 @@ export default function (athena: ExtensionAPI) {
 
 **Use StringEnum for string parameters** (required for Google API compatibility):
 ```typescript
-import { StringEnum } from "@athena/ai";
+import { StringEnum } from "@kushalbanda/ai";
 
 // Good
 action: StringEnum(["list", "add"] as const)

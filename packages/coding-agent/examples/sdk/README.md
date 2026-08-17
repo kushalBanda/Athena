@@ -1,6 +1,6 @@
 # SDK Examples
 
-Programmatic usage of @athena/coding-agent via `createAgentSession()` and `createAgentSessionRuntime()`.
+Programmatic usage of @kushalbanda/coding-agent via `createAgentSession()` and `createAgentSessionRuntime()`.
 
 The runtime example shows how to build a recreate function that closes over process-global fixed inputs and recreates cwd-bound services and sessions as the active session cwd changes.
 
@@ -32,14 +32,14 @@ npx tsx examples/sdk/01-minimal.ts
 ## Quick Reference
 
 ```typescript
-import { getModel } from "@athena/ai";
+import { getModel } from "@kushalbanda/ai";
 import {
   createAgentSession,
   DefaultResourceLoader,
   ModelRuntime,
   SessionManager,
   SettingsManager,
-} from "@athena/coding-agent";
+} from "@kushalbanda/coding-agent";
 
 const modelRuntime = await ModelRuntime.create();
 

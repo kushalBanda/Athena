@@ -1,4 +1,4 @@
-import type { Entry, EntryOrder } from "@athena/agent-core";
+import type { Entry, EntryOrder } from "@kushalbanda/agent-core";
 import { sql } from "../sql.ts";
 import type { SqliteDatabase } from "../types.ts";
 

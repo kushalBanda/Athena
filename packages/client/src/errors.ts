@@ -1,4 +1,4 @@
-import type { JsonValue, ProtocolError, ProtocolErrorCode } from "@athena/protocol";
+import type { JsonValue, ProtocolError, ProtocolErrorCode } from "@kushalbanda/protocol";
 
 export class AthenaServerError extends Error {
 	readonly code: ProtocolErrorCode;

@@ -1,4 +1,4 @@
-import { uuidv7 } from "@athena/ai";
+import { uuidv7 } from "@kushalbanda/ai";
 import { Session } from "./session.ts";
 import { SessionState } from "./state.ts";
 import {

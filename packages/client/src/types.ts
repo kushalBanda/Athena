@@ -1,4 +1,4 @@
-import type { ModelRef, ThinkingLevel } from "@athena/protocol";
+import type { ModelRef, ThinkingLevel } from "@kushalbanda/protocol";
 import type { ByteTransportFactory } from "./transport.ts";
 
 export type ConnectionState = "disconnected" | "connecting" | "connected";

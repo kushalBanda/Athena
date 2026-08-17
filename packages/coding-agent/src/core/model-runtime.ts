@@ -35,8 +35,8 @@ import {
 	type ProviderRequestOptions,
 	type SimpleStreamOptions,
 	type StreamOptions,
-} from "@athena/ai";
-import * as builtinProviderCatalog from "@athena/ai/providers/all";
+} from "@kushalbanda/ai";
+import * as builtinProviderCatalog from "@kushalbanda/ai/providers/all";
 import { getAgentDir } from "../config.ts";
 import { operationSignal, raceWithAbortSignal } from "../utils/abort.ts";
 import { AuthStorage as DefaultAuthStorage } from "./auth-storage.ts";

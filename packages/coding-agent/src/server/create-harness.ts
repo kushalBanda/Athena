@@ -9,7 +9,7 @@ import {
 	type ExecutionEnv,
 	type ExecutionToolContext,
 	type HarnessTool,
-} from "@athena/agent-core";
+} from "@kushalbanda/agent-core";
 import type { Static, TSchema } from "typebox";
 import { getExperimentalToolSampling } from "../core/experimental.ts";
 import { type BuildSystemPromptOptions, buildSystemPrompt } from "../core/system-prompt.ts";

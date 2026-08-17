@@ -1,4 +1,4 @@
-# @athena/tui
+# @kushalbanda/tui
 
 Minimal terminal UI framework with differential rendering and synchronized output for flicker-free interactive CLI applications.
 
@@ -18,7 +18,7 @@ Minimal terminal UI framework with differential rendering and synchronized outpu
 ## Quick Start
 
 ```typescript
-import { type TUI, Text, Editor, ProcessTerminal, TuiMainScreen, matchesKey } from "@athena/tui";
+import { type TUI, Text, Editor, ProcessTerminal, TuiMainScreen, matchesKey } from "@kushalbanda/tui";
 
 // Create terminal
 const terminal = new ProcessTerminal();
@@ -62,7 +62,7 @@ tui.start();
 - `TuiAltScreen` renders a fixed-height viewport in the alternate terminal buffer with application-owned scrolling. When stopped, it restores the main buffer and prints the complete final document.
 
 ```typescript
-import { type TUI, TuiAltScreen, TuiMainScreen } from "@athena/tui";
+import { type TUI, TuiAltScreen, TuiMainScreen } from "@kushalbanda/tui";
 
 const tui: TUI = new TuiMainScreen(terminal);
 // To use an application-owned viewport in the alternate terminal buffer instead:
@@ -89,7 +89,7 @@ import {
   ScrollView,
   Text,
   VStack,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 
 const transcript = new Container();
 transcript.addChild(new Text("History"));
@@ -228,7 +228,7 @@ The TUI appends a full SGR reset and OSC 8 reset at the end of each rendered lin
 Components that display a text cursor and need IME (Input Method Editor) support should implement the `Focusable` interface:
 
 ```typescript
-import { CURSOR_MARKER, type Component, type Focusable } from "@athena/tui";
+import { CURSOR_MARKER, type Component, type Focusable } from "@kushalbanda/tui";
 
 class MyInput implements Component, Focusable {
   focused: boolean = false;  // Set by TUI when focus changes
@@ -252,7 +252,7 @@ The cursor remains hidden by default. This keeps the fake cursor rendering, whil
 **Container components with embedded inputs:** When a container component (dialog, selector, etc.) contains an `Input` or `Editor` child, the container must implement `Focusable` and propagate the focus state to the child:
 
 ```typescript
-import { Container, type Focusable, Input } from "@athena/tui";
+import { Container, type Focusable, Input } from "@kushalbanda/tui";
 
 class SearchDialog extends Container implements Focusable {
   private searchInput: Input;
@@ -603,7 +603,7 @@ Supported formats: PNG, JPEG, GIF, WebP. Dimensions are parsed from the image he
 Supports both slash commands and file paths.
 
 ```typescript
-import { CombinedAutocompleteProvider } from "@athena/tui";
+import { CombinedAutocompleteProvider } from "@kushalbanda/tui";
 
 const provider = new CombinedAutocompleteProvider(
   [
@@ -628,7 +628,7 @@ editor.setAutocompleteProvider(provider);
 Use `matchesKey()` with the `Key` helper for detecting keyboard input (supports Kitty keyboard protocol):
 
 ```typescript
-import { matchesKey, Key } from "@athena/tui";
+import { matchesKey, Key } from "@kushalbanda/tui";
 
 if (matchesKey(data, Key.ctrl("c"))) {
   process.exit(0);
@@ -688,7 +688,7 @@ interface Terminal {
 ## Utilities
 
 ```typescript
-import { visibleWidth, truncateToWidth, wrapTextWithAnsi } from "@athena/tui";
+import { visibleWidth, truncateToWidth, wrapTextWithAnsi } from "@kushalbanda/tui";
 
 // Get visible width of string (ignoring ANSI codes)
 const width = visibleWidth("\x1b[31mHello\x1b[0m"); // 5
@@ -713,8 +713,8 @@ When creating custom components, **each line returned by `render()` must not exc
 Use `matchesKey()` with the `Key` helper for keyboard input:
 
 ```typescript
-import { matchesKey, Key, truncateToWidth } from "@athena/tui";
-import type { Component } from "@athena/tui";
+import { matchesKey, Key, truncateToWidth } from "@kushalbanda/tui";
+import type { Component } from "@kushalbanda/tui";
 
 class MyInteractiveComponent implements Component {
   private selectedIndex = 0;
@@ -749,8 +749,8 @@ class MyInteractiveComponent implements Component {
 Use the provided utilities to ensure lines fit:
 
 ```typescript
-import { visibleWidth, truncateToWidth } from "@athena/tui";
-import type { Component } from "@athena/tui";
+import { visibleWidth, truncateToWidth } from "@kushalbanda/tui";
+import type { Component } from "@kushalbanda/tui";
 
 class MyComponent implements Component {
   private text: string;

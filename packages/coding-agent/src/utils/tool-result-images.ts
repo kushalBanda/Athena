@@ -1,4 +1,4 @@
-import type { ImageContent, TextContent } from "@athena/ai";
+import type { ImageContent, TextContent } from "@kushalbanda/ai";
 import { processImage } from "./image-process.ts";
 
 export type ToolResultContent = TextContent | ImageContent;

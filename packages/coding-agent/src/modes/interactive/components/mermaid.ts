@@ -1,4 +1,4 @@
-import { Marked, type Token } from "@athena/tui";
+import { Marked, type Token } from "@kushalbanda/tui";
 import { type MermaidArt, render, type Span } from "grok-mermaid";
 import type { MarkdownTransformer } from "../../../core/extensions/types.ts";
 import type { MermaidRenderingMode } from "../../../core/settings-manager.ts";

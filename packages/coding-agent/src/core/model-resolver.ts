@@ -2,14 +2,14 @@
  * Model resolution, scoping, and initial selection
  */
 
-import type { ThinkingLevel } from "@athena/agent-core";
+import type { ThinkingLevel } from "@kushalbanda/agent-core";
 import {
 	type Api,
 	type AuthOperationOptions,
 	type KnownProvider,
 	type Model,
 	modelsAreEqual,
-} from "@athena/ai";
+} from "@kushalbanda/ai";
 import chalk from "chalk";
 import { minimatch } from "minimatch";
 import { isValidThinkingLevel } from "../cli/args.ts";

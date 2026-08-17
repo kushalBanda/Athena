@@ -3,9 +3,9 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"paths": {
-			"@athena/telemetry": ["../telemetry/dist/index.d.ts"],
-			"@athena/ai": ["../ai/dist/index.d.ts"],
-			"@athena/ai/*": ["../ai/dist/*.d.ts", "../ai/dist/providers/*.d.ts"]
+			"@kushalbanda/telemetry": ["../telemetry/dist/index.d.ts"],
+			"@kushalbanda/ai": ["../ai/dist/index.d.ts"],
+			"@kushalbanda/ai/*": ["../ai/dist/*.d.ts", "../ai/dist/providers/*.d.ts"]
 		},
 		"rootDir": "./src"
 	},

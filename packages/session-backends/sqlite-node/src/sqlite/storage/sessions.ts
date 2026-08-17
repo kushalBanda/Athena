@@ -1,4 +1,4 @@
-import { assertJsonSerializable, SessionError } from "@athena/agent-core";
+import { assertJsonSerializable, SessionError } from "@kushalbanda/agent-core";
 import { sql } from "../sql.ts";
 import type { SqliteDatabase, SqliteSessionMetadata } from "../types.ts";
 

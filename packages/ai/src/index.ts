@@ -3,9 +3,9 @@ export { Type } from "typebox";
 
 // Core only, side-effect free: no generated catalogs, no provider factories,
 // no api-registry, no OAuth implementations, no compat. Provider factories
-// live under "@athena/ai/providers/*", API implementations under
-// "@athena/ai/api/*", the old global API under
-// "@athena/ai/compat".
+// live under "@kushalbanda/ai/providers/*", API implementations under
+// "@kushalbanda/ai/api/*", the old global API under
+// "@kushalbanda/ai/compat".
 export type { AnthropicEffort, AnthropicOptions, AnthropicThinkingDisplay } from "./api/anthropic-messages.ts";
 export type { AzureOpenAIResponsesOptions } from "./api/azure-openai-responses.ts";
 export type { BedrockOptions, BedrockThinkingDisplay } from "./api/bedrock-converse-stream.ts";

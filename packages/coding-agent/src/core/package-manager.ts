@@ -1760,7 +1760,7 @@ export class DefaultPackageManager implements PackageManager {
 		// Extension packages run inside Athena and resolve Athena APIs through loader aliases/virtual modules.
 		// Disable peer dependency resolution for managed installs (npm's --legacy-peer-deps, and
 		// equivalent bun/pnpm settings) so package managers do not install or solve host-provided
-		// @athena/* peers. Stale auto-installed peers can otherwise block updates.
+		// @kushalbanda/* peers. Stale auto-installed peers can otherwise block updates.
 		if (packageManagerName === "bun") {
 			return ["install", ...specs, "--cwd", installRoot, "--omit=peer"];
 		}

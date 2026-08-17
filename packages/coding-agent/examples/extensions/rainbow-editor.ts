@@ -4,7 +4,7 @@
  * Usage: athena --extension ./examples/extensions/rainbow-editor.ts
  */
 
-import { CustomEditor, type ExtensionAPI } from "@athena/coding-agent";
+import { CustomEditor, type ExtensionAPI } from "@kushalbanda/coding-agent";
 
 // Base colors (coral → yellow → green → teal → blue → purple → pink)
 const COLORS: [number, number, number][] = [

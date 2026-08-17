@@ -1,6 +1,6 @@
-import type { ThinkingLevel } from "@athena/agent-core";
-import type { Transport } from "@athena/ai";
-import type { TuiMode as RendererTuiMode, ScrollViewScrollbar } from "@athena/tui";
+import type { ThinkingLevel } from "@kushalbanda/agent-core";
+import type { Transport } from "@kushalbanda/ai";
+import type { TuiMode as RendererTuiMode, ScrollViewScrollbar } from "@kushalbanda/tui";
 import { randomUUID } from "crypto";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";

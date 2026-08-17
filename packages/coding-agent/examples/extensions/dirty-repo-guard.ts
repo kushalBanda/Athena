@@ -5,7 +5,7 @@
  * Useful to ensure work is committed before switching context.
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@athena/coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/coding-agent";
 
 async function checkDirtyRepo(
 	athena: ExtensionAPI,

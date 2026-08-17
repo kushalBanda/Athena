@@ -1,5 +1,5 @@
-import type { ThinkingLevel } from "@athena/agent-core";
-import type { Transport } from "@athena/ai";
+import type { ThinkingLevel } from "@kushalbanda/agent-core";
+import type { Transport } from "@kushalbanda/ai";
 import {
 	type Component,
 	Container,
@@ -12,7 +12,7 @@ import {
 	SettingsList,
 	Spacer,
 	Text,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import { formatHttpIdleTimeoutMs, HTTP_IDLE_TIMEOUT_CHOICES } from "../../../core/http-dispatcher.ts";
 import type {
 	DefaultProjectTrust,

@@ -5,8 +5,8 @@
  * (logo + keybinding hints) with a custom component showing the athena mascot.
  */
 
-import type { ExtensionAPI, Theme } from "@athena/coding-agent";
-import { VERSION } from "@athena/coding-agent";
+import type { ExtensionAPI, Theme } from "@kushalbanda/coding-agent";
+import { VERSION } from "@kushalbanda/coding-agent";
 
 // --- ATHENA MASCOT ---
 // Based on athena_mascot.ts - the athena agent character

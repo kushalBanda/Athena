@@ -1,4 +1,4 @@
-import type { FileError, Result } from "@athena/agent-core";
+import type { FileError, Result } from "@kushalbanda/agent-core";
 import {
 	type BranchBounds,
 	type Entry,
@@ -16,8 +16,8 @@ import {
 	type SessionRepo as SessionRepository,
 	type SessionStats,
 	type SessionStorage,
-} from "@athena/agent-core";
-import { uuidv7 } from "@athena/ai";
+} from "@kushalbanda/agent-core";
+import { uuidv7 } from "@kushalbanda/ai";
 import { appendEntryToBranchCache, buildCachedBranch, deleteBranchCache, rebuildBranchCache } from "./branch-cache.ts";
 import { applyMigrations } from "./migrations.ts";
 import { sql } from "./sql.ts";

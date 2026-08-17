@@ -5,8 +5,8 @@
  */
 
 import { type ChildProcess, spawn } from "node:child_process";
-import type { AgentMessage, ThinkingLevel } from "@athena/agent-core";
-import type { ImageContent } from "@athena/ai";
+import type { AgentMessage, ThinkingLevel } from "@kushalbanda/agent-core";
+import type { ImageContent } from "@kushalbanda/ai";
 import type { SessionStats } from "../../core/agent-session.ts";
 import type { BashResult } from "../../core/bash-executor.ts";
 import type { CompactionResult } from "../../core/compaction/index.ts";

@@ -2,9 +2,9 @@
  * Extension runner - executes extensions and manages their lifecycle.
  */
 
-import type { AgentMessage } from "@athena/agent-core";
-import type { ImageContent, Model, Provider, ProviderHeaders } from "@athena/ai";
-import type { KeyId } from "@athena/tui";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import type { ImageContent, Model, Provider, ProviderHeaders } from "@kushalbanda/ai";
+import type { KeyId } from "@kushalbanda/tui";
 import { type Theme, theme } from "../../modes/interactive/theme/theme.ts";
 import type { ResourceDiagnostic } from "../diagnostics.ts";
 import type { KeybindingsConfig } from "../keybindings.ts";

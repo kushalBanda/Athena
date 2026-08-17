@@ -1,4 +1,4 @@
-# @athena/ai
+# @kushalbanda/ai
 
 Unified LLM API with provider collections, automatic auth resolution, token and cost tracking, and simple context persistence and hand-off to other models mid-session.
 
@@ -92,18 +92,18 @@ Unified LLM API with provider collections, automatic auth resolution, token and 
 ## Installation
 
 ```bash
-npm install @athena/ai
+npm install @kushalbanda/ai
 ```
 
-TypeBox exports are re-exported from `@athena/ai`: `Type`, `Static`, and `TSchema`.
+TypeBox exports are re-exported from `@kushalbanda/ai`: `Type`, `Static`, and `TSchema`.
 
 ## Quick Start
 
 You build a `Models` collection of providers and stream through it. The quickest start registers every built-in provider; apps that care about bundle size register individual providers instead (see [Provider Factories](#provider-factories) and [Bundling and Tree Shaking](#bundling-and-tree-shaking)).
 
 ```typescript
-import { Type, type Context, type Tool } from '@athena/ai';
-import { builtinModels } from '@athena/ai/providers/all';
+import { Type, type Context, type Tool } from '@kushalbanda/ai';
+import { builtinModels } from '@kushalbanda/ai/providers/all';
 
 // A Models collection with every built-in provider registered
 const models = builtinModels();
@@ -238,10 +238,10 @@ Providers internally share **API implementations** (the wire protocols): Anthrop
 For apps that only need specific providers, there is one factory per built-in provider, each a subpath import that pulls only that provider's catalog:
 
 ```typescript
-import { anthropicProvider } from '@athena/ai/providers/anthropic';
-import { openaiProvider } from '@athena/ai/providers/openai';
-import { openrouterProvider } from '@athena/ai/providers/openrouter';
-import { amazonBedrockProvider } from '@athena/ai/providers/amazon-bedrock';
+import { anthropicProvider } from '@kushalbanda/ai/providers/anthropic';
+import { openaiProvider } from '@kushalbanda/ai/providers/openai';
+import { openrouterProvider } from '@kushalbanda/ai/providers/openrouter';
+import { amazonBedrockProvider } from '@kushalbanda/ai/providers/amazon-bedrock';
 // ...one module per provider in the Supported Providers list
 
 const models = createModels();
@@ -256,7 +256,7 @@ Provider factories import their model catalog and a lazy API wrapper. They do no
 For apps that want everything (as in Quick Start):
 
 ```typescript
-import { builtinModels } from '@athena/ai/providers/all';
+import { builtinModels } from '@kushalbanda/ai/providers/all';
 
 const models = builtinModels(); // a Models collection with every built-in provider registered
 ```
@@ -287,7 +287,7 @@ for (const m of anthropicModels) {
 Dynamically listed models are typed `Model<Api>`. Narrow with the `hasApi()` guard when you need API-specific option typing:
 
 ```typescript
-import { hasApi } from '@athena/ai';
+import { hasApi } from '@kushalbanda/ai';
 
 const m = models.getModel('anthropic', 'claude-sonnet-4-5');
 if (m && hasApi(m, 'anthropic-messages')) {
@@ -301,7 +301,7 @@ if (m && hasApi(m, 'anthropic-messages')) {
 For tooling that wants the generated built-in catalog with full literal typing (provider and model IDs auto-complete), independent of any collection:
 
 ```typescript
-import { getBuiltinModel, getBuiltinModels, getBuiltinProviders } from '@athena/ai/providers/all';
+import { getBuiltinModel, getBuiltinModels, getBuiltinProviders } from '@kushalbanda/ai/providers/all';
 
 const model = getBuiltinModel('openai', 'gpt-4o-mini'); // typed Model<'openai-responses'>
 const providers = getBuiltinProviders();
@@ -381,10 +381,10 @@ Header names are merged case-insensitively. Explicit headers override auth/model
 
 ### Credential Store
 
-Stored credentials (API keys entered interactively, OAuth tokens) live in a `CredentialStore` — one type-tagged credential per provider. @athena/ai ships an in-memory default; apps inject persistent storage:
+Stored credentials (API keys entered interactively, OAuth tokens) live in a `CredentialStore` — one type-tagged credential per provider. @kushalbanda/ai ships an in-memory default; apps inject persistent storage:
 
 ```typescript
-import { createModels, type CredentialStore } from '@athena/ai';
+import { createModels, type CredentialStore } from '@kushalbanda/ai';
 
 const models = createModels({ credentials: myFileBackedStore });
 // builtinModels() takes the same options:
@@ -462,7 +462,7 @@ Tools enable LLMs to interact with external systems. This library uses TypeBox s
 ### Defining Tools
 
 ```typescript
-import { Type, type Tool, StringEnum } from '@athena/ai';
+import { Type, type Tool, StringEnum } from '@kushalbanda/ai';
 
 // Define tool parameters with TypeBox
 const weatherTool: Tool = {
@@ -620,7 +620,7 @@ for await (const event of s) {
 When implementing your own tool execution loop, use `validateToolCall` to validate arguments before passing them to your tools:
 
 ```typescript
-import { validateToolCall, type Tool } from '@athena/ai';
+import { validateToolCall, type Tool } from '@kushalbanda/ai';
 
 const tools: Tool[] = [weatherTool, calculatorTool];
 const s = models.stream(model, { messages, tools });
@@ -713,7 +713,7 @@ Image generation uses a separate API surface from text/chat generation, mirrorin
 ### Basic Image Generation
 
 ```typescript
-import { builtinImagesModels } from '@athena/ai/providers/all';
+import { builtinImagesModels } from '@kushalbanda/ai/providers/all';
 
 // Every built-in image-generation provider; accepts the same options as createModels()
 const imagesModels = builtinImagesModels();
@@ -735,12 +735,12 @@ for (const block of result.output) {
 }
 ```
 
-Like the chat side, you can build the collection from parts: `createImagesModels({ credentials?, authContext? })`, the `openrouterImagesProvider()` factory from `@athena/ai/providers/openrouter-images`, and `createImagesProvider({ id, auth, models, refreshModels?, api })` for custom image providers (with `imagesModels.refresh(provider?)` for dynamic lists). Failures never reject — they return an `AssistantImages` with `stopReason: "error"`. The collection's provider-scoped `getAuth(providerId)` works exactly like the chat-side one.
+Like the chat side, you can build the collection from parts: `createImagesModels({ credentials?, authContext? })`, the `openrouterImagesProvider()` factory from `@kushalbanda/ai/providers/openrouter-images`, and `createImagesProvider({ id, auth, models, refreshModels?, api })` for custom image providers (with `imagesModels.refresh(provider?)` for dynamic lists). Failures never reject — they return an `AssistantImages` with `stopReason: "error"`. The collection's provider-scoped `getAuth(providerId)` works exactly like the chat-side one.
 
 The old global API (`getImageModel()` / `getImageModels()` / `getImageProviders()` / `generateImages()`) remains available on the [compat entrypoint](#migrating-from-the-old-global-api):
 
 ```typescript
-import { getImageModel, generateImages } from '@athena/ai/compat';
+import { getImageModel, generateImages } from '@kushalbanda/ai/compat';
 
 const model = getImageModel('openrouter', 'google/gemini-2.5-flash-image');
 const result = await generateImages(model, {
@@ -825,7 +825,7 @@ for (const block of response.content) {
 `models.stream()`/`complete()` accept the owning API's full option set. Use `hasApi()` to narrow a dynamically looked-up model to its API for full option typing:
 
 ```typescript
-import { hasApi } from '@athena/ai';
+import { hasApi } from '@kushalbanda/ai';
 
 // OpenAI Reasoning (o1, o3, gpt-5)
 const openaiModel = models.getModel('openai', 'gpt-5-mini')!;
@@ -998,8 +998,8 @@ The callback is supported by `stream`, `complete`, `streamSimple`, and `complete
 `createProvider()` builds a provider from parts: identity, auth, a model list, and an API implementation. Use it for local inference servers, proxies, or any OpenAI/Anthropic-compatible endpoint:
 
 ```typescript
-import { createModels, createProvider, envApiKeyAuth, type Model } from '@athena/ai';
-import { openAICompletionsApi } from '@athena/ai/api/openai-completions.lazy';
+import { createModels, createProvider, envApiKeyAuth, type Model } from '@kushalbanda/ai';
+import { openAICompletionsApi } from '@kushalbanda/ai/api/openai-completions.lazy';
 
 const ollamaModel: Model<'openai-completions'> = {
   id: 'llama-3.1-8b',
@@ -1044,8 +1044,8 @@ const proxy = createProvider({
 Mixed-API providers pass a map keyed by `model.api`; each model dispatches to its API's implementation:
 
 ```typescript
-import { anthropicMessagesApi } from '@athena/ai/api/anthropic-messages.lazy';
-import { openAIResponsesApi } from '@athena/ai/api/openai-responses.lazy';
+import { anthropicMessagesApi } from '@kushalbanda/ai/api/anthropic-messages.lazy';
+import { openAIResponsesApi } from '@kushalbanda/ai/api/openai-responses.lazy';
 
 const gateway = createProvider({
   id: 'my-gateway',
@@ -1138,7 +1138,7 @@ const ollamaReasoningModel: Model<'openai-completions'> = {
 The API implementations are importable on their own. Each module exports exactly `stream` and `streamSimple` with that API's full option typing. Direct calls bypass provider auth — pass `apiKey` explicitly:
 
 ```typescript
-import { stream } from '@athena/ai/api/anthropic-messages';
+import { stream } from '@kushalbanda/ai/api/anthropic-messages';
 
 const s = stream(claudeModel, context, {
   apiKey: process.env.ANTHROPIC_API_KEY,
@@ -1161,7 +1161,7 @@ Built-in API implementations live under `./api/<api-id>`:
 | `mistral-conversations` | `MistralOptions` |
 | `bedrock-converse-stream` | `BedrockOptions` |
 
-Importing an implementation module loads its SDK. The `./api/<id>.lazy` wrappers (used by the provider factories) defer that load to the first request when the runtime or bundler supports dynamic import chunking. Legacy raw API subpaths from older releases (`./anthropic`, `./google`, `./mistral`, `./openai-completions`, ...) were removed; use `@athena/ai/api/<api-id>`.
+Importing an implementation module loads its SDK. The `./api/<id>.lazy` wrappers (used by the provider factories) defer that load to the first request when the runtime or bundler supports dynamic import chunking. Legacy raw API subpaths from older releases (`./anthropic`, `./google`, `./mistral`, `./openai-completions`, ...) were removed; use `@kushalbanda/ai/api/<api-id>`.
 
 ### OpenAI Compatibility Settings
 
@@ -1217,7 +1217,7 @@ import {
   fauxText,
   fauxThinking,
   fauxToolCall,
-} from '@athena/ai';
+} from '@kushalbanda/ai';
 
 const faux = fauxProvider({
   tokensPerSecond: 50 // optional
@@ -1304,10 +1304,10 @@ When messages from one provider are sent to a different provider, the library au
 - **Tool calls and regular text** are preserved unchanged
 
 ```typescript
-import { createModels, type Context } from '@athena/ai';
-import { anthropicProvider } from '@athena/ai/providers/anthropic';
-import { openaiProvider } from '@athena/ai/providers/openai';
-import { googleProvider } from '@athena/ai/providers/google';
+import { createModels, type Context } from '@kushalbanda/ai';
+import { anthropicProvider } from '@kushalbanda/ai/providers/anthropic';
+import { openaiProvider } from '@kushalbanda/ai/providers/openai';
+import { googleProvider } from '@kushalbanda/ai/providers/google';
 
 const models = createModels();
 models.setProvider(anthropicProvider());
@@ -1374,8 +1374,8 @@ Models are plain serializable data too — no functions or implementations attac
 The library supports browser environments. The core entrypoint and provider factories are side-effect free and bundle cleanly. Environment variables are not available in browsers, so pass API keys explicitly — or inject a `CredentialStore` (e.g. localStorage-backed) and let provider auth resolve from stored credentials:
 
 ```typescript
-import { createModels } from '@athena/ai';
-import { anthropicProvider } from '@athena/ai/providers/anthropic';
+import { createModels } from '@kushalbanda/ai';
+import { anthropicProvider } from '@kushalbanda/ai/providers/anthropic';
 
 const models = createModels();
 models.setProvider(anthropicProvider());
@@ -1401,8 +1401,8 @@ Browser compatibility notes:
 For small bundles, import only the providers you need:
 
 ```typescript
-import { createModels } from '@athena/ai';
-import { openaiProvider } from '@athena/ai/providers/openai';
+import { createModels } from '@kushalbanda/ai';
+import { openaiProvider } from '@kushalbanda/ai/providers/openai';
 
 const models = createModels();
 models.setProvider(openaiProvider());
@@ -1410,14 +1410,14 @@ models.setProvider(openaiProvider());
 
 Rules:
 
-- `@athena/ai` is the core entrypoint and does not import built-in catalogs, provider factories, or SDK implementations.
-- `@athena/ai/providers/<provider>` imports that provider's catalog and lazy API wrapper only.
-- `@athena/ai/providers/all` imports every built-in provider factory and all catalogs. Use it only when you want the full built-in set.
+- `@kushalbanda/ai` is the core entrypoint and does not import built-in catalogs, provider factories, or SDK implementations.
+- `@kushalbanda/ai/providers/<provider>` imports that provider's catalog and lazy API wrapper only.
+- `@kushalbanda/ai/providers/all` imports every built-in provider factory and all catalogs. Use it only when you want the full built-in set.
 - With code splitting, provider SDKs stay in lazy chunks and load on first request.
 - Without code splitting, bundlers fold reachable lazy API implementations into the single bundle. A single-provider bundle then includes that provider's SDK; `providers/all` includes all statically visible SDKs. Bedrock is the exception: its AWS SDK implementation is loaded through a bundler-opaque Node-only import.
-- Importing `@athena/ai/api/<api-id>` directly loads that API implementation and its SDK immediately.
+- Importing `@kushalbanda/ai/api/<api-id>` directly loads that API implementation and its SDK immediately.
 
-Avoid `@athena/ai/compat` in new bundled apps; it preserves the old global API and imports the full built-in catalog surface.
+Avoid `@kushalbanda/ai/compat` in new bundled apps; it preserves the old global API and imports the full built-in catalog surface.
 
 For single-file Node ESM bundles, some SDK dependencies may still use dynamic CommonJS `require()` internally. If you see errors such as `Dynamic require of "child_process" is not supported`, add a Node `require` shim to the bundle. With esbuild:
 
@@ -1432,8 +1432,8 @@ This is only for Node bundles; it is not a browser or Cloudflare Workers workaro
 Bedrock is Node-only. Add it like any other provider:
 
 ```typescript
-import { createModels } from '@athena/ai';
-import { amazonBedrockProvider } from '@athena/ai/providers/amazon-bedrock';
+import { createModels } from '@kushalbanda/ai';
+import { amazonBedrockProvider } from '@kushalbanda/ai/providers/amazon-bedrock';
 
 const models = createModels();
 models.setProvider(amazonBedrockProvider());
@@ -1442,8 +1442,8 @@ models.setProvider(amazonBedrockProvider());
 In normal Node package usage and code-split bundles, Bedrock loads its AWS SDK implementation lazily. For a standalone single-file bundle that must include Bedrock support, register the implementation module explicitly:
 
 ```typescript
-import { setBedrockProviderModule } from '@athena/ai/api/bedrock-converse-stream.lazy';
-import { bedrockProviderModule } from '@athena/ai/bedrock-provider';
+import { setBedrockProviderModule } from '@kushalbanda/ai/api/bedrock-converse-stream.lazy';
+import { bedrockProviderModule } from '@kushalbanda/ai/bedrock-provider';
 
 setBedrockProviderModule(bedrockProviderModule);
 ```
@@ -1481,8 +1481,8 @@ Several providers support OAuth authentication instead of static API keys:
 Each of these providers carries an `OAuthAuth` on `provider.auth.oauth` with three operations: `login(interaction)` uses the provider-neutral `AuthInteraction.prompt()`/`notify()` protocol and returns a credential, `refresh(credential, signal)` refreshes expiring credentials when applicable, and `toAuth(credential)` derives request auth (GitHub Copilot's per-account base URL comes from here). Provider login interactions and refresh calls always carry a concrete abort signal. Refresh is automatic: `models.getAuth(providerId)` and request paths refresh expired tokens under a credential-store lock, so concurrent requests and processes cannot double-refresh. OpenRouter's OAuth flow instead returns a permanent API key, so its refresh operation is a no-op.
 
 ```typescript
-import { createModels } from '@athena/ai';
-import { anthropicProvider } from '@athena/ai/providers/anthropic';
+import { createModels } from '@kushalbanda/ai';
+import { anthropicProvider } from '@kushalbanda/ai/providers/anthropic';
 
 const models = createModels({ credentials: myStore }); // persistent CredentialStore
 models.setProvider(anthropicProvider());
@@ -1541,16 +1541,16 @@ Official docs: [Application Default Credentials](https://cloud.google.com/docs/a
 The quickest way to authenticate:
 
 ```bash
-npx @athena/ai login              # interactive provider selection
-npx @athena/ai login anthropic    # login to specific provider
-npx @athena/ai list               # list available providers
+npx @kushalbanda/ai login              # interactive provider selection
+npx @kushalbanda/ai login anthropic    # login to specific provider
+npx @kushalbanda/ai list               # list available providers
 ```
 
 Credentials are saved to `auth.json` in the current directory.
 
 ### Programmatic OAuth
 
-Built-in login and refresh flows are private provider implementations. Use provider-owned `OAuthAuth`, which composes with `CredentialStore` and gets locked auto-refresh through `Models`. The `@athena/ai/oauth` entry point retains only type declarations required by coding-agent extension OAuth compatibility.
+Built-in login and refresh flows are private provider implementations. Use provider-owned `OAuthAuth`, which composes with `CredentialStore` and gets locked auto-refresh through `Models`. The `@kushalbanda/ai/oauth` entry point retains only type declarations required by coding-agent extension OAuth compatibility.
 
 Provider notes:
 
@@ -1566,10 +1566,10 @@ Older versions exposed a global API: `stream()`/`complete()` dispatching on `mod
 
 ```typescript
 // Before
-import { getModel, complete } from '@athena/ai';
+import { getModel, complete } from '@kushalbanda/ai';
 
 // After (verbatim behavior, one import-path change)
-import { getModel, complete } from '@athena/ai/compat';
+import { getModel, complete } from '@kushalbanda/ai/compat';
 ```
 
 Compat is a strict superset of the root entrypoint, so a file can switch its import path wholesale. It will be removed in a future release; migrate to `createModels()` + provider factories:
@@ -1581,7 +1581,7 @@ Compat is a strict superset of the root entrypoint, so a file can switch its imp
 | `stream(model, ctx, opts)` (env-key injection) | `models.stream(model, ctx, opts)` (provider auth resolution) |
 | `registerApiProvider({ api, stream, streamSimple })` | `createProvider({ id, auth, models, api })` + `models.setProvider()` |
 | `getEnvApiKey('openai')` | `await models.getAuth(model.provider)` |
-| `streamAnthropic(model, ctx, opts)` | `stream` from `@athena/ai/api/anthropic-messages`, or a provider in a collection |
+| `streamAnthropic(model, ctx, opts)` | `stream` from `@kushalbanda/ai/api/anthropic-messages`, or a provider in a collection |
 | `registerFauxProvider()` | `fauxProvider()` + `models.setProvider()` |
 
 ## Development
@@ -1605,7 +1605,7 @@ Create a new API implementation file (for example `bedrock-converse-stream.ts`) 
 - Tool conversion if the provider supports tools
 - Response parsing to emit standardized events (`text`, `tool_call`, `thinking`, `usage`, `stop`)
 
-Add a lazy wrapper `src/api/<api-id>.lazy.ts` (`<name>Api()` via `lazyApi()`) so providers can reference the implementation without importing its SDK. Add any root-level `export type` re-exports in `src/index.ts` that should remain available from `@athena/ai`.
+Add a lazy wrapper `src/api/<api-id>.lazy.ts` (`<name>Api()` via `lazyApi()`) so providers can reference the implementation without importing its SDK. Add any root-level `export type` re-exports in `src/index.ts` that should remain available from `@kushalbanda/ai`.
 
 #### 3. Model Generation (`scripts/generate-models.ts`, `scripts/generate-image-models.ts`)
 

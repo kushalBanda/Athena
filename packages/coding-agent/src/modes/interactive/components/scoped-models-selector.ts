@@ -1,4 +1,4 @@
-import type { Model } from "@athena/ai";
+import type { Model } from "@kushalbanda/ai";
 import {
 	Container,
 	type Focusable,
@@ -9,7 +9,7 @@ import {
 	matchesKey,
 	Spacer,
 	Text,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import { getModelSearchText } from "../model-search.ts";
 import { theme } from "../theme/theme.ts";
 import { DynamicBorder } from "./dynamic-border.ts";

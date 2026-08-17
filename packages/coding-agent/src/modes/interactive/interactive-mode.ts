@@ -7,9 +7,9 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { AgentMessage } from "@athena/agent-core";
-import type { AuthEvent, AuthPrompt } from "@athena/ai";
-import type { AssistantMessage, ImageContent, Message, Model } from "@athena/ai/compat";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import type { AuthEvent, AuthPrompt } from "@kushalbanda/ai";
+import type { AssistantMessage, ImageContent, Message, Model } from "@kushalbanda/ai/compat";
 import type {
 	AutocompleteItem,
 	AutocompleteProvider,
@@ -22,8 +22,8 @@ import type {
 	SlashCommand,
 	Terminal,
 	TuiMainScreenRenderState,
-} from "@athena/tui";
-import * as TuiLayouts from "@athena/tui";
+} from "@kushalbanda/tui";
+import * as TuiLayouts from "@kushalbanda/tui";
 import {
 	CombinedAutocompleteProvider,
 	type Component,
@@ -42,7 +42,7 @@ import {
 	TuiAltScreen,
 	TuiMainScreen,
 	visibleWidth,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import chalk from "chalk";
 import { spawn, spawnSync } from "child_process";
 import {
@@ -108,7 +108,7 @@ import { getCwdRelativePath } from "../../utils/paths.ts";
 import { getAthenaUserAgent } from "../../utils/athena-user-agent.ts";
 import { killTrackedDetachedChildren } from "../../utils/shell.ts";
 import { ensureTool, type ToolStatus } from "../../utils/tools-manager.ts";
-import { checkForNewPiVersion, type LatestPiRelease } from "../../utils/version-check.ts";
+import { checkForNewAthenaVersion, type LatestAthenaRelease } from "../../utils/version-check.ts";
 import { ArminComponent } from "./components/armin.ts";
 import { AssistantMessageComponent } from "./components/assistant-message.ts";
 import { BashExecutionComponent } from "./components/bash-execution.ts";
@@ -1045,7 +1045,7 @@ export class InteractiveMode {
 		}
 
 		// Start version check asynchronously
-		checkForNewPiVersion(this.version).then((newRelease) => {
+		checkForNewAthenaVersion(this.version).then((newRelease) => {
 			if (newRelease) {
 				this.showNewVersionNotification(newRelease);
 			}
@@ -4148,7 +4148,7 @@ export class InteractiveMode {
 		this.ui.requestRender();
 	}
 
-	showNewVersionNotification(release: LatestPiRelease): void {
+	showNewVersionNotification(release: LatestAthenaRelease): void {
 		const action = theme.fg("accent", `${APP_NAME} update`);
 		const updateInstruction = theme.fg("muted", `New version ${release.version} is available. Run `) + action;
 		const changelogUrl = "https://pi.dev/changelog";

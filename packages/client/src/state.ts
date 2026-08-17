@@ -1,4 +1,4 @@
-import type { CommandResult, ServerEvent, ServerSnapshot, SessionSnapshot } from "@athena/protocol";
+import type { CommandResult, ServerEvent, ServerSnapshot, SessionSnapshot } from "@kushalbanda/protocol";
 import { toError } from "./errors.ts";
 import type { ListenerErrorHandler, Unsubscribe } from "./types.ts";
 

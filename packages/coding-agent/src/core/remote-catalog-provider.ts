@@ -1,4 +1,4 @@
-import type { Api, Model, ModelsStoreEntry, Provider } from "@athena/ai";
+import type { Api, Model, ModelsStoreEntry, Provider } from "@kushalbanda/ai";
 import { VERSION } from "../config.ts";
 import { fetchWithRetry } from "../utils/management-http.ts";
 import { getAthenaUserAgent } from "../utils/athena-user-agent.ts";

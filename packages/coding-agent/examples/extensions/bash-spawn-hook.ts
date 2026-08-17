@@ -7,8 +7,8 @@
  *   athena -e ./bash-spawn-hook.ts
  */
 
-import type { ExtensionAPI } from "@athena/coding-agent";
-import { createBashTool } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import { createBashTool } from "@kushalbanda/coding-agent";
 
 export default function (athena: ExtensionAPI) {
 	const cwd = process.cwd();

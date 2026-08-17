@@ -18,8 +18,8 @@ import {
 	type RefreshModelsContext,
 	type SimpleStreamOptions,
 	type StreamOptions,
-} from "@athena/ai";
-import { getApiProvider } from "@athena/ai/compat";
+} from "@kushalbanda/ai";
+import { getApiProvider } from "@kushalbanda/ai/compat";
 import type { ModelConfig, ModelsJsonModel, ModelsJsonModelOverride, ModelsJsonProvider } from "./model-config.ts";
 import {
 	clearConfigValueCache,

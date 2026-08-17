@@ -7,13 +7,13 @@ import * as fs from "node:fs";
 import { createRequire } from "node:module";
 import * as path from "node:path";
 import { fileURLToPath } from "node:url";
-import * as _bundledPiAgentCore from "@athena/agent-core";
-import type { Provider } from "@athena/ai";
-import * as _bundledPiAiCompat from "@athena/ai/compat";
-import * as _bundledPiAiOauth from "@athena/ai/oauth";
-import * as _bundledPiAiProviders from "@athena/ai/providers/all";
-import type { KeyId } from "@athena/tui";
-import * as _bundledPiTui from "@athena/tui";
+import * as _bundledAthenaAgentCore from "@kushalbanda/agent-core";
+import type { Provider } from "@kushalbanda/ai";
+import * as _bundledAthenaAiCompat from "@kushalbanda/ai/compat";
+import * as _bundledAthenaAiOauth from "@kushalbanda/ai/oauth";
+import * as _bundledAthenaAiProviders from "@kushalbanda/ai/providers/all";
+import type { KeyId } from "@kushalbanda/tui";
+import * as _bundledAthenaTui from "@kushalbanda/tui";
 import { createJiti } from "jiti/static";
 // Static imports of packages that extensions may use.
 // These MUST be static so Bun bundles them into the compiled binary.
@@ -23,8 +23,8 @@ import * as _bundledTypeboxCompile from "typebox/compile";
 import * as _bundledTypeboxValue from "typebox/value";
 import { CONFIG_DIR_NAME, getAgentDir, isBunBinary } from "../../config.ts";
 // NOTE: This import works because loader.ts exports are NOT re-exported from index.ts,
-// avoiding a circular dependency. Extensions can import from @athena/coding-agent.
-import * as _bundledPiCodingAgent from "../../index.ts";
+// avoiding a circular dependency. Extensions can import from @kushalbanda/coding-agent.
+import * as _bundledAthenaCodingAgent from "../../index.ts";
 import { resolvePath } from "../../utils/paths.ts";
 import { createEventBus, type EventBus } from "../event-bus.ts";
 import type { ExecOptions } from "../exec.ts";
@@ -54,23 +54,23 @@ const VIRTUAL_MODULES: Record<string, unknown> = {
 	"@sinclair/typebox": _bundledTypebox,
 	"@sinclair/typebox/compile": _bundledTypeboxCompile,
 	"@sinclair/typebox/value": _bundledTypeboxValue,
-	"@athena/agent-core": _bundledPiAgentCore,
-	"@athena/tui": _bundledPiTui,
-	// Extensions resolve the @athena/ai root to the compat entrypoint (a strict
+	"@kushalbanda/agent-core": _bundledAthenaAgentCore,
+	"@kushalbanda/tui": _bundledAthenaTui,
+	// Extensions resolve the @kushalbanda/ai root to the compat entrypoint (a strict
 	// superset of the core entrypoint): existing extensions using the old
 	// global API keep working at runtime until compat is removed.
-	"@athena/ai": _bundledPiAiCompat,
-	"@athena/ai/compat": _bundledPiAiCompat,
-	"@athena/ai/oauth": _bundledPiAiOauth,
-	"@athena/ai/providers/all": _bundledPiAiProviders,
-	"@athena/coding-agent": _bundledPiCodingAgent,
-	"@mariozechner/pi-agent-core": _bundledPiAgentCore,
-	"@mariozechner/pi-tui": _bundledPiTui,
-	"@mariozechner/pi-ai": _bundledPiAiCompat,
-	"@mariozechner/pi-ai/compat": _bundledPiAiCompat,
-	"@mariozechner/pi-ai/oauth": _bundledPiAiOauth,
-	"@mariozechner/pi-ai/providers/all": _bundledPiAiProviders,
-	"@mariozechner/pi-coding-agent": _bundledPiCodingAgent,
+	"@kushalbanda/ai": _bundledAthenaAiCompat,
+	"@kushalbanda/ai/compat": _bundledAthenaAiCompat,
+	"@kushalbanda/ai/oauth": _bundledAthenaAiOauth,
+	"@kushalbanda/ai/providers/all": _bundledAthenaAiProviders,
+	"@kushalbanda/coding-agent": _bundledAthenaCodingAgent,
+	"@mariozechner/pi-agent-core": _bundledAthenaAgentCore,
+	"@mariozechner/pi-tui": _bundledAthenaTui,
+	"@mariozechner/pi-ai": _bundledAthenaAiCompat,
+	"@mariozechner/pi-ai/compat": _bundledAthenaAiCompat,
+	"@mariozechner/pi-ai/oauth": _bundledAthenaAiOauth,
+	"@mariozechner/pi-ai/providers/all": _bundledAthenaAiProviders,
+	"@mariozechner/pi-coding-agent": _bundledAthenaCodingAgent,
 };
 
 const require = createRequire(import.meta.url);
@@ -102,34 +102,34 @@ function getAliases(): Record<string, string> {
 		return fileURLToPath(import.meta.resolve(specifier));
 	};
 
-	const piCodingAgentEntry = packageIndex;
-	const piAgentCoreEntry = resolveWorkspaceOrImport("agent/dist/index.js", "@athena/agent-core");
-	const piTuiEntry = resolveWorkspaceOrImport("tui/dist/index.js", "@athena/tui");
-	// Extensions resolve the @athena/ai root to the compat entrypoint (a strict
+	const athenaCodingAgentEntry = packageIndex;
+	const athenaAgentCoreEntry = resolveWorkspaceOrImport("agent/dist/index.js", "@kushalbanda/agent-core");
+	const athenaTuiEntry = resolveWorkspaceOrImport("tui/dist/index.js", "@kushalbanda/tui");
+	// Extensions resolve the @kushalbanda/ai root to the compat entrypoint (a strict
 	// superset of the core entrypoint): existing extensions using the old
 	// global API keep working at runtime until compat is removed.
-	const piAiCompatEntry = resolveWorkspaceOrImport("ai/dist/compat.js", "@athena/ai/compat");
-	const piAiOauthEntry = resolveWorkspaceOrImport("ai/dist/oauth.js", "@athena/ai/oauth");
-	const piAiProvidersEntry = resolveWorkspaceOrImport(
+	const athenaAiCompatEntry = resolveWorkspaceOrImport("ai/dist/compat.js", "@kushalbanda/ai/compat");
+	const athenaAiOauthEntry = resolveWorkspaceOrImport("ai/dist/oauth.js", "@kushalbanda/ai/oauth");
+	const athenaAiProvidersEntry = resolveWorkspaceOrImport(
 		"ai/dist/providers/all.js",
-		"@athena/ai/providers/all",
+		"@kushalbanda/ai/providers/all",
 	);
 
 	_aliases = {
-		"@athena/coding-agent": piCodingAgentEntry,
-		"@athena/agent-core": piAgentCoreEntry,
-		"@athena/tui": piTuiEntry,
-		"@athena/ai/providers/all": piAiProvidersEntry,
-		"@athena/ai/compat": piAiCompatEntry,
-		"@athena/ai/oauth": piAiOauthEntry,
-		"@athena/ai": piAiCompatEntry,
-		"@mariozechner/pi-coding-agent": piCodingAgentEntry,
-		"@mariozechner/pi-agent-core": piAgentCoreEntry,
-		"@mariozechner/pi-tui": piTuiEntry,
-		"@mariozechner/pi-ai/providers/all": piAiProvidersEntry,
-		"@mariozechner/pi-ai/compat": piAiCompatEntry,
-		"@mariozechner/pi-ai/oauth": piAiOauthEntry,
-		"@mariozechner/pi-ai": piAiCompatEntry,
+		"@kushalbanda/coding-agent": athenaCodingAgentEntry,
+		"@kushalbanda/agent-core": athenaAgentCoreEntry,
+		"@kushalbanda/tui": athenaTuiEntry,
+		"@kushalbanda/ai/providers/all": athenaAiProvidersEntry,
+		"@kushalbanda/ai/compat": athenaAiCompatEntry,
+		"@kushalbanda/ai/oauth": athenaAiOauthEntry,
+		"@kushalbanda/ai": athenaAiCompatEntry,
+		"@mariozechner/pi-coding-agent": athenaCodingAgentEntry,
+		"@mariozechner/pi-agent-core": athenaAgentCoreEntry,
+		"@mariozechner/pi-tui": athenaTuiEntry,
+		"@mariozechner/pi-ai/providers/all": athenaAiProvidersEntry,
+		"@mariozechner/pi-ai/compat": athenaAiCompatEntry,
+		"@mariozechner/pi-ai/oauth": athenaAiOauthEntry,
+		"@mariozechner/pi-ai": athenaAiCompatEntry,
 		typebox: typeboxEntry,
 		"typebox/compile": typeboxCompileEntry,
 		"typebox/value": typeboxValueEntry,

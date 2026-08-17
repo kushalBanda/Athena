@@ -4,8 +4,8 @@ import type {
 	SessionSearch,
 	SessionSearchHit,
 	SessionSearchOptions,
-} from "@athena/agent-core";
-import { SessionError } from "@athena/agent-core";
+} from "@kushalbanda/agent-core";
+import { SessionError } from "@kushalbanda/agent-core";
 import { applyMigrations } from "./migrations.ts";
 import { sql } from "./sql.ts";
 import { decodeSessionMetadata, type SessionRow } from "./storage/sessions.ts";

@@ -3,9 +3,9 @@ import {
 	type ExtensionAPI,
 	type ExtensionContext,
 	type KeybindingsManager,
-} from "@athena/coding-agent";
-import type { Component, EditorTheme, TUI } from "@athena/tui";
-import { truncateToWidth, visibleWidth } from "@athena/tui";
+} from "@kushalbanda/coding-agent";
+import type { Component, EditorTheme, TUI } from "@kushalbanda/tui";
+import { truncateToWidth, visibleWidth } from "@kushalbanda/tui";
 
 function fitBorder(
 	left: string,

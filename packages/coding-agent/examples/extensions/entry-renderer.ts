@@ -8,8 +8,8 @@
  * Usage: /status-card [message]
  */
 
-import type { ExtensionAPI } from "@athena/coding-agent";
-import { Box, Text } from "@athena/tui";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import { Box, Text } from "@kushalbanda/tui";
 
 interface StatusCardData {
 	message: string;

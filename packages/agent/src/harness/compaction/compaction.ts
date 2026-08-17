@@ -11,7 +11,7 @@ import {
 	type SimpleStreamOptions,
 	type Usage,
 	uuidv7,
-} from "@athena/ai";
+} from "@kushalbanda/ai";
 import type { AgentMessage, ThinkingLevel } from "../../types.ts";
 import { convertToLlm, createBranchSummaryMessage, createCompactionSummaryMessage } from "../messages.ts";
 import { buildSessionContext } from "../session/context.ts";

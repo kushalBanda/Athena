@@ -5,10 +5,10 @@
  * and after compaction the session is reloaded.
  */
 
-import type { AgentMessage, StreamFn, ThinkingLevel } from "@athena/agent-core";
-import { contentText, type RetryCallbacks, type RetryPolicy, retryAssistantCall, uuidv7 } from "@athena/ai";
-import type { AssistantMessage, Context, Model, SimpleStreamOptions, Usage } from "@athena/ai/compat";
-import { completeSimple } from "@athena/ai/compat";
+import type { AgentMessage, StreamFn, ThinkingLevel } from "@kushalbanda/agent-core";
+import { contentText, type RetryCallbacks, type RetryPolicy, retryAssistantCall, uuidv7 } from "@kushalbanda/ai";
+import type { AssistantMessage, Context, Model, SimpleStreamOptions, Usage } from "@kushalbanda/ai/compat";
+import { completeSimple } from "@kushalbanda/ai/compat";
 import { convertToLlm } from "../messages.ts";
 import {
 	buildSessionContext,

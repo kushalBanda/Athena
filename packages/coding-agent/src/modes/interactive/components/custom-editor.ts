@@ -1,4 +1,4 @@
-import { Editor, type EditorOptions, type EditorTheme, type TUI } from "@athena/tui";
+import { Editor, type EditorOptions, type EditorTheme, type TUI } from "@kushalbanda/tui";
 import type { AppKeybinding, KeybindingsManager } from "../../../core/keybindings.ts";
 
 /**

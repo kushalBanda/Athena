@@ -9,7 +9,7 @@ export default defineConfig({
 	},
 	resolve: {
 		alias: {
-			"@athena/protocol": fileURLToPath(new URL("../protocol/src/index.ts", import.meta.url)),
+			"@kushalbanda/protocol": fileURLToPath(new URL("../protocol/src/index.ts", import.meta.url)),
 		},
 	},
 });

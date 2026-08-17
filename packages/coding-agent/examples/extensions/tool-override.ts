@@ -20,8 +20,8 @@
  *   athena -e ./tool-override.ts
  */
 
-import type { TextContent } from "@athena/ai";
-import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@athena/coding-agent";
+import type { TextContent } from "@kushalbanda/ai";
+import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@kushalbanda/coding-agent";
 import { constants, readFileSync } from "fs";
 import { access, appendFile, readFile } from "fs/promises";
 import { join, resolve } from "path";

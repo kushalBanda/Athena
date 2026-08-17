@@ -10,7 +10,7 @@
  * 3. Use /commands extensions to filter by source
  */
 
-import type { ExtensionAPI, SlashCommandInfo } from "@athena/coding-agent";
+import type { ExtensionAPI, SlashCommandInfo } from "@kushalbanda/coding-agent";
 
 export default function commandsExtension(athena: ExtensionAPI) {
 	athena.registerCommand("commands", {

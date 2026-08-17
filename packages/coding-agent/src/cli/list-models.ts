@@ -2,8 +2,8 @@
  * List available models with optional fuzzy search
  */
 
-import type { Api, Model } from "@athena/ai";
-import { fuzzyFilter } from "@athena/tui";
+import type { Api, Model } from "@kushalbanda/ai";
+import { fuzzyFilter } from "@kushalbanda/tui";
 import chalk from "chalk";
 import { formatNoModelsAvailableMessage } from "../core/auth-guidance.ts";
 import type { ModelRuntime } from "../core/model-runtime.ts";

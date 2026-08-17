@@ -1,5 +1,5 @@
-import type { AgentTool } from "@athena/agent-core";
-import { Box, Container, Spacer, Text } from "@athena/tui";
+import type { AgentTool } from "@kushalbanda/agent-core";
+import { Box, Container, Spacer, Text } from "@kushalbanda/tui";
 import { constants } from "fs";
 import { access as fsAccess, readFile as fsReadFile, writeFile as fsWriteFile } from "fs/promises";
 import { type Static, Type } from "typebox";

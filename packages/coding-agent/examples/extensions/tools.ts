@@ -9,9 +9,9 @@
  * 2. Use /tools to open the tool selector
  */
 
-import type { ExtensionAPI, ExtensionContext, ToolInfo } from "@athena/coding-agent";
-import { getSettingsListTheme } from "@athena/coding-agent";
-import { Container, type SettingItem, SettingsList } from "@athena/tui";
+import type { ExtensionAPI, ExtensionContext, ToolInfo } from "@kushalbanda/coding-agent";
+import { getSettingsListTheme } from "@kushalbanda/coding-agent";
+import { Container, type SettingItem, SettingsList } from "@kushalbanda/tui";
 
 // State persisted to session
 interface ToolsState {

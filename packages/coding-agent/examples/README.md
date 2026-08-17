@@ -1,6 +1,6 @@
 # Examples
 
-Example code for @athena/coding-agent SDK and extensions.
+Example code for @kushalbanda/coding-agent SDK and extensions.
 
 ## Directories
 

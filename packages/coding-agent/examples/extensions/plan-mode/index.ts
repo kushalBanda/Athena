@@ -12,10 +12,10 @@
  * - Progress tracking widget during execution
  */
 
-import type { AgentMessage } from "@athena/agent-core";
-import type { AssistantMessage, TextContent } from "@athena/ai";
-import type { ExtensionAPI, ExtensionContext } from "@athena/coding-agent";
-import { Key } from "@athena/tui";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import type { AssistantMessage, TextContent } from "@kushalbanda/ai";
+import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/coding-agent";
+import { Key } from "@kushalbanda/tui";
 import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.ts";
 
 // Tools

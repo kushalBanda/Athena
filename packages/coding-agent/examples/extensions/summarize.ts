@@ -1,7 +1,7 @@
-import { uuidv7 } from "@athena/ai";
-import type { ExtensionAPI, ExtensionCommandContext } from "@athena/coding-agent";
-import { DynamicBorder, getMarkdownTheme } from "@athena/coding-agent";
-import { Container, Markdown, matchesKey, Text } from "@athena/tui";
+import { uuidv7 } from "@kushalbanda/ai";
+import type { ExtensionAPI, ExtensionCommandContext } from "@kushalbanda/coding-agent";
+import { DynamicBorder, getMarkdownTheme } from "@kushalbanda/coding-agent";
+import { Container, Markdown, matchesKey, Text } from "@kushalbanda/tui";
 
 type ContentBlock = {
 	type?: string;

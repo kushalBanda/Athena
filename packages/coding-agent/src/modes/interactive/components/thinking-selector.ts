@@ -1,5 +1,5 @@
-import type { ThinkingLevel } from "@athena/agent-core";
-import { Container, type SelectItem, SelectList, type SelectListLayoutOptions } from "@athena/tui";
+import type { ThinkingLevel } from "@kushalbanda/agent-core";
+import { Container, type SelectItem, SelectList, type SelectListLayoutOptions } from "@kushalbanda/tui";
 import { getSelectListTheme } from "../theme/theme.ts";
 import { DynamicBorder } from "./dynamic-border.ts";
 

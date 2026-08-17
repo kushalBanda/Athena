@@ -1,4 +1,4 @@
-import { contentText, type Message } from "@athena/ai";
+import { contentText, type Message } from "@kushalbanda/ai";
 import type { AgentMessage } from "../../types.ts";
 
 /** File paths touched by a session branch or compaction range. */
