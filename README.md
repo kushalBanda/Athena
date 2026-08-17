@@ -1,134 +1,51 @@
+<p align="center">
+  <b>Athena</b>
+</p>
+<p align="center">
+  <a href="https://www.npmjs.com/package/@athena/coding-agent"><img alt="npm" src="https://img.shields.io/npm/v/@athena/coding-agent?style=flat-square" /></a>
+</p>
 
+## Athena
 
+Athena is an open-source AI coding agent, rebased on top of the
+[pi](https://github.com/earendil-works/pi) agent harness (MIT-licensed) as of 2026-08-14. See
+`docs/superpowers/specs/2026-08-14-athena-rebase-design.md` for why, and
+`docs/superpowers/plans/2026-08-14-athena-rebase-swap.md` for how. Athena's own
+distinctive pieces (CodeGraph integration, `/init`-generated CLAUDE.md,
+Claude-skills-source loading) are documented in `docs/IP/` and being
+re-ported onto this base incrementally — not all present yet.
 
+## Packages
 
-# Athena
+| Package | Description |
+|---------|-------------|
+| **[@athena/telemetry](packages/telemetry)** | Vendor-neutral telemetry contracts, reference adapter, conformance tests, and typed schemas |
+| **[@athena/ai](packages/ai)** | Unified multi-provider LLM API (OpenAI, Anthropic, Google, etc.) |
+| **[@athena/agent-core](packages/agent)** | Agent runtime with tool calling and state management |
+| **[@athena/coding-agent](packages/coding-agent)** | Interactive coding agent CLI (Athena) |
+| **[@athena/tui](packages/tui)** | Terminal UI library with differential rendering |
 
-Open source AI coding agent. Terminal UI, multi-provider, sandboxed tools, session persistence.
+Packages are published under the `@athena` scope; the `athena` binary and `.athena` config directory are set via `packages/coding-agent/package.json`'s `athenaConfig`.
 
-- **[@athena/cli](packages/cli)**: process entrypoint - arg parsing, config/auth, first-run setup
-- **[@athena/tui](packages/tui)**: Ink-based terminal UI
-- **[@athena/agent-core](packages/agent-core)**: turn loop, compaction, session persistence
-- **[@athena/providers](packages/providers)**: per-vendor `LLMProvider` implementations (Anthropic, Gemini, Azure, Ollama, Bedrock)
-- **[@athena/tools](packages/tools)**: sandboxed tool implementations (file I/O, shell, web, codegraph)
-- **[@athena/observability](packages/observability)**: vendor-neutral OpenTelemetry tracing wrapper
+## Permissions & Containerization
 
+Athena does not include a built-in permission system for restricting filesystem, process, network, or credential access. By default, it runs with the permissions of the user and process that launched it.
 
+If you need stronger boundaries, containerize or sandbox Athena. See [packages/coding-agent/docs/containerization.md](packages/coding-agent/docs/containerization.md) for three patterns:
 
-## Install
-
-```shell
-curl -fsSL https://raw.githubusercontent.com/kushalBanda/Athena/main/scripts/install.sh | bash
-```
-
-```shell
-npm install -g @kushalbanda/athena-cli
-# or run without installing
-npx @kushalbanda/athena-cli
-```
-
-```shell
-brew tap kushalBanda/athena https://github.com/kushalBanda/Athena
-brew install athena
-```
-
-Then run `athena` to get started.
-
-## Quickstart
-
-On first launch, if no API key is configured, Athena walks you through setup:
-
-```shell
-athena setup
-```
-
-Config lives at `~/.config/athena/config.json`, keys at `~/.config/athena/auth.json`.
-
-## Usage
-
-```shell
-# Launch interactive TUI
-athena
-
-# Run a one-shot task and print output to stdout
-athena -p "Refactor src/index.ts to use async/await"
-
-# Override provider or model for a session
-athena --provider anthropic --model claude-sonnet-5
-```
-
-```
-athena [options] [message]
-
-Options:
-  -p, --print        Non-interactive mode: print response to stdout and exit
-  --provider <name>  Override provider: anthropic | gemini | ollama | azure | bedrock
-  --model <id>       Override model ID
-  --continue, -c     Resume the latest session for this directory
-  --resume <id>      Resume a specific session by id
-  -h, --help         Show help
-```
-
-
-
-## Slash commands (TUI)
-
-
-| Command                 | Description                                      |
-| ----------------------- | ------------------------------------------------ |
-| `/help`                 | Show all available slash commands                |
-| `/model [id]`           | Switch model (opens picker if no id given)       |
-| `/provider [name]`      | Switch provider (opens picker if no name given)  |
-| `/key <provider> <key>` | Store an API key without leaving the TUI         |
-| `/status`               | Display current provider, model, and stored keys |
-| `/clear`                | Clear chat history                               |
-| `/skills`               | List available skills                            |
-| `/context-config`       | Toggle context sources (CLAUDE.md, skills, etc.) |
-| `/mcp`                  | Manage MCP servers                               |
-| `/resume`               | Resume a previous session                        |
-| `/reload`               | Reload config                                    |
-| `/exit` or `/quit`      | Quit Athena                                      |
-
-
-
-
-## Supported providers
-
-
-| Provider         | Flag name   | Notes                                            |
-| ---------------- | ----------- | ------------------------------------------------ |
-| Anthropic        | `anthropic` | Claude models; `ANTHROPIC_API_KEY` or stored key |
-| Google Gemini    | `gemini`    | `GEMINI_API_KEY` or stored key                   |
-| Ollama           | `ollama`    | Local models; no API key needed                  |
-| Azure AI Foundry | `azure`     | Requires endpoint, deployment, and API key       |
-| AWS Bedrock      | `bedrock`   | Requires Bedrock config block                    |
-
-
-
-
-## MCP support
-
-```shell
-athena mcp add <name> --local "<cmd>" | --remote <url> [--project]
-athena mcp list
-athena mcp remove <name>
-```
-
-
+- **Gondolin extension**: keep `athena` and provider auth on the host while routing built-in tools and `!` commands into a local Linux micro-VM.
+- **Plain Docker**: run the whole `athena` process in a local container for simple isolation.
+- **OpenShell**: run the whole `athena` process in a policy-controlled sandbox.
 
 ## Development
 
 ```bash
-bun install                          # install all workspace deps
-bun run build                        # build all packages
-bun run dev                          # run CLI from source
-bun run check                        # lint with Biome
-bun test                             # run tests
+npm install --include=dev   # Install all dependencies, including dev tooling
+npm run build                # Refresh model data, then build all packages
+npm run build:offline        # Rebuild using existing model data without network access
+npm run check                # Lint, format, and type check
+npm run test                 # Run tests across all workspaces
 ```
-
-## Building standalone binaries
-
-Compiles `packages/cli` into standalone `bun --compile` binaries for macOS and Linux (arm64 + x64), matching what's attached to each [GitHub release](https://github.com/kushalBanda/Athena/releases).
 
 ## License
 

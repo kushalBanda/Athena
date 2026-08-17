@@ -1,0 +1,18 @@
+export { AthenaClient } from "./client.ts";
+export {
+	AthenaClientDisposedError,
+	AthenaDisconnectedError,
+	AthenaServerError,
+	AthenaSessionDetachedError,
+	AthenaSessionOwnershipError,
+} from "./errors.ts";
+export type { AcquireSessionOptions, AthenaSessionHandle, SessionLease, SessionLeaseMode } from "./session-handle.ts";
+export type { ByteTransport, ByteTransportFactory, ByteTransportHandlers } from "./transport.ts";
+export type {
+	ConnectionState,
+	ConnectionStateChange,
+	CreateSessionOptions,
+	ListenerErrorHandler,
+	AthenaClientOptions,
+	Unsubscribe,
+} from "./types.ts";
