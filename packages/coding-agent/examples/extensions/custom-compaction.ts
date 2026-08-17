@@ -13,9 +13,9 @@
  *   athena --extension examples/extensions/custom-compaction.ts
  */
 
-import { uuidv7 } from "@athena/ai";
-import type { ExtensionAPI } from "@athena/coding-agent";
-import { convertToLlm, serializeConversation } from "@athena/coding-agent";
+import { uuidv7 } from "@kushalbanda/ai";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import { convertToLlm, serializeConversation } from "@kushalbanda/coding-agent";
 
 export default function (athena: ExtensionAPI) {
 	athena.on("session_before_compact", async (event, ctx) => {

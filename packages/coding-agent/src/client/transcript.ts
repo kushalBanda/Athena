@@ -1,4 +1,4 @@
-import type { JsonValue, SessionSnapshot, TranscriptItem, TranscriptProgress } from "@athena/protocol";
+import type { JsonValue, SessionSnapshot, TranscriptItem, TranscriptProgress } from "@kushalbanda/protocol";
 
 export interface TranscriptState {
 	readonly snapshot: SessionSnapshot;

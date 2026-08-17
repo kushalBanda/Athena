@@ -1,6 +1,6 @@
 {
-	"name": "@athena/coding-agent",
-	"version": "0.84.2",
+	"name": "@kushalbanda/coding-agent",
+	"version": "1.0.0",
 	"description": "Coding agent CLI with read, bash, edit, write tools and session management",
 	"type": "module",
 	"athenaConfig": {
@@ -43,11 +43,11 @@
 		"prepublishOnly": "npm run clean && npm run build"
 	},
 	"dependencies": {
-		"@athena/agent-core": "^0.84.2",
-		"@athena/ai": "^0.84.2",
-		"@athena/client": "^0.84.2",
-		"@athena/protocol": "^0.84.2",
-		"@athena/tui": "^0.84.2",
+		"@kushalbanda/agent-core": "^1.0.0",
+		"@kushalbanda/ai": "^1.0.0",
+		"@kushalbanda/client": "^1.0.0",
+		"@kushalbanda/protocol": "^1.0.0",
+		"@kushalbanda/tui": "^1.0.0",
 		"@silvia-odwyer/photon-node": "0.3.4",
 		"chalk": "5.6.2",
 		"cross-spawn": "7.0.6",

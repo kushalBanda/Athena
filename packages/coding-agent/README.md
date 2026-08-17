@@ -5,7 +5,7 @@
 </p>
 <p align="center">
   <a href="https://discord.com/invite/3cU7Bz4UPx"><img alt="Discord" src="https://img.shields.io/badge/discord-community-5865F2?style=flat-square&logo=discord&logoColor=white" /></a>
-  <a href="https://www.npmjs.com/package/@athena/coding-agent"><img alt="npm" src="https://img.shields.io/npm/v/@athena/coding-agent?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@kushalbanda/coding-agent"><img alt="npm" src="https://img.shields.io/npm/v/@kushalbanda/coding-agent?style=flat-square" /></a>
 </p>
 
 > New issues and PRs from new contributors are auto-closed by default. Maintainers review auto-closed issues daily. See [CONTRIBUTING.md](../../CONTRIBUTING.md).
@@ -47,15 +47,20 @@ Athena runs in four modes: interactive, print or JSON, RPC for process integrati
 ## Quick Start
 
 ```bash
-npm install -g --ignore-scripts @athena/coding-agent
+npm install -g --ignore-scripts @kushalbanda/coding-agent
 ```
 
 `--ignore-scripts` disables dependency lifecycle scripts during install. Athena does not require install scripts for normal npm installs.
 
-Installer alternative:
+Installer alternatives:
 
 ```bash
-curl -fsSL https://pi.dev/install.sh | sh
+# curl (macOS/Linux)
+curl -fsSL https://raw.githubusercontent.com/kushalBanda/Athena/main/install.sh | sh
+
+# Homebrew (macOS/Linux)
+brew tap kushalBanda/Athena https://github.com/kushalBanda/Athena
+brew install athena
 ```
 
 Authenticate with an API key:
@@ -446,7 +451,7 @@ See [docs/packages.md](docs/packages.md).
 ### SDK
 
 ```typescript
-import { createAgentSession, ModelRuntime, SessionManager } from "@athena/coding-agent";
+import { createAgentSession, ModelRuntime, SessionManager } from "@kushalbanda/coding-agent";
 
 const modelRuntime = await ModelRuntime.create();
 const { session } = await createAgentSession({
@@ -684,9 +689,9 @@ MIT
 
 ## See Also
 
-- [@athena/ai](https://www.npmjs.com/package/@athena/ai): Core LLM toolkit
-- [@athena/agent-core](https://www.npmjs.com/package/@athena/agent-core): Agent framework
-- [@athena/tui](https://www.npmjs.com/package/@athena/tui): Terminal UI components
+- [@kushalbanda/ai](https://www.npmjs.com/package/@kushalbanda/ai): Core LLM toolkit
+- [@kushalbanda/agent-core](https://www.npmjs.com/package/@kushalbanda/agent-core): Agent framework
+- [@kushalbanda/tui](https://www.npmjs.com/package/@kushalbanda/tui): Terminal UI components
 
 <p align="center">
   <a href="https://pi.dev">pi.dev</a> domain graciously donated by

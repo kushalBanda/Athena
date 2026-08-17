@@ -23,8 +23,8 @@ import type {
 	AgentTool,
 	PrepareNextTurnContext,
 	ThinkingLevel,
-} from "@athena/agent-core";
-import { contentText } from "@athena/ai";
+} from "@kushalbanda/agent-core";
+import { contentText } from "@kushalbanda/ai";
 import type {
 	AssistantMessage,
 	AuthResult,
@@ -33,7 +33,7 @@ import type {
 	ProviderHeaders,
 	TextContent,
 	Usage,
-} from "@athena/ai/compat";
+} from "@kushalbanda/ai/compat";
 import {
 	clampThinkingLevel,
 	cleanupSessionResources,
@@ -45,7 +45,7 @@ import {
 	type RetryCallbacks,
 	resetApiProviders,
 	streamSimple,
-} from "@athena/ai/compat";
+} from "@kushalbanda/ai/compat";
 import { getThemeByName, theme } from "../modes/interactive/theme/theme.ts";
 import { stripFrontmatter } from "../utils/frontmatter.ts";
 import { resolvePath } from "../utils/paths.ts";

@@ -14,7 +14,7 @@
  *
  * Note: Regular !command syntax (whole-line bash) is preserved and works as before.
  */
-import type { ExtensionAPI } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 
 export default function (athena: ExtensionAPI) {
 	const PATTERN = /!\{([^}]+)\}/g;

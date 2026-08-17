@@ -10,7 +10,7 @@
  * 3. When enabled, the agent will respond like a pirate
  */
 
-import type { ExtensionAPI } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 
 export default function pirateExtension(athena: ExtensionAPI) {
 	let pirateMode = false;

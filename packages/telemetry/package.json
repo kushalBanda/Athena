@@ -1,6 +1,6 @@
 {
-	"name": "@athena/telemetry",
-	"version": "0.84.2",
+	"name": "@kushalbanda/telemetry",
+	"version": "1.0.0",
 	"description": "Vendor-neutral telemetry contracts and typed schema utilities for athena",
 	"type": "module",
 	"main": "./dist/index.js",

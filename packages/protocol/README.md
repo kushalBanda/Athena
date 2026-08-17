@@ -1,4 +1,4 @@
-# @athena/protocol
+# @kushalbanda/protocol
 
 Runtime-neutral schemas, types, CBOR encoding, and byte-stream framing for the experimental athena protocol.
 
@@ -21,7 +21,7 @@ import {
   createServerMessageDecoder,
   encodeClientMessage,
   type ClientHello,
-} from "@athena/protocol";
+} from "@kushalbanda/protocol";
 
 const hello: ClientHello = {
   type: "hello",

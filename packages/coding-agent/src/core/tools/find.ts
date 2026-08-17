@@ -1,6 +1,6 @@
 import { createInterface } from "node:readline";
-import type { AgentTool } from "@athena/agent-core";
-import { Text } from "@athena/tui";
+import type { AgentTool } from "@kushalbanda/agent-core";
+import { Text } from "@kushalbanda/tui";
 import { spawn } from "child_process";
 import path from "path";
 import { type Static, Type } from "typebox";

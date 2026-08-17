@@ -1,5 +1,5 @@
 import { join } from "node:path";
-import { Markdown, type MarkdownTheme } from "@athena/tui";
+import { Markdown, type MarkdownTheme } from "@kushalbanda/tui";
 import chalk from "chalk";
 import { selectConfig } from "./cli/config-selector.ts";
 import { createProjectTrustContext } from "./cli/project-trust.ts";
@@ -24,7 +24,7 @@ import { DefaultResourceLoader } from "./core/resource-loader.ts";
 import { SettingsManager } from "./core/settings-manager.ts";
 import { hasTrustRequiringProjectResources, ProjectTrustStore } from "./core/trust-manager.ts";
 import { spawnProcess } from "./utils/child-process.ts";
-import { formatVersionCheckError, getLatestPiRelease, isNewerPackageVersion } from "./utils/version-check.ts";
+import { formatVersionCheckError, getLatestAthenaRelease, isNewerPackageVersion } from "./utils/version-check.ts";
 import {
 	cleanupWindowsSelfUpdateQuarantine,
 	quarantineWindowsNativeDependencies,
@@ -474,9 +474,9 @@ interface SelfUpdatePlan {
 }
 
 async function getSelfUpdatePlan(force: boolean): Promise<SelfUpdatePlan> {
-	let latestRelease: Awaited<ReturnType<typeof getLatestPiRelease>>;
+	let latestRelease: Awaited<ReturnType<typeof getLatestAthenaRelease>>;
 	try {
-		latestRelease = await getLatestPiRelease(VERSION, { retry: true });
+		latestRelease = await getLatestAthenaRelease(VERSION, { retry: true });
 	} catch (error: unknown) {
 		throw new Error(`Could not determine latest ${APP_NAME} version: ${formatVersionCheckError(error)}`, {
 			cause: error,

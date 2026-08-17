@@ -1,6 +1,6 @@
-import type { TextContent } from "@athena/ai";
-import type { Component } from "@athena/tui";
-import { Box, Container, Markdown, type MarkdownTheme, Spacer, Text } from "@athena/tui";
+import type { TextContent } from "@kushalbanda/ai";
+import type { Component } from "@kushalbanda/tui";
+import { Box, Container, Markdown, type MarkdownTheme, Spacer, Text } from "@kushalbanda/tui";
 import type { MessageRenderer } from "../../../core/extensions/types.ts";
 import type { CustomMessage } from "../../../core/messages.ts";
 import { getMarkdownTheme, theme } from "../theme/theme.ts";

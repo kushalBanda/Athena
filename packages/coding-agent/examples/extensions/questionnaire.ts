@@ -5,7 +5,7 @@
  * Multiple questions: tab bar navigation between questions
  */
 
-import type { ExtensionAPI } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 import {
 	Editor,
 	type EditorTheme,
@@ -14,7 +14,7 @@ import {
 	Text,
 	visibleWidth,
 	wrapTextWithAnsi,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import { Type } from "typebox";
 
 // Types

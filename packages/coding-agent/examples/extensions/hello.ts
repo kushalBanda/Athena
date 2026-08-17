@@ -2,8 +2,8 @@
  * Hello Tool - Minimal custom tool example
  */
 
-import { Type } from "@athena/ai";
-import { defineTool, type ExtensionAPI } from "@athena/coding-agent";
+import { Type } from "@kushalbanda/ai";
+import { defineTool, type ExtensionAPI } from "@kushalbanda/coding-agent";
 
 const helloTool = defineTool({
 	name: "hello",

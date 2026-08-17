@@ -9,7 +9,7 @@ import {
 	type ServerEvent,
 	type ServerSnapshot,
 	type SessionMetadata,
-} from "@athena/protocol";
+} from "@kushalbanda/protocol";
 import { Connection } from "./connection.ts";
 import {
 	AthenaClientDisposedError,

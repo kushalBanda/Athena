@@ -13,7 +13,7 @@
  * Try it in a project containing .athena, AGENTS.md/CLAUDE.md, or .agents/skills.
  */
 
-import type { ExtensionAPI, ProjectTrustEventResult } from "@athena/coding-agent";
+import type { ExtensionAPI, ProjectTrustEventResult } from "@kushalbanda/coding-agent";
 
 export default function (athena: ExtensionAPI) {
 	let loadCount = 0;

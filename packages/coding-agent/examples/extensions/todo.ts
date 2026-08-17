@@ -10,9 +10,9 @@
  * correct for that point in history.
  */
 
-import { StringEnum } from "@athena/ai";
-import type { ExtensionAPI, ExtensionContext, Theme } from "@athena/coding-agent";
-import { matchesKey, Text, truncateToWidth } from "@athena/tui";
+import { StringEnum } from "@kushalbanda/ai";
+import type { ExtensionAPI, ExtensionContext, Theme } from "@kushalbanda/coding-agent";
+import { matchesKey, Text, truncateToWidth } from "@kushalbanda/tui";
 import { Type } from "typebox";
 
 interface Todo {

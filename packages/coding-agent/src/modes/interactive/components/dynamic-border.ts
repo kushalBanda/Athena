@@ -1,4 +1,4 @@
-import type { Component } from "@athena/tui";
+import type { Component } from "@kushalbanda/tui";
 import { theme } from "../theme/theme.ts";
 
 /**

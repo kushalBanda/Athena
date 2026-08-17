@@ -1,6 +1,6 @@
 import { readdir as fsReaddir, stat as fsStat } from "node:fs/promises";
-import type { AgentTool } from "@athena/agent-core";
-import { Text } from "@athena/tui";
+import type { AgentTool } from "@kushalbanda/agent-core";
+import { Text } from "@kushalbanda/tui";
 import nodePath from "path";
 import { type Static, Type } from "typebox";
 import { keyHint } from "../../modes/interactive/components/keybinding-hints.ts";

@@ -1,4 +1,4 @@
-import type { AssistantMessage, DeferredHandle, StopReason } from "@athena/ai";
+import type { AssistantMessage, DeferredHandle, StopReason } from "@kushalbanda/ai";
 import { Guard } from "typebox/guard";
 import type { AgentMessage, AgentToolCall, ThinkingLevel } from "../types.ts";
 import type {

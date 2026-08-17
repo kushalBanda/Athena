@@ -485,7 +485,7 @@ try {
 }
 
 const athenaConfigName: string | undefined = pkg.athenaConfig?.name;
-export const PACKAGE_NAME: string = pkg.name || "@athena/coding-agent";
+export const PACKAGE_NAME: string = pkg.name || "@kushalbanda/coding-agent";
 export const APP_NAME: string = athenaConfigName || "athena";
 export const APP_TITLE: string = APP_NAME;
 export const CONFIG_DIR_NAME: string = pkg.athenaConfig?.configDir || ".athena";

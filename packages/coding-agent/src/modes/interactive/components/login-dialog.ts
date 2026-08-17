@@ -1,5 +1,5 @@
-import type { AuthInfoLink, OAuthDeviceCodeInfo } from "@athena/ai";
-import { Container, type Focusable, getKeybindings, Input, Spacer, Text, type TUI } from "@athena/tui";
+import type { AuthInfoLink, OAuthDeviceCodeInfo } from "@kushalbanda/ai";
+import { Container, type Focusable, getKeybindings, Input, Spacer, Text, type TUI } from "@kushalbanda/tui";
 import { openBrowser } from "../../../utils/open-browser.ts";
 import { theme } from "../theme/theme.ts";
 import { DynamicBorder } from "./dynamic-border.ts";

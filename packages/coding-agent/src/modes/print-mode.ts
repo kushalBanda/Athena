@@ -6,7 +6,7 @@
  * - `athena --mode json "prompt"` - JSON event stream
  */
 
-import type { AssistantMessage, ImageContent } from "@athena/ai";
+import type { AssistantMessage, ImageContent } from "@kushalbanda/ai";
 import type { AgentSessionRuntime } from "../core/agent-session-runtime.ts";
 import { flushRawStdout, waitForRawStdoutBackpressure, writeRawStdout } from "../core/output-guard.ts";
 import { killTrackedDetachedChildren } from "../utils/shell.ts";

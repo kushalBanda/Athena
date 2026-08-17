@@ -42,8 +42,8 @@ import {
 	type Tool,
 	type ToolCall,
 	type ToolResultMessage,
-} from "@athena/ai";
-import type { ExtensionAPI } from "@athena/coding-agent";
+} from "@kushalbanda/ai";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 
 // =============================================================================
 // OAuth implementation adapted for the legacy extension compatibility interface.

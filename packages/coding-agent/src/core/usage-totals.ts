@@ -1,4 +1,4 @@
-import type { Usage } from "@athena/ai/compat";
+import type { Usage } from "@kushalbanda/ai/compat";
 import type { SessionEntry } from "./session-manager.ts";
 
 export interface UsageTotals {

@@ -25,9 +25,9 @@
  *   athena -e ./built-in-tool-renderer.ts
  */
 
-import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@athena/coding-agent";
-import { createBashTool, createEditTool, createReadTool, createWriteTool } from "@athena/coding-agent";
-import { Text } from "@athena/tui";
+import type { BashToolDetails, EditToolDetails, ExtensionAPI, ReadToolDetails } from "@kushalbanda/coding-agent";
+import { createBashTool, createEditTool, createReadTool, createWriteTool } from "@kushalbanda/coding-agent";
+import { Text } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {
 	const cwd = process.cwd();

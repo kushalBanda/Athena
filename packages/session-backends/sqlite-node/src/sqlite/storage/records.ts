@@ -1,4 +1,4 @@
-import { SessionError } from "@athena/agent-core";
+import { SessionError } from "@kushalbanda/agent-core";
 import { joinSqlFragments, sql } from "../sql.ts";
 import type { SqliteDatabase } from "../types.ts";
 

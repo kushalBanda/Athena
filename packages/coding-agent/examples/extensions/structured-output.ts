@@ -5,8 +5,8 @@
  * without paying for an extra follow-up LLM turn.
  */
 
-import { defineTool, type ExtensionAPI } from "@athena/coding-agent";
-import { Text } from "@athena/tui";
+import { defineTool, type ExtensionAPI } from "@kushalbanda/coding-agent";
+import { Text } from "@kushalbanda/tui";
 import { Type } from "typebox";
 
 interface StructuredOutputDetails {

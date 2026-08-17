@@ -1,26 +1,26 @@
 class Athena < Formula
   desc "Athena AI coding agent CLI"
   homepage "https://github.com/kushalBanda/Athena"
-  version "0.1.6"
+  version "1.0.0"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.arm?
-      url "https://github.com/kushalBanda/Athena/releases/download/v0.1.6/athena-darwin-arm64.tar.gz"
-      sha256 "8a2444d1975ce6cf479c08057df814acfda359db7b140e03150f3af210e6fd65"
+      url "https://github.com/kushalBanda/Athena/releases/download/v1.0.0/athena-darwin-arm64.tar.gz"
+      sha256 "33deea9e58ada9dd055e218308bc6216488c3563d954690e2f2bcb4268a5cb8c"
     else
-      url "https://github.com/kushalBanda/Athena/releases/download/v0.1.6/athena-darwin-x64.tar.gz"
-      sha256 "3110ae5d3192db6901846ba83d4c950129194048c88c77f813df83b2d8c706a6"
+      url "https://github.com/kushalBanda/Athena/releases/download/v1.0.0/athena-darwin-x64.tar.gz"
+      sha256 "2f640d3ab703417de67c418fdf218115be677c3e9db551a4f8795067772d7a73"
     end
   end
 
   on_linux do
     if Hardware::CPU.arm?
-      url "https://github.com/kushalBanda/Athena/releases/download/v0.1.6/athena-linux-arm64.tar.gz"
-      sha256 "d16e1e4471e72ea6cdf999d2de937b01aab10d25ff8f1ea261a58f6163961768"
+      url "https://github.com/kushalBanda/Athena/releases/download/v1.0.0/athena-linux-arm64.tar.gz"
+      sha256 "7755d75d9772c91eb71679a4d713b98ba458f4fb154e753d6ddb74d71fc5ccb6"
     else
-      url "https://github.com/kushalBanda/Athena/releases/download/v0.1.6/athena-linux-x64.tar.gz"
-      sha256 "60b6e8ffd771f3b2a1668215b057cee1bc1a08c7f3aecd1984b39ec3bc659e3a"
+      url "https://github.com/kushalBanda/Athena/releases/download/v1.0.0/athena-linux-x64.tar.gz"
+      sha256 "1093b4d58154135043a0954871d7f4284103852e7f2cd14add5ce58149ad9e78"
     end
   end
 

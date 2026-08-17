@@ -8,9 +8,9 @@
  * Token stats come from ctx.sessionManager/ctx.model (already accessible).
  */
 
-import type { AssistantMessage } from "@athena/ai";
-import type { ExtensionAPI } from "@athena/coding-agent";
-import { truncateToWidth, visibleWidth } from "@athena/tui";
+import type { AssistantMessage } from "@kushalbanda/ai";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import { truncateToWidth, visibleWidth } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {
 	let enabled = false;

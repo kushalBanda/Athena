@@ -1,4 +1,4 @@
-import type { Api, Model, ProviderHeaders } from "@athena/ai";
+import type { Api, Model, ProviderHeaders } from "@kushalbanda/ai";
 import type { SettingsManager } from "./settings-manager.ts";
 import { isInstallTelemetryEnabled } from "./telemetry.ts";
 

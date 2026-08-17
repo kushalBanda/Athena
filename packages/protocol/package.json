@@ -1,6 +1,6 @@
 {
-	"name": "@athena/protocol",
-	"version": "0.84.2",
+	"name": "@kushalbanda/protocol",
+	"version": "1.0.0",
 	"description": "Transport-neutral CBOR protocol for remote athena sessions",
 	"type": "module",
 	"main": "./dist/index.js",

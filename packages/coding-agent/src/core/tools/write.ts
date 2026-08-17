@@ -1,5 +1,5 @@
-import type { AgentTool } from "@athena/agent-core";
-import { Container, Text } from "@athena/tui";
+import type { AgentTool } from "@kushalbanda/agent-core";
+import { Container, Text } from "@kushalbanda/tui";
 import { mkdir as fsMkdir, writeFile as fsWriteFile } from "fs/promises";
 import { dirname } from "path";
 import { type Static, Type } from "typebox";

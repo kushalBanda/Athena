@@ -1,6 +1,6 @@
-# @athena/session-backend-sqlite-node
+# @kushalbanda/session-backend-sqlite-node
 
-Node sqlite session backend for `@athena/agent-core` sessions. Provides the
+Node sqlite session backend for `@kushalbanda/agent-core` sessions. Provides the
 `node:sqlite` adapter (`SqliteDatabase` implementation), SQLite session repository,
 migrations, materialized views, and optional FTS search.
 

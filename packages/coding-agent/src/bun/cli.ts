@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { registerBunOAuthFlows } from "@athena/ai/bun-oauth";
+import { registerBunOAuthFlows } from "@kushalbanda/ai/bun-oauth";
 import { APP_NAME } from "../config.ts";
 
 process.title = APP_NAME;

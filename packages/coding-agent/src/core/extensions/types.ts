@@ -14,7 +14,7 @@ import type {
 	AgentToolUpdateCallback,
 	ThinkingLevel,
 	ToolExecutionMode,
-} from "@athena/agent-core";
+} from "@kushalbanda/agent-core";
 import type {
 	Api,
 	AssistantMessageEvent,
@@ -32,7 +32,7 @@ import type {
 	TextContent,
 	ToolResultMessage,
 	Usage,
-} from "@athena/ai";
+} from "@kushalbanda/ai";
 import type {
 	AutocompleteItem,
 	AutocompleteProvider,
@@ -43,7 +43,7 @@ import type {
 	OverlayHandle,
 	OverlayOptions,
 	TUI,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import type { Static, TSchema } from "typebox";
 import type { Theme } from "../../modes/interactive/theme/theme.ts";
 import type { BashResult } from "../bash-executor.ts";
@@ -233,12 +233,12 @@ export interface ExtensionUIContext {
 	 * - `keybindings`: KeybindingsManager for app-level keybindings
 	 *
 	 * For full app keybinding support (escape, ctrl+d, model switching, etc.),
-	 * extend `CustomEditor` from `@athena/coding-agent` and call
+	 * extend `CustomEditor` from `@kushalbanda/coding-agent` and call
 	 * `super.handleInput(data)` for keys you don't handle.
 	 *
 	 * @example
 	 * ```ts
-	 * import { CustomEditor } from "@athena/coding-agent";
+	 * import { CustomEditor } from "@kushalbanda/coding-agent";
 	 *
 	 * class VimEditor extends CustomEditor {
 	 *   private mode: "normal" | "insert" = "insert";

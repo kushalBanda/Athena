@@ -1,4 +1,4 @@
-import type { ModelsRefreshResult } from "@athena/ai";
+import type { ModelsRefreshResult } from "@kushalbanda/ai";
 import type { ModelRuntime } from "../../core/model-runtime.ts";
 import { raceWithAbortSignal } from "../../utils/abort.ts";
 

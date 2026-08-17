@@ -1,5 +1,5 @@
-import { SessionError } from "@athena/agent-core";
-import { uuidv7 } from "@athena/ai";
+import { SessionError } from "@kushalbanda/agent-core";
+import { uuidv7 } from "@kushalbanda/ai";
 import { sql } from "./sql.ts";
 import {
 	copyBranchEntriesThroughSeq,

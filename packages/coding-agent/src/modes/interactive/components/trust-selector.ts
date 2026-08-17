@@ -1,4 +1,4 @@
-import { Container, getKeybindings, Spacer, Text } from "@athena/tui";
+import { Container, getKeybindings, Spacer, Text } from "@kushalbanda/tui";
 import {
 	getProjectTrustOptions,
 	type ProjectTrustOption,

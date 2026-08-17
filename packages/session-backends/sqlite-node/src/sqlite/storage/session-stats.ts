@@ -1,5 +1,5 @@
-import { SessionError, type SessionStats } from "@athena/agent-core";
-import type { Usage } from "@athena/ai";
+import { SessionError, type SessionStats } from "@kushalbanda/agent-core";
+import type { Usage } from "@kushalbanda/ai";
 import { sql } from "../sql.ts";
 import type { SqliteDatabase } from "../types.ts";
 

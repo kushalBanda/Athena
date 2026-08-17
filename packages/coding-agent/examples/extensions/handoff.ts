@@ -12,10 +12,10 @@
  * The generated prompt appears as a draft in the editor for review/editing.
  */
 
-import type { AgentMessage } from "@athena/agent-core";
-import { type Message, uuidv7 } from "@athena/ai";
-import type { ExtensionAPI, SessionEntry } from "@athena/coding-agent";
-import { BorderedLoader, convertToLlm, serializeConversation } from "@athena/coding-agent";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import { type Message, uuidv7 } from "@kushalbanda/ai";
+import type { ExtensionAPI, SessionEntry } from "@kushalbanda/coding-agent";
+import { BorderedLoader, convertToLlm, serializeConversation } from "@kushalbanda/coding-agent";
 
 const SYSTEM_PROMPT = `You are a context transfer assistant. Given a conversation history and the user's goal for a new thread, generate a focused prompt that:
 

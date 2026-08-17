@@ -4,7 +4,7 @@ import type {
 	AthenaClient,
 	SessionLease,
 	Unsubscribe,
-} from "@athena/client";
+} from "@kushalbanda/client";
 import type {
 	ModelMetadata,
 	ModelRef,
@@ -14,7 +14,7 @@ import type {
 	SessionSnapshot,
 	ThinkingLevel,
 	TranscriptItem,
-} from "@athena/protocol";
+} from "@kushalbanda/protocol";
 import {
 	applyTranscriptProgress,
 	applyTranscriptSnapshot,

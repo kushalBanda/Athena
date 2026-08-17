@@ -1,4 +1,4 @@
-import { Container, type SelectItem, SelectList, type SelectListLayoutOptions } from "@athena/tui";
+import { Container, type SelectItem, SelectList, type SelectListLayoutOptions } from "@kushalbanda/tui";
 import { getAvailableThemes, getSelectListTheme } from "../theme/theme.ts";
 import { DynamicBorder } from "./dynamic-border.ts";
 

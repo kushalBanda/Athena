@@ -21,8 +21,8 @@ import {
 	openAIResponsesApi,
 	type SimpleStreamOptions,
 	type ThinkingLevelMap,
-} from "@athena/ai/compat";
-import type { ExtensionAPI } from "@athena/coding-agent";
+} from "@kushalbanda/ai/compat";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 
 // =============================================================================
 // Constants

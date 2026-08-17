@@ -1,4 +1,4 @@
-import type { AssistantMessage } from "@athena/ai";
+import type { AssistantMessage } from "@kushalbanda/ai";
 import type { SessionEntry } from "./session-manager.ts";
 
 /**

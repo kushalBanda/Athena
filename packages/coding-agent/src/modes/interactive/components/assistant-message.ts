@@ -1,5 +1,5 @@
-import type { AssistantMessage } from "@athena/ai";
-import { Container, Markdown, type MarkdownTheme, Spacer, Text } from "@athena/tui";
+import type { AssistantMessage } from "@kushalbanda/ai";
+import { Container, Markdown, type MarkdownTheme, Spacer, Text } from "@kushalbanda/tui";
 import type { MarkdownTransformer } from "../../../core/extensions/types.ts";
 import { getMarkdownTheme, theme } from "../theme/theme.ts";
 import { createMarkdownTransform } from "./markdown-transform.ts";

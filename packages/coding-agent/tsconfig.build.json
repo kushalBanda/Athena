@@ -3,14 +3,14 @@
 	"compilerOptions": {
 		"outDir": "./dist",
 		"paths": {
-			"@athena/agent-core": ["../agent/dist/index.d.ts"],
-			"@athena/agent-core/*": ["../agent/dist/*.d.ts"],
-			"@athena/ai": ["../ai/dist/index.d.ts"],
-			"@athena/ai/*": ["../ai/dist/*.d.ts", "../ai/dist/providers/*.d.ts"],
-			"@athena/client": ["../client/dist/index.d.ts"],
-			"@athena/protocol": ["../protocol/dist/index.d.ts"],
-			"@athena/tui": ["../tui/dist/index.d.ts"],
-			"@athena/tui/*": ["../tui/dist/*.d.ts", "../tui/dist/components/*.d.ts"]
+			"@kushalbanda/agent-core": ["../agent/dist/index.d.ts"],
+			"@kushalbanda/agent-core/*": ["../agent/dist/*.d.ts"],
+			"@kushalbanda/ai": ["../ai/dist/index.d.ts"],
+			"@kushalbanda/ai/*": ["../ai/dist/*.d.ts", "../ai/dist/providers/*.d.ts"],
+			"@kushalbanda/client": ["../client/dist/index.d.ts"],
+			"@kushalbanda/protocol": ["../protocol/dist/index.d.ts"],
+			"@kushalbanda/tui": ["../tui/dist/index.d.ts"],
+			"@kushalbanda/tui/*": ["../tui/dist/*.d.ts", "../tui/dist/components/*.d.ts"]
 		},
 		"rootDir": "./src"
 	},

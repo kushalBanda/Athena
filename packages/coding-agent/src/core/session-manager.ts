@@ -1,5 +1,5 @@
-import type { AgentMessage } from "@athena/agent-core";
-import { type ImageContent, type Message, type TextContent, type Usage, uuidv7 } from "@athena/ai";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import { type ImageContent, type Message, type TextContent, type Usage, uuidv7 } from "@kushalbanda/ai";
 import { randomUUID } from "crypto";
 import {
 	appendFileSync,

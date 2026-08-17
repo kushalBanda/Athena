@@ -3,7 +3,7 @@
  * Provider auth orchestration belongs to ModelRuntime and athena-ai Models.
  */
 
-import type { AuthOperationOptions, Credential, CredentialInfo, CredentialStore } from "@athena/ai";
+import type { AuthOperationOptions, Credential, CredentialInfo, CredentialStore } from "@kushalbanda/ai";
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import lockfile from "proper-lockfile";

@@ -3,10 +3,10 @@
 	"compilerOptions": {
 		"noEmit": true,
 		"paths": {
-			"@athena/coding-agent": ["./src/index.ts"],
-			"@athena/coding-agent/hooks": ["./src/core/hooks/index.ts"],
-			"@athena/tui": ["../tui/src/index.ts"],
-			"@athena/ai": ["../ai/src/index.ts"],
+			"@kushalbanda/coding-agent": ["./src/index.ts"],
+			"@kushalbanda/coding-agent/hooks": ["./src/core/hooks/index.ts"],
+			"@kushalbanda/tui": ["../tui/src/index.ts"],
+			"@kushalbanda/ai": ["../ai/src/index.ts"],
 			"typebox": ["../../node_modules/typebox"]
 		},
 		"skipLibCheck": true

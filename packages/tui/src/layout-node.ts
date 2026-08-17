@@ -1,6 +1,6 @@
 import type { Component } from "./tui.ts";
 
-export const LAYOUT_NODE = Symbol.for("@athena/tui/layout-node");
+export const LAYOUT_NODE = Symbol.for("@kushalbanda/tui/layout-node");
 
 export interface LayoutViewport {
 	width: number;

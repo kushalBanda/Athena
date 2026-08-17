@@ -1,7 +1,7 @@
 import { basename, dirname, isAbsolute, relative, resolve as resolvePath, sep } from "node:path";
-import type { AgentTool } from "@athena/agent-core";
-import type { Api, ImageContent, Model, TextContent } from "@athena/ai";
-import { Text } from "@athena/tui";
+import type { AgentTool } from "@kushalbanda/agent-core";
+import type { Api, ImageContent, Model, TextContent } from "@kushalbanda/ai";
+import { Text } from "@kushalbanda/tui";
 import { constants } from "fs";
 import { access as fsAccess, readFile as fsReadFile } from "fs/promises";
 import { type Static, Type } from "typebox";
@@ -101,7 +101,7 @@ function toPosixPath(filePath: string): string {
 	return filePath.split(sep).join("/");
 }
 
-function getPiDocsClassification(absolutePath: string): CompactReadClassification | undefined {
+function getAthenaDocsClassification(absolutePath: string): CompactReadClassification | undefined {
 	const packageRoot = dirname(getReadmePath());
 	const relativePath = relative(resolvePath(packageRoot), resolvePath(absolutePath));
 	if (
@@ -133,7 +133,7 @@ function getCompactReadClassification(
 		return { kind: "skill", label: basename(dirname(absolutePath)) || fileName };
 	}
 
-	const docsClassification = getPiDocsClassification(absolutePath);
+	const docsClassification = getAthenaDocsClassification(absolutePath);
 	if (docsClassification) return docsClassification;
 
 	if (COMPACT_RESOURCE_FILE_NAMES.has(fileName)) {

@@ -1,4 +1,4 @@
-# @athena/telemetry
+# @kushalbanda/telemetry
 
 Vendor-neutral telemetry contracts and typed schema utilities for Athena packages.
 
@@ -33,7 +33,7 @@ Applications can use the in-memory reference or provide an adapter for OpenTelem
 ## Installation
 
 ```bash
-npm install @athena/telemetry
+npm install @kushalbanda/telemetry
 ```
 
 ## Telemetry Concepts
@@ -69,7 +69,7 @@ A `TelemetryContext` starts a span around a callback. The callback receives a `T
 import {
   NOOP_TELEMETRY_CONTEXT,
   type TelemetryContext,
-} from '@athena/telemetry';
+} from '@kushalbanda/telemetry';
 
 async function loadAccount(
   accountId: string,
@@ -136,7 +136,7 @@ Adapters may activate backend-native ambient context internally for automatic in
 Use `NOOP_TELEMETRY_CONTEXT` when telemetry is optional:
 
 ```typescript
-import { NOOP_TELEMETRY_CONTEXT } from '@athena/telemetry';
+import { NOOP_TELEMETRY_CONTEXT } from '@kushalbanda/telemetry';
 
 const result = await NOOP_TELEMETRY_CONTEXT.startSpan(
   { name: 'example.operation' },
@@ -156,7 +156,7 @@ The no-op context:
 `InMemoryTelemetryContext` is the backend-neutral reference implementation. It is useful for tests, local diagnostics, and applications that intentionally want process-local capture without an exporter:
 
 ```typescript
-import { InMemoryTelemetryContext } from '@athena/telemetry';
+import { InMemoryTelemetryContext } from '@kushalbanda/telemetry';
 
 const telemetry = new InMemoryTelemetryContext();
 
@@ -177,13 +177,13 @@ The adapter is safe to use as an ordinary `TelemetryContext`, but storage is unb
 
 ## Adapter Conformance
 
-`@athena/telemetry/testing` exports a runner-independent conformance suite modeled as grouped cases. A fixture supplies a fresh context and converts its backend's finished spans into normalized `RecordedTelemetrySpan` snapshots:
+`@kushalbanda/telemetry/testing` exports a runner-independent conformance suite modeled as grouped cases. A fixture supplies a fresh context and converts its backend's finished spans into normalized `RecordedTelemetrySpan` snapshots:
 
 ```typescript
 import {
   createTelemetryAdapterConformance,
   type TelemetryAdapterFixture,
-} from '@athena/telemetry/testing';
+} from '@kushalbanda/telemetry/testing';
 import { describe, it } from 'vitest';
 
 const conformance = createTelemetryAdapterConformance(async () => {
@@ -216,7 +216,7 @@ The low-level span API intentionally accepts open names and attribute bags so ad
 import {
   createTypedSpanStarter,
   defineTelemetrySchema,
-} from '@athena/telemetry';
+} from '@kushalbanda/telemetry';
 
 export const EXAMPLE_TELEMETRY_SCHEMA = defineTelemetrySchema({
   version: 1,
@@ -323,7 +323,7 @@ Attributes do not end the span. Returning, resolving, throwing, or rejecting fro
 A starter can compose multiple independently versioned schemas:
 
 ```typescript
-import { AGENT_TELEMETRY_SCHEMAS } from '@athena/agent-core';
+import { AGENT_TELEMETRY_SCHEMAS } from '@kushalbanda/agent-core';
 
 const startAgentSpan = createTypedSpanStarter(
   telemetryContext,
@@ -366,9 +366,9 @@ Adapters do not need to understand schema objects. Instrumentation helpers and t
 
 Package ownership is intentionally split:
 
-- `@athena/telemetry` owns the vendor-neutral contract, no-op and in-memory reference contexts, schema utilities, and adapter conformance suite;
-- `@athena/ai` accepts and propagates `telemetryContext` in provider request options but owns no telemetry schema;
-- `@athena/agent-core` owns and exports the Athena AI-request and harness schemas, their combined readonly schema tuple, and typed span helpers.
+- `@kushalbanda/telemetry` owns the vendor-neutral contract, no-op and in-memory reference contexts, schema utilities, and adapter conformance suite;
+- `@kushalbanda/ai` accepts and propagates `telemetryContext` in provider request options but owns no telemetry schema;
+- `@kushalbanda/agent-core` owns and exports the Athena AI-request and harness schemas, their combined readonly schema tuple, and typed span helpers.
 
 ```typescript
 import {
@@ -377,7 +377,7 @@ import {
   HARNESS_TELEMETRY_SCHEMA,
   startAiSpan,
   startHarnessSpan,
-} from '@athena/agent-core';
+} from '@kushalbanda/agent-core';
 ```
 
 The Athena schemas use Athena-owned `athena.ai.*`, `athena.harness.*`, and `athena.session.*` names. Adapters may translate them to backend conventions without changing the emitted Athena vocabulary.

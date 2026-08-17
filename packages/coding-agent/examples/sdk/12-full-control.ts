@@ -4,7 +4,7 @@
  * Replace everything - no discovery, explicit configuration.
  */
 
-import { getModel } from "@athena/ai/compat";
+import { getModel } from "@kushalbanda/ai/compat";
 import {
 	createAgentSession,
 	createExtensionRuntime,
@@ -12,7 +12,7 @@ import {
 	type ResourceLoader,
 	SessionManager,
 	SettingsManager,
-} from "@athena/coding-agent";
+} from "@kushalbanda/coding-agent";
 
 const modelRuntime = await ModelRuntime.create({
 	authPath: "/tmp/my-agent/auth.json",

@@ -2,8 +2,8 @@
  * Shared utilities for compaction and branch summarization.
  */
 
-import type { AgentMessage } from "@athena/agent-core";
-import { contentText, type Message } from "@athena/ai";
+import type { AgentMessage } from "@kushalbanda/agent-core";
+import { contentText, type Message } from "@kushalbanda/ai";
 
 // ============================================================================
 // File Operation Tracking

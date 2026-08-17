@@ -5,7 +5,7 @@
  * from cwd and ~/.athena/agent. Model chosen from settings or first available.
  */
 
-import { createAgentSession } from "@athena/coding-agent";
+import { createAgentSession } from "@kushalbanda/coding-agent";
 
 const { session } = await createAgentSession();
 

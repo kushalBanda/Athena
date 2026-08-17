@@ -5,7 +5,7 @@
  * tool that queues a follow-up command to trigger reload.
  */
 
-import type { ExtensionAPI } from "@athena/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/coding-agent";
 import { Type } from "typebox";
 
 export default function (athena: ExtensionAPI) {

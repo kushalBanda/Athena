@@ -1,6 +1,6 @@
 import { join } from "node:path";
-import type { ThinkingLevel } from "@athena/agent-core";
-import type { Model } from "@athena/ai";
+import type { ThinkingLevel } from "@kushalbanda/agent-core";
+import type { Model } from "@kushalbanda/ai";
 import { getAgentDir } from "../config.ts";
 import { resolvePath } from "../utils/paths.ts";
 import type { SessionStartEvent, ToolDefinition } from "./extensions/index.ts";

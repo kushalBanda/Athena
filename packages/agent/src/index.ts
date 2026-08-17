@@ -1,6 +1,6 @@
 // Core Agent
 
-export { uuidv7 } from "@athena/ai";
+export { uuidv7 } from "@kushalbanda/ai";
 export type {
 	AttributeValue,
 	ExactTelemetryAttributes,
@@ -33,13 +33,13 @@ export type {
 	TelemetrySpanDefinition,
 	TelemetryStartAttributeDefinition,
 	TypedSpanStarter,
-} from "@athena/telemetry";
+} from "@kushalbanda/telemetry";
 export {
 	createTypedSpanStarter,
 	defineTelemetrySchema,
 	InMemoryTelemetryContext,
 	NOOP_TELEMETRY_CONTEXT,
-} from "@athena/telemetry";
+} from "@kushalbanda/telemetry";
 export * from "./agent.ts";
 // Loop functions
 export * from "./agent-loop.ts";

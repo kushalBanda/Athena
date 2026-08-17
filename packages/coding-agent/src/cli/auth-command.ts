@@ -1,4 +1,4 @@
-import type { AuthResult } from "@athena/ai";
+import type { AuthResult } from "@kushalbanda/ai";
 import { APP_NAME } from "../config.ts";
 import type { Args } from "./args.ts";
 

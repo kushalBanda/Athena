@@ -10,7 +10,7 @@
  * extensions system using athena.registerTool().
  */
 
-import { createAgentSession, SessionManager } from "@athena/coding-agent";
+import { createAgentSession, SessionManager } from "@kushalbanda/coding-agent";
 
 // Read-only mode (no edit/write)
 const { session: readOnlySession } = await createAgentSession({

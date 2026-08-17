@@ -7,7 +7,7 @@
  * Usage: /emit [event-name] [data] - emit an event on the bus
  */
 
-import type { ExtensionAPI, ExtensionContext } from "@athena/coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/coding-agent";
 
 export default function (athena: ExtensionAPI) {
 	// Store ctx for use in event handler

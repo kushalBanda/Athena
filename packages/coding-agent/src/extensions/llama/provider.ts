@@ -6,8 +6,8 @@ import type {
 	Provider,
 	ProviderStreamOptions,
 	RefreshModelsContext,
-} from "@athena/ai";
-import { stream, streamSimple } from "@athena/ai/compat";
+} from "@kushalbanda/ai";
+import { stream, streamSimple } from "@kushalbanda/ai/compat";
 import { LlamaClient, type LlamaModelInfo, llamaInferenceUrl, normalizeLlamaServerUrl } from "./client.ts";
 
 export const LLAMA_PROVIDER_ID = "llama.cpp";
@@ -25,7 +25,7 @@ async function resolveServerUrl(
 	return configured ? normalizeLlamaServerUrl(configured) : undefined;
 }
 
-function toPiModel(model: LlamaModelInfo, serverUrl: string): Model<"openai-completions"> {
+function toAthenaModel(model: LlamaModelInfo, serverUrl: string): Model<"openai-completions"> {
 	const reportedContextWindow = model.meta?.n_ctx ?? model.meta?.n_ctx_train;
 	const contextWindow = reportedContextWindow && reportedContextWindow > 0 ? reportedContextWindow : 128000;
 	return {
@@ -59,7 +59,7 @@ export function createLlamaProvider(): LlamaProviderController {
 	let models: readonly Model<"openai-completions">[] = [];
 
 	const setCatalog = (catalog: readonly LlamaModelInfo[], serverUrl: string): void => {
-		models = catalog.filter((model) => model.status.value === "loaded").map((model) => toPiModel(model, serverUrl));
+		models = catalog.filter((model) => model.status.value === "loaded").map((model) => toAthenaModel(model, serverUrl));
 	};
 
 	const provider: Provider<"openai-completions"> = {
@@ -134,7 +134,7 @@ export function createLlamaProvider(): LlamaProviderController {
 			if (context.signal.aborted) return;
 			const refreshed = catalog
 				.filter((model) => model.status.value === "loaded")
-				.map((model) => toPiModel(model, serverUrl));
+				.map((model) => toAthenaModel(model, serverUrl));
 			await context.publish({
 				persist: { models: refreshed, checkedAt: Date.now() },
 				update: () => {

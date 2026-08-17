@@ -8,8 +8,8 @@
  * - Edge case tests (wide chars, styled text, emoji)
  */
 
-import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@athena/coding-agent";
-import { CURSOR_MARKER, type Focusable, matchesKey, visibleWidth } from "@athena/tui";
+import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@kushalbanda/coding-agent";
+import { CURSOR_MARKER, type Focusable, matchesKey, visibleWidth } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {
 	athena.registerCommand("overlay-test", {

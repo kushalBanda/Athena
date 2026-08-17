@@ -1,4 +1,4 @@
-import { type Model, modelsAreEqual } from "@athena/ai";
+import { type Model, modelsAreEqual } from "@kushalbanda/ai";
 import {
 	Container,
 	type Focusable,
@@ -8,7 +8,7 @@ import {
 	Spacer,
 	Text,
 	type TUI,
-} from "@athena/tui";
+} from "@kushalbanda/tui";
 import type { ModelRuntime } from "../../../core/model-runtime.ts";
 import type { SettingsManager } from "../../../core/settings-manager.ts";
 import { refreshModelCatalogs } from "../model-catalog-refresh.ts";
