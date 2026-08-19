@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Athena, an agent that knows your codebase, not just your prompt</title>
+<meta name="description" content="Athena is an open-source AI coding agent for the terminal that knows your codebase, not just your prompt.">
+<style>
+  :root {
+    --bg: #121214;
+    --fg: #ece9e4;
+    --muted: #6b6b70;
+    --accent: #f2986b;
+    --border: #26262b;
+    --panel: #18181b;
+  }
+  * { box-sizing: border-box; }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
+  }
+  body {
+    background: var(--bg);
+    color: var(--fg);
+    font-family: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+    margin: 0;
+    line-height: 1.6;
+  }
+  .mono { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
+  .wrap { max-width: 760px; margin: 0 auto; padding: 5rem 1.5rem 4rem; }
+
+  .kicker {
+    font-size: 0.8rem;
+    color: var(--muted);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 1.5rem;
+  }
+
+  .terminal {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 20px 60px -20px rgba(0,0,0,0.6);
+  }
+  .terminal-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.7rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #3a3a3f; }
+  .terminal-title {
+    margin-left: 0.5rem;
+    font-size: 0.75rem;
+    color: var(--muted);
+  }
+  .copy-btn {
+    margin-left: auto;
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    border-radius: 6px;
+    padding: 0.25rem 0.6rem;
+    font-family: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+  }
+  .copy-btn:hover { color: var(--fg); border-color: var(--accent); }
+  .copy-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+  .terminal-body {
+    padding: 1.4rem 1.4rem 1.6rem;
+    font-size: 0.95rem;
+    min-height: 92px;
+  }
+  .prompt { color: var(--accent); }
+  #typed { white-space: pre-wrap; }
+  .cursor {
+    display: inline-block;
+    width: 8px;
+    height: 1.1em;
+    background: var(--accent);
+    vertical-align: -2px;
+    animation: blink 1s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  .reply { color: var(--muted); opacity: 0; }
+
+  .tagline {
+    font-size: 1.1rem;
+    line-height: 1.4;
+    color: var(--muted);
+    margin: 2rem 0 3rem;
+    max-width: 46ch;
+  }
+
+  .capabilities .line {
+    padding: 0.55rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.92rem;
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  .capabilities .line:last-child { border-bottom: none; }
+  .capabilities .line .tag {
+    color: var(--accent);
+    margin-right: 0.6rem;
+  }
+
+  .links {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    font-size: 0.85rem;
+  }
+  .links a {
+    color: var(--fg);
+    text-decoration: none;
+    position: relative;
+    padding-bottom: 2px;
+  }
+  .links a:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px; }
+  .links a::after {
+    content: "";
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 100%; height: 1px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.25s ease;
+  }
+  .links a:hover::after, .links a:focus-visible::after { transform: scaleX(1); }
+
+  footer { margin-top: 4rem; color: var(--muted); font-size: 0.78rem; }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="kicker mono">Athena, an agent that knows your codebase, not just your prompt</p>
+
+    <div class="terminal mono">
+      <div class="terminal-bar">
+        <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        <span class="terminal-title">zsh</span>
+        <button class="copy-btn" id="copyBtn" type="button" aria-label="Copy install command">copy</button>
+      </div>
+      <div class="terminal-body">
+        <span class="prompt">$</span> <span id="typed"></span><span class="cursor"></span>
+        <div class="reply" id="reply">→ athena ready. type a task, or just start coding.</div>
+      </div>
+    </div>
+
+    <p class="tagline">Reads, edits, and runs code alongside you interactively, over RPC, 
+      or embedded via SDK. Extend it with TypeScript, skills, and themes.</p>
+
+    <div class="capabilities mono">
+      <div class="line"><span class="tag">01</span>Interactive terminal sessions</div>
+      <div class="line"><span class="tag">02</span>Print / JSON / RPC modes for scripting</div>
+      <div class="line"><span class="tag">03</span>Embeddable via SDK</div>
+      <div class="line"><span class="tag">04</span>Extensions, skills, prompt templates, themes</div>
+    </div>
+
+    <div class="links">
+      <a href="https://github.com/kushalBanda/Athena">GitHub →</a>
+      <a href="https://www.npmjs.com/package/@kushalbanda/athena">npm →</a>
+      <a href="https://github.com/kushalBanda/Athena/blob/main/Formula/athena.rb">Homebrew →</a>
+    </div>
+
+    <footer class="mono">MIT licensed. Built in the open.</footer>
+  </div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+<script>
+  const installCmd = "npm install -g @kushalbanda/athena";
+
+  if (window.gsap) {
+    gsap.registerPlugin(ScrollTrigger);
+  }
+
+  const typedEl = document.getElementById("typed");
+  const replyEl = document.getElementById("reply");
+  let i = 0;
+  function typeChar() {
+    if (i <= installCmd.length) {
+      typedEl.textContent = installCmd.slice(0, i);
+      i++;
+      setTimeout(typeChar, 28);
+    } else if (window.gsap) {
+      gsap.to(replyEl, { opacity: 1, duration: 0.6, delay: 0.3 });
+    } else {
+      replyEl.style.opacity = 1;
+    }
+  }
+  typeChar();
+
+  if (window.gsap) {
+    gsap.utils.toArray(".capabilities .line").forEach((line, idx) => {
+      gsap.to(line, {
+        opacity: 1,
+        y: 0,
+        duration: 0.5,
+        delay: 0.1 * idx,
+        scrollTrigger: { trigger: line, start: "top 90%" }
+      });
+    });
+  } else {
+    document.querySelectorAll(".capabilities .line").forEach((line) => {
+      line.style.opacity = 1;
+      line.style.transform = "none";
+    });
+  }
+
+  const copyBtn = document.getElementById("copyBtn");
+  copyBtn.addEventListener("click", async () => {
+    try {
+      await navigator.clipboard.writeText(installCmd);
+      copyBtn.textContent = "copied";
+      setTimeout(() => { copyBtn.textContent = "copy"; }, 1500);
+    } catch (e) {
+      copyBtn.textContent = "failed";
+      setTimeout(() => { copyBtn.textContent = "copy"; }, 1500);
+    }
+  });
+</script>
+</body>
+</html>
