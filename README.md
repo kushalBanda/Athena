@@ -4,8 +4,6 @@ Athena, an agent that knows your codebase, not just your prompt.
 
 Athena is an open-source AI coding agent for the terminal. It runs interactively, in print/JSON mode, over RPC for process integration, or embedded via SDK, and is extensible through TypeScript extensions, skills, prompt templates, and themes.
 
-**[kushalbanda265.github.io/Athena →](https://kushalbanda265.github.io/Athena/)**
-
 ## Install
 
 ```bash
