@@ -45,6 +45,9 @@ const ThemeJsonSchema = Type.Object({
 		dim: ColorValueSchema,
 		text: ColorValueSchema,
 		thinkingText: ColorValueSchema,
+		statusModel: Type.Optional(ColorValueSchema),
+		statusPath: Type.Optional(ColorValueSchema),
+		statusBranch: Type.Optional(ColorValueSchema),
 		// Backgrounds & Content Text (11 required, 3 optional)
 		selectedBg: ColorValueSchema,
 		scrollbarThumb: Type.Optional(ColorValueSchema),
@@ -121,6 +124,9 @@ export type ThemeColor =
 	| "dim"
 	| "text"
 	| "thinkingText"
+	| "statusModel"
+	| "statusPath"
+	| "statusBranch"
 	| "searchMatchText"
 	| "userMessageText"
 	| "customMessageText"
@@ -168,7 +174,12 @@ export type ThemeBg =
 	| "toolSuccessBg"
 	| "toolErrorBg";
 
-type OptionalThemeColor = "thinkingMax" | "searchMatchText";
+type OptionalThemeColor =
+	| "thinkingMax"
+	| "searchMatchText"
+	| "statusModel"
+	| "statusPath"
+	| "statusBranch";
 type OptionalThemeBg = "scrollbarThumb" | "searchMatchBg";
 
 type ColorMode = "truecolor" | "256color";
@@ -333,6 +344,9 @@ function withThemeColorFallbacks(colors: ThemeJson["colors"]): ThemeJson["colors
 	scrollbarThumb: ColorValue;
 	searchMatchBg: ColorValue;
 	searchMatchText: ColorValue;
+	statusModel: ColorValue;
+	statusPath: ColorValue;
+	statusBranch: ColorValue;
 } {
 	return {
 		...colors,
@@ -340,6 +354,9 @@ function withThemeColorFallbacks(colors: ThemeJson["colors"]): ThemeJson["colors
 		scrollbarThumb: colors.scrollbarThumb ?? colors.selectedBg,
 		searchMatchBg: colors.searchMatchBg ?? colors.selectedBg,
 		searchMatchText: colors.searchMatchText ?? colors.text,
+		statusModel: colors.statusModel ?? colors.muted,
+		statusPath: colors.statusPath ?? colors.muted,
+		statusBranch: colors.statusBranch ?? colors.muted,
 	};
 }
 

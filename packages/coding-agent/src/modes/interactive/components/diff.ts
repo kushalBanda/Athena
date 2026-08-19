@@ -19,6 +19,15 @@ function replaceTabs(text: string): string {
 }
 
 /**
+ * Wrap an already fg-colored line in a faint background tint.
+ * Reuses the existing tool success/error bg tokens (subtle green/red
+ * washes) so added/removed diff rows scan at a glance without a hard block.
+ */
+function tintLine(fgColoredLine: string, bg: "toolSuccessBg" | "toolErrorBg"): string {
+	return theme.bg(bg, fgColoredLine);
+}
+
+/**
  * Compute word-level diff and render with inverse on changed parts.
  * Uses diffWords which groups whitespace with adjacent words for cleaner highlighting.
  * Strips leading whitespace from inverse to avoid highlighting indentation.
@@ -121,20 +130,29 @@ export function renderDiff(diffText: string, _options: RenderDiffOptions = {}): 
 					replaceTabs(added.content),
 				);
 
-				result.push(theme.fg("toolDiffRemoved", `-${removed.lineNum} ${removedLine}`));
-				result.push(theme.fg("toolDiffAdded", `+${added.lineNum} ${addedLine}`));
+				result.push(tintLine(theme.fg("toolDiffRemoved", `-${removed.lineNum} ${removedLine}`), "toolErrorBg"));
+				result.push(tintLine(theme.fg("toolDiffAdded", `+${added.lineNum} ${addedLine}`), "toolSuccessBg"));
 			} else {
 				// Show all removed lines first, then all added lines
 				for (const removed of removedLines) {
-					result.push(theme.fg("toolDiffRemoved", `-${removed.lineNum} ${replaceTabs(removed.content)}`));
+					result.push(
+						tintLine(
+							theme.fg("toolDiffRemoved", `-${removed.lineNum} ${replaceTabs(removed.content)}`),
+							"toolErrorBg",
+						),
+					);
 				}
 				for (const added of addedLines) {
-					result.push(theme.fg("toolDiffAdded", `+${added.lineNum} ${replaceTabs(added.content)}`));
+					result.push(
+						tintLine(theme.fg("toolDiffAdded", `+${added.lineNum} ${replaceTabs(added.content)}`), "toolSuccessBg"),
+					);
 				}
 			}
 		} else if (parsed.prefix === "+") {
 			// Standalone added line
-			result.push(theme.fg("toolDiffAdded", `+${parsed.lineNum} ${replaceTabs(parsed.content)}`));
+			result.push(
+				tintLine(theme.fg("toolDiffAdded", `+${parsed.lineNum} ${replaceTabs(parsed.content)}`), "toolSuccessBg"),
+			);
 			i++;
 		} else {
 			// Context line
