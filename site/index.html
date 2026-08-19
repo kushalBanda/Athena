@@ -18,6 +18,7 @@
   @media (prefers-reduced-motion: reduce) {
     * { animation-duration: 0.001ms !important; transition-duration: 0.001ms !important; }
   }
+  html, body { height: 100%; }
   body {
     background: var(--bg);
     color: var(--fg);
@@ -26,7 +27,25 @@
     line-height: 1.6;
   }
   .mono { font-family: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace; }
-  .wrap { max-width: 760px; margin: 0 auto; padding: 5rem 1.5rem 4rem; }
+
+  #graph {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    display: block;
+  }
+
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 5rem 1.5rem 4rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+  }
 
   .kicker {
     font-size: 0.8rem;
@@ -92,7 +111,7 @@
     line-height: 1.4;
     color: var(--muted);
     margin: 2rem 0 3rem;
-    max-width: 46ch;
+    max-width: 68ch;
   }
 
   .capabilities .line {
@@ -137,6 +156,7 @@
 </style>
 </head>
 <body>
+  <canvas id="graph" aria-hidden="true"></canvas>
   <div class="wrap">
     <p class="kicker mono">Athena, an agent that knows your codebase, not just your prompt</p>
 
@@ -152,8 +172,7 @@
       </div>
     </div>
 
-    <p class="tagline">Reads, edits, and runs code alongside you interactively, over RPC, 
-      or embedded via SDK. Extend it with TypeScript, skills, and themes.</p>
+    <p class="tagline">Reads, edits, and runs code alongside you interactively, over RPC, or embedded via SDK. Extend it with TypeScript, skills, and themes.</p>
 
     <div class="capabilities mono">
       <div class="line"><span class="tag">01</span>Interactive terminal sessions</div>
@@ -212,6 +231,112 @@
       line.style.transform = "none";
     });
   }
+
+  (function graphBackground() {
+    const canvas = document.getElementById("graph");
+    const ctx = canvas.getContext("2d");
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    let width, height, dpr;
+    let nodes = [];
+    const LINK_DIST = 130;
+    const POINTER_RADIUS = 140;
+    const NODE_COLOR = "rgba(236, 233, 228, 0.35)";
+    const LINE_COLOR = "rgba(242, 152, 107, 0.14)";
+    const pointer = { x: -9999, y: -9999, active: false };
+
+    window.addEventListener("pointermove", (e) => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = true;
+    });
+    window.addEventListener("pointerleave", () => { pointer.active = false; });
+
+    function resize() {
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      width = window.innerWidth;
+      height = window.innerHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      canvas.style.width = width + "px";
+      canvas.style.height = height + "px";
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      const density = Math.min(60, Math.floor((width * height) / 24000));
+      nodes = Array.from({ length: density }, () => ({
+        x: Math.random() * width,
+        y: Math.random() * height,
+        vx: (Math.random() - 0.5) * 0.15,
+        vy: (Math.random() - 0.5) * 0.15,
+        r: Math.random() * 1.4 + 0.6
+      }));
+    }
+
+    function step() {
+      ctx.clearRect(0, 0, width, height);
+
+      for (const n of nodes) {
+        n.vx += (Math.random() - 0.5) * 0.01;
+        n.vy += (Math.random() - 0.5) * 0.01;
+
+        if (pointer.active) {
+          const dx = n.x - pointer.x;
+          const dy = n.y - pointer.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < POINTER_RADIUS && dist > 0.01) {
+            const force = (1 - dist / POINTER_RADIUS) * 0.6;
+            n.vx += (dx / dist) * force;
+            n.vy += (dy / dist) * force;
+          }
+        }
+
+        n.vx *= 0.98;
+        n.vy *= 0.98;
+        const speed = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
+        const maxSpeed = 1.2;
+        if (speed > maxSpeed) {
+          n.vx = (n.vx / speed) * maxSpeed;
+          n.vy = (n.vy / speed) * maxSpeed;
+        }
+
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > width) n.vx *= -1;
+        if (n.y < 0 || n.y > height) n.vy *= -1;
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const a = nodes[i], b = nodes[j];
+          const dx = a.x - b.x, dy = a.y - b.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < LINK_DIST) {
+            ctx.globalAlpha = 1 - dist / LINK_DIST;
+            ctx.strokeStyle = LINE_COLOR;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(a.x, a.y);
+            ctx.lineTo(b.x, b.y);
+            ctx.stroke();
+          }
+        }
+      }
+      ctx.globalAlpha = 1;
+
+      for (const n of nodes) {
+        ctx.fillStyle = NODE_COLOR;
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      if (!reduceMotion) requestAnimationFrame(step);
+    }
+
+    resize();
+    window.addEventListener("resize", resize);
+    step();
+  })();
 
   const copyBtn = document.getElementById("copyBtn");
   copyBtn.addEventListener("click", async () => {
