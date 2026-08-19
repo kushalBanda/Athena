@@ -5,7 +5,7 @@
  * When forking, offers to restore code to that point in history.
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	const checkpoints = new Map<string, string>();

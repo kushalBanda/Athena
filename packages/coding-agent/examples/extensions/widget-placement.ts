@@ -1,4 +1,4 @@
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function widgetPlacementExtension(athena: ExtensionAPI) {
 	athena.on("session_start", (_event, ctx) => {

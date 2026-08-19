@@ -1,6 +1,6 @@
 # SDK Examples
 
-Programmatic usage of @kushalbanda/coding-agent via `createAgentSession()` and `createAgentSessionRuntime()`.
+Programmatic usage of @kushalbanda/athena via `createAgentSession()` and `createAgentSessionRuntime()`.
 
 The runtime example shows how to build a recreate function that closes over process-global fixed inputs and recreates cwd-bound services and sessions as the active session cwd changes.
 
@@ -39,7 +39,7 @@ import {
   ModelRuntime,
   SessionManager,
   SettingsManager,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 
 const modelRuntime = await ModelRuntime.create();
 

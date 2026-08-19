@@ -14,7 +14,7 @@
 import { createReadStream } from "node:fs";
 import { join } from "node:path";
 import { createInterface } from "node:readline";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 interface ConflictBlock {
 	file: string;

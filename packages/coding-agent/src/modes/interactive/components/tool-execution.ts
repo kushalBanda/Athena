@@ -8,6 +8,24 @@ import { keyHint } from "./keybinding-hints.ts";
 
 const FALLBACK_PREVIEW_LINES = 10;
 
+type ToolBlockState = "pending" | "success" | "error";
+
+function stripeColorFn(state: ToolBlockState): (s: string) => string {
+	switch (state) {
+		case "pending":
+			return (s: string) => theme.fg("muted", s);
+		case "error":
+			return (s: string) => theme.fg("error", s);
+		case "success":
+			return (s: string) => theme.fg("success", s);
+	}
+}
+
+function withLeftBorderStripe(lines: string[], colorFn: (s: string) => string): string[] {
+	const bar = colorFn("│");
+	return lines.map((line) => (line.trim().length === 0 ? line : `${bar} ${line}`));
+}
+
 export interface ToolExecutionOptions {
 	showImages?: boolean;
 	imageWidthCells?: number;
@@ -68,8 +86,8 @@ export class ToolExecutionComponent extends Container {
 		// Always create all shell variants. contentBox is used for default renderer-based composition.
 		// selfRenderContainer is used when the tool renders its own framing.
 		// contentText is reserved for generic fallback rendering when no tool definition exists.
-		this.contentBox = new Box(1, 1, (text: string) => theme.bg("toolPendingBg", text));
-		this.contentText = new Text("", 1, 1, (text: string) => theme.bg("toolPendingBg", text));
+		this.contentBox = new Box(0, 1);
+		this.contentText = new Text("", 0, 1);
 		this.selfRenderContainer = new Container();
 
 		if (this.hasRendererDefinition()) {
@@ -234,8 +252,11 @@ export class ToolExecutionComponent extends Container {
 			return [];
 		}
 
+		const colorFn = stripeColorFn(this.toolBlockState());
+		const stripeWidth = Math.max(1, width - 2);
+
 		if (this.hasRendererDefinition() && this.getRenderShell() === "self") {
-			const contentLines = this.selfRenderContainer.render(width);
+			const contentLines = this.selfRenderContainer.render(stripeWidth);
 			if (contentLines.length === 0 && this.imageComponents.length === 0) {
 				return [];
 			}
@@ -243,7 +264,7 @@ export class ToolExecutionComponent extends Container {
 			const lines: string[] = [];
 			if (contentLines.length > 0) {
 				lines.push("");
-				lines.push(...contentLines);
+				lines.push(...withLeftBorderStripe(contentLines, colorFn));
 			}
 			for (let i = 0; i < this.imageComponents.length; i++) {
 				const spacer = this.imageSpacers[i];
@@ -258,23 +279,26 @@ export class ToolExecutionComponent extends Container {
 			return lines;
 		}
 
-		return super.render(width);
+		const lines: string[] = [];
+		for (const child of this.children) {
+			if (child === this.contentBox || child === this.contentText) {
+				lines.push(...withLeftBorderStripe(child.render(stripeWidth), colorFn));
+			} else {
+				lines.push(...child.render(width));
+			}
+		}
+		return lines;
+	}
+
+	private toolBlockState(): ToolBlockState {
+		return this.isPartial ? "pending" : this.result?.isError ? "error" : "success";
 	}
 
 	private updateDisplay(): void {
-		const bgFn = this.isPartial
-			? (text: string) => theme.bg("toolPendingBg", text)
-			: this.result?.isError
-				? (text: string) => theme.bg("toolErrorBg", text)
-				: (text: string) => theme.bg("toolSuccessBg", text);
-
 		let hasContent = false;
 		this.hideComponent = false;
 		if (this.hasRendererDefinition()) {
 			const renderContainer = this.getRenderShell() === "self" ? this.selfRenderContainer : this.contentBox;
-			if (renderContainer instanceof Box) {
-				renderContainer.setBgFn(bgFn);
-			}
 			renderContainer.clear();
 
 			const callRenderer = this.getCallRenderer();
@@ -324,7 +348,6 @@ export class ToolExecutionComponent extends Container {
 				}
 			}
 		} else {
-			this.contentText.setCustomBgFn(bgFn);
 			this.contentText.setText(this.formatToolExecution());
 			hasContent = true;
 		}

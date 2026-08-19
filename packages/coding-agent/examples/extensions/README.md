@@ -1,6 +1,6 @@
 # Extension Examples
 
-Example extensions for @kushalbanda/coding-agent.
+Example extensions for @kushalbanda/athena.
 
 ## Usage
 
@@ -142,7 +142,7 @@ cp permission-gate.ts ~/.athena/agent/extensions/
 See [docs/extensions.md](../../docs/extensions.md) for full documentation.
 
 ```typescript
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 import { Type } from "typebox";
 
 export default function (athena: ExtensionAPI) {

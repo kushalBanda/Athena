@@ -5,7 +5,7 @@
  * Demonstrates how to cancel session events using the before_* events.
  */
 
-import type { ExtensionAPI, SessionBeforeSwitchEvent, SessionMessageEntry } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, SessionBeforeSwitchEvent, SessionMessageEntry } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	athena.on("session_before_switch", async (event: SessionBeforeSwitchEvent, ctx) => {

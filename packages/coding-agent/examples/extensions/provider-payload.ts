@@ -1,6 +1,6 @@
 import { appendFileSync } from "node:fs";
 import { join } from "node:path";
-import { CONFIG_DIR_NAME, type ExtensionAPI } from "@kushalbanda/coding-agent";
+import { CONFIG_DIR_NAME, type ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	athena.on("before_provider_request", (event, ctx) => {

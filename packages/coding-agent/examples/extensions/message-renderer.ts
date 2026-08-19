@@ -7,7 +7,7 @@
  * Usage: /status [message] - sends a status message with custom rendering
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 import { Box, Text } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {

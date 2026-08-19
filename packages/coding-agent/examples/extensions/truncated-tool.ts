@@ -15,7 +15,7 @@
  */
 
 import { mkdtemp, writeFile } from "node:fs/promises";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 import {
 	DEFAULT_MAX_BYTES,
 	DEFAULT_MAX_LINES,
@@ -23,7 +23,7 @@ import {
 	type TruncationResult,
 	truncateHead,
 	withFileMutationQueue,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 import { Text } from "@kushalbanda/tui";
 import { execSync } from "child_process";
 import { tmpdir } from "os";

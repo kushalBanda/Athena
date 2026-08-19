@@ -3,7 +3,7 @@ import {
 	type ExtensionAPI,
 	type ExtensionContext,
 	type KeybindingsManager,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 import type { Component, EditorTheme, TUI } from "@kushalbanda/tui";
 import { truncateToWidth, visibleWidth } from "@kushalbanda/tui";
 

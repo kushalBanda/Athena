@@ -4,7 +4,7 @@
  * Configure provider auth through ModelRuntime.
  */
 
-import { createAgentSession, ModelRuntime, SessionManager } from "@kushalbanda/coding-agent";
+import { createAgentSession, ModelRuntime, SessionManager } from "@kushalbanda/athena";
 
 const modelRuntime = await ModelRuntime.create();
 const { session: defaultAuthSession } = await createAgentSession({

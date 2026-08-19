@@ -111,18 +111,19 @@ export class FooterComponent implements Component {
 		const contextPercent = contextUsage?.percent !== null ? contextPercentValue.toFixed(1) : "?";
 
 		// Replace home directory with ~
-		let pwd = formatCwdForFooter(this.session.sessionManager.getCwd(), process.env.HOME || process.env.USERPROFILE);
+		const cwdText = formatCwdForFooter(this.session.sessionManager.getCwd(), process.env.HOME || process.env.USERPROFILE);
+		let pwd = theme.fg("statusPath", cwdText);
 
 		// Add git branch if available
 		const branch = this.footerData.getGitBranch();
 		if (branch) {
-			pwd = `${pwd} (${branch})`;
+			pwd = `${pwd} ${theme.fg("dim", "(")}${theme.fg("statusBranch", branch)}${theme.fg("dim", ")")}`;
 		}
 
 		// Add session name if set
 		const sessionName = this.session.sessionManager.getSessionName();
 		if (sessionName) {
-			pwd = `${pwd} • ${sessionName}`;
+			pwd = `${pwd}${theme.fg("dim", " • ")}${theme.fg("dim", sessionName)}`;
 		}
 
 		// Build stats line
@@ -200,11 +201,13 @@ export class FooterComponent implements Component {
 		const rightSideWidth = visibleWidth(rightSide);
 		const totalNeeded = statsLeftWidth + minPadding + rightSideWidth;
 
+		const coloredRightSide = theme.fg("statusModel", rightSide);
+
 		let statsLine: string;
 		if (totalNeeded <= width) {
 			// Both fit - add padding to right-align model
 			const padding = " ".repeat(width - statsLeftWidth - rightSideWidth);
-			statsLine = statsLeft + padding + rightSide;
+			statsLine = theme.fg("dim", statsLeft) + padding + coloredRightSide;
 		} else {
 			// Need to truncate right side
 			const availableForRight = width - statsLeftWidth - minPadding;
@@ -212,22 +215,15 @@ export class FooterComponent implements Component {
 				const truncatedRight = truncateToWidth(rightSide, availableForRight, "");
 				const truncatedRightWidth = visibleWidth(truncatedRight);
 				const padding = " ".repeat(Math.max(0, width - statsLeftWidth - truncatedRightWidth));
-				statsLine = statsLeft + padding + truncatedRight;
+				statsLine = theme.fg("dim", statsLeft) + padding + theme.fg("statusModel", truncatedRight);
 			} else {
 				// Not enough space for right side at all
-				statsLine = statsLeft;
+				statsLine = theme.fg("dim", statsLeft);
 			}
 		}
 
-		// Apply dim to each part separately. statsLeft may contain color codes (for context %)
-		// that end with a reset, which would clear an outer dim wrapper. So we dim the parts
-		// before and after the colored section independently.
-		const dimStatsLeft = theme.fg("dim", statsLeft);
-		const remainder = statsLine.slice(statsLeft.length); // padding + rightSide
-		const dimRemainder = theme.fg("dim", remainder);
-
-		const pwdLine = truncateToWidth(theme.fg("dim", pwd), width, theme.fg("dim", "..."));
-		const lines = [pwdLine, dimStatsLeft + dimRemainder];
+		const pwdLine = truncateToWidth(pwd, width, theme.fg("dim", "..."));
+		const lines = [pwdLine, statsLine];
 
 		// Add extension statuses on a single line, sorted by key alphabetically
 		const extensionStatuses = this.footerData.getExtensionStatuses();

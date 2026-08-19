@@ -7,7 +7,7 @@
  * - /timed-signal - Shows confirm using AbortSignal (manual approach)
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	// Simple approach: use timeout option (recommended)

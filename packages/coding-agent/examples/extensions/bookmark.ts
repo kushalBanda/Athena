@@ -7,7 +7,7 @@
  * Usage: /bookmark [label] - bookmark the last assistant message
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	athena.registerCommand("bookmark", {

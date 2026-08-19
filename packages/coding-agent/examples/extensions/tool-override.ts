@@ -21,7 +21,7 @@
  */
 
 import type { TextContent } from "@kushalbanda/ai";
-import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@kushalbanda/coding-agent";
+import { type ExtensionAPI, getAgentDir, withFileMutationQueue } from "@kushalbanda/athena";
 import { constants, readFileSync } from "fs";
 import { access, appendFile, readFile } from "fs/promises";
 import { join, resolve } from "path";

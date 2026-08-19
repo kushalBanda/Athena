@@ -1,4 +1,4 @@
-import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/athena";
 
 const COMPACT_THRESHOLD_TOKENS = 100_000;
 

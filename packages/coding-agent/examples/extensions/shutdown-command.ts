@@ -5,7 +5,7 @@
  * Demonstrates how extensions can use ctx.shutdown() to exit athena cleanly.
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 import { Type } from "typebox";
 
 export default function (athena: ExtensionAPI) {

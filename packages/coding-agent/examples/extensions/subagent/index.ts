@@ -25,7 +25,7 @@ import {
 	getAgentDir,
 	getMarkdownTheme,
 	withFileMutationQueue,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 import { Container, Markdown, Spacer, Text } from "@kushalbanda/tui";
 import { Type } from "typebox";
 import { type AgentConfig, type AgentScope, discoverAgents } from "./agents.ts";

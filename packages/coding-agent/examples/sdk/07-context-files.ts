@@ -9,7 +9,7 @@ import {
 	DefaultResourceLoader,
 	getAgentDir,
 	SessionManager,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 
 // Disable context files entirely by returning an empty list in agentsFilesOverride.
 const loader = new DefaultResourceLoader({

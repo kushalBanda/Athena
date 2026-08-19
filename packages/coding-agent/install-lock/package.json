@@ -1,10 +1,10 @@
 {
-	"name": "@kushalbanda/coding-agent-install",
+	"name": "@kushalbanda/athena-install",
 	"version": "0.84.2",
 	"private": true,
 	"description": "Lockfile root used by the Athena installer and updater.",
 	"dependencies": {
-		"@kushalbanda/coding-agent": "0.84.2"
+		"@kushalbanda/athena": "0.84.2"
 	},
 	"overrides": {
 		"protobufjs": "7.6.5",

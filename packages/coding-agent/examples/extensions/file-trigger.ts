@@ -9,7 +9,7 @@
  */
 
 import * as fs from "node:fs";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	athena.on("session_start", async (_event, ctx) => {
