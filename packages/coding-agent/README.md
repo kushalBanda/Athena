@@ -1,10 +1,7 @@
 <p align="center">
-  <a href="https://pi.dev">
-    <img alt="pi logo" src="https://pi.dev/logo-auto.svg" width="128">
-  </a>
+  <b>Athena</b>
 </p>
 <p align="center">
-  <a href="https://discord.com/invite/3cU7Bz4UPx"><img alt="Discord" src="https://img.shields.io/badge/discord-community-5865F2?style=flat-square&logo=discord&logoColor=white" /></a>
   <a href="https://www.npmjs.com/package/@kushalbanda/athena"><img alt="npm" src="https://img.shields.io/npm/v/@kushalbanda/athena?style=flat-square" /></a>
 </p>
 
@@ -692,9 +689,3 @@ MIT
 - [@kushalbanda/ai](https://www.npmjs.com/package/@kushalbanda/ai): Core LLM toolkit
 - [@kushalbanda/agent-core](https://www.npmjs.com/package/@kushalbanda/agent-core): Agent framework
 - [@kushalbanda/tui](https://www.npmjs.com/package/@kushalbanda/tui): Terminal UI components
-
-<p align="center">
-  <a href="https://pi.dev">pi.dev</a> domain graciously donated by
-  <br /><br />
-  <a href="https://exe.dev"><img src="docs/images/exy.png" alt="Exy mascot" width="48" /><br />exe.dev</a>
-</p>
