@@ -9,7 +9,7 @@ import {
 	DefaultResourceLoader,
 	getAgentDir,
 	SessionManager,
-} from "@kushalbanda/coding-agent";
+} from "@kushalbanda/athena";
 
 const cwd = process.cwd();
 const agentDir = getAgentDir();

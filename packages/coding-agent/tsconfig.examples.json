@@ -3,8 +3,8 @@
 	"compilerOptions": {
 		"noEmit": true,
 		"paths": {
-			"@kushalbanda/coding-agent": ["./src/index.ts"],
-			"@kushalbanda/coding-agent/hooks": ["./src/core/hooks/index.ts"],
+			"@kushalbanda/athena": ["./src/index.ts"],
+			"@kushalbanda/athena/hooks": ["./src/core/hooks/index.ts"],
 			"@kushalbanda/tui": ["../tui/src/index.ts"],
 			"@kushalbanda/ai": ["../ai/src/index.ts"],
 			"typebox": ["../../node_modules/typebox"]

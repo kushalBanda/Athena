@@ -8,8 +8,8 @@
  */
 
 import type { UserMessage } from "@kushalbanda/ai";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
-import { BorderedLoader } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
+import { BorderedLoader } from "@kushalbanda/athena";
 
 const SYSTEM_PROMPT = `You are a question extractor. Given text from a conversation, extract any questions that need answering and format them for the user to fill in.
 

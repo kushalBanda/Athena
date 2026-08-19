@@ -5,7 +5,7 @@
  * without paying for an extra follow-up LLM turn.
  */
 
-import { defineTool, type ExtensionAPI } from "@kushalbanda/coding-agent";
+import { defineTool, type ExtensionAPI } from "@kushalbanda/athena";
 import { Text } from "@kushalbanda/tui";
 import { Type } from "typebox";
 

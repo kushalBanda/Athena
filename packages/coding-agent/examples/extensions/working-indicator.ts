@@ -16,7 +16,7 @@
  *   /working-indicator reset     Restore athena's default spinner
  */
 
-import type { ExtensionAPI, ExtensionContext, WorkingIndicatorOptions } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, ExtensionContext, WorkingIndicatorOptions } from "@kushalbanda/athena";
 
 type WorkingIndicatorMode = "dot" | "none" | "pulse" | "spinner" | "default";
 

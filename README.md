@@ -2,7 +2,7 @@
   <b>Athena</b>
 </p>
 <p align="center">
-  <a href="https://www.npmjs.com/package/@kushalbanda/coding-agent"><img alt="npm" src="https://img.shields.io/npm/v/@kushalbanda/coding-agent?style=flat-square" /></a>
+  <a href="https://www.npmjs.com/package/@kushalbanda/athena"><img alt="npm" src="https://img.shields.io/npm/v/@kushalbanda/athena?style=flat-square" /></a>
 </p>
 
 ## Athena
@@ -22,10 +22,10 @@ re-ported onto this base incrementally — not all present yet.
 | **[@kushalbanda/telemetry](packages/telemetry)** | Vendor-neutral telemetry contracts, reference adapter, conformance tests, and typed schemas |
 | **[@kushalbanda/ai](packages/ai)** | Unified multi-provider LLM API (OpenAI, Anthropic, Google, etc.) |
 | **[@kushalbanda/agent-core](packages/agent)** | Agent runtime with tool calling and state management |
-| **[@kushalbanda/coding-agent](packages/coding-agent)** | Interactive coding agent CLI (Athena) |
+| **[@kushalbanda/athena](packages/coding-agent)** | Interactive coding agent CLI (Athena) |
 | **[@kushalbanda/tui](packages/tui)** | Terminal UI library with differential rendering |
 
-Packages are published under the `@athena` scope; the `athena` binary and `.athena` config directory are set via `packages/coding-agent/package.json`'s `athenaConfig`.
+Packages are published under the `@kushalbanda` scope; the `athena` binary and `.athena` config directory are set via `packages/coding-agent/package.json`'s `athenaConfig`.
 
 ## Permissions & Containerization
 

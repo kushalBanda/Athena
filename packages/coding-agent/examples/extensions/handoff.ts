@@ -14,8 +14,8 @@
 
 import type { AgentMessage } from "@kushalbanda/agent-core";
 import { type Message, uuidv7 } from "@kushalbanda/ai";
-import type { ExtensionAPI, SessionEntry } from "@kushalbanda/coding-agent";
-import { BorderedLoader, convertToLlm, serializeConversation } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, SessionEntry } from "@kushalbanda/athena";
+import { BorderedLoader, convertToLlm, serializeConversation } from "@kushalbanda/athena";
 
 const SYSTEM_PROMPT = `You are a context transfer assistant. Given a conversation history and the user's goal for a new thread, generate a focused prompt that:
 

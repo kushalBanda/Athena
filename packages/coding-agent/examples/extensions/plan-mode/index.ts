@@ -14,7 +14,7 @@
 
 import type { AgentMessage } from "@kushalbanda/agent-core";
 import type { AssistantMessage, TextContent } from "@kushalbanda/ai";
-import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, ExtensionContext } from "@kushalbanda/athena";
 import { Key } from "@kushalbanda/tui";
 import { extractTodoItems, isSafeCommand, markCompletedSteps, type TodoItem } from "./utils.ts";
 

@@ -11,7 +11,7 @@
  */
 
 import { StringEnum } from "@kushalbanda/ai";
-import type { ExtensionAPI, ExtensionContext, Theme } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, ExtensionContext, Theme } from "@kushalbanda/athena";
 import { matchesKey, Text, truncateToWidth } from "@kushalbanda/tui";
 import { Type } from "typebox";
 

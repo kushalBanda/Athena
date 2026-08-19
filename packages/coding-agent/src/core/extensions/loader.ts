@@ -23,7 +23,7 @@ import * as _bundledTypeboxCompile from "typebox/compile";
 import * as _bundledTypeboxValue from "typebox/value";
 import { CONFIG_DIR_NAME, getAgentDir, isBunBinary } from "../../config.ts";
 // NOTE: This import works because loader.ts exports are NOT re-exported from index.ts,
-// avoiding a circular dependency. Extensions can import from @kushalbanda/coding-agent.
+// avoiding a circular dependency. Extensions can import from @kushalbanda/athena.
 import * as _bundledAthenaCodingAgent from "../../index.ts";
 import { resolvePath } from "../../utils/paths.ts";
 import { createEventBus, type EventBus } from "../event-bus.ts";
@@ -63,7 +63,7 @@ const VIRTUAL_MODULES: Record<string, unknown> = {
 	"@kushalbanda/ai/compat": _bundledAthenaAiCompat,
 	"@kushalbanda/ai/oauth": _bundledAthenaAiOauth,
 	"@kushalbanda/ai/providers/all": _bundledAthenaAiProviders,
-	"@kushalbanda/coding-agent": _bundledAthenaCodingAgent,
+	"@kushalbanda/athena": _bundledAthenaCodingAgent,
 	"@mariozechner/pi-agent-core": _bundledAthenaAgentCore,
 	"@mariozechner/pi-tui": _bundledAthenaTui,
 	"@mariozechner/pi-ai": _bundledAthenaAiCompat,
@@ -116,7 +116,7 @@ function getAliases(): Record<string, string> {
 	);
 
 	_aliases = {
-		"@kushalbanda/coding-agent": athenaCodingAgentEntry,
+		"@kushalbanda/athena": athenaCodingAgentEntry,
 		"@kushalbanda/agent-core": athenaAgentCoreEntry,
 		"@kushalbanda/tui": athenaTuiEntry,
 		"@kushalbanda/ai/providers/all": athenaAiProvidersEntry,

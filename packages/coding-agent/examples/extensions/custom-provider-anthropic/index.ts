@@ -43,7 +43,7 @@ import {
 	type ToolCall,
 	type ToolResultMessage,
 } from "@kushalbanda/ai";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 // =============================================================================
 // OAuth implementation adapted for the legacy extension compatibility interface.

@@ -22,7 +22,7 @@ import {
 	type SimpleStreamOptions,
 	type ThinkingLevelMap,
 } from "@kushalbanda/ai/compat";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 // =============================================================================
 // Constants

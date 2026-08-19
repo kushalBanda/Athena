@@ -9,7 +9,7 @@
  */
 
 import type { AssistantMessage } from "@kushalbanda/ai";
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 import { truncateToWidth, visibleWidth } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {

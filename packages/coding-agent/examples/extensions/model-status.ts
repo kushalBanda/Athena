@@ -7,7 +7,7 @@
  * Usage: athena -e ./model-status.ts
  */
 
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 export default function (athena: ExtensionAPI) {
 	athena.on("model_select", async (event, ctx) => {

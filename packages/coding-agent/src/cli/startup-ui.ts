@@ -23,7 +23,7 @@ import {
 	type Theme,
 } from "../modes/interactive/theme/theme.ts";
 
-const OFFICIAL_PACKAGE_NAME = "@kushalbanda/coding-agent";
+const OFFICIAL_PACKAGE_NAME = "@kushalbanda/athena";
 const OFFICIAL_APP_NAME = "athena";
 const OFFICIAL_CONFIG_DIR_NAME = ".athena";
 

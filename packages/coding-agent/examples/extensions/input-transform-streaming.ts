@@ -11,7 +11,7 @@
  * Start athena with this extension:
  *   athena -e ./examples/extensions/input-transform-streaming.ts
  */
-import type { ExtensionAPI } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI } from "@kushalbanda/athena";
 
 const TRIGGER = /\b(changes?|diff|modified)\b/i;
 

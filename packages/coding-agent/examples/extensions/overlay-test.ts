@@ -8,7 +8,7 @@
  * - Edge case tests (wide chars, styled text, emoji)
  */
 
-import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@kushalbanda/coding-agent";
+import type { ExtensionAPI, ExtensionCommandContext, Theme } from "@kushalbanda/athena";
 import { CURSOR_MARKER, type Focusable, matchesKey, visibleWidth } from "@kushalbanda/tui";
 
 export default function (athena: ExtensionAPI) {
