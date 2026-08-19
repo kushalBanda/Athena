@@ -1,31 +1,30 @@
-<p align="center">
-  <b>Athena</b>
-</p>
-<p align="center">
-  <a href="https://www.npmjs.com/package/@kushalbanda/athena"><img alt="npm" src="https://img.shields.io/npm/v/@kushalbanda/athena?style=flat-square" /></a>
-</p>
+**Athena**
+
+
 
 ## Athena
 
-Athena is an open-source AI coding agent, rebased on top of the
-[pi](https://github.com/earendil-works/pi) agent harness (MIT-licensed) as of 2026-08-14. See
-`docs/superpowers/specs/2026-08-14-athena-rebase-design.md` for why, and
-`docs/superpowers/plans/2026-08-14-athena-rebase-swap.md` for how. Athena's own
-distinctive pieces (CodeGraph integration, `/init`-generated CLAUDE.md,
-Claude-skills-source loading) are documented in `docs/IP/` and being
-re-ported onto this base incrementally — not all present yet.
+Athena is an open-source AI coding agent for the terminal. It runs interactively, in print/JSON mode, over RPC for process integration, or embedded via SDK, and is extensible through TypeScript extensions, skills, prompt templates, and themes.
+
+## Install
+
+```bash
+npm install -g @kushalbanda/athena
+```
+
+Run `athena` to get started.
 
 ## Packages
 
 | Package | Description |
 |---------|-------------|
-| **[@kushalbanda/telemetry](packages/telemetry)** | Vendor-neutral telemetry contracts, reference adapter, conformance tests, and typed schemas |
-| **[@kushalbanda/ai](packages/ai)** | Unified multi-provider LLM API (OpenAI, Anthropic, Google, etc.) |
-| **[@kushalbanda/agent-core](packages/agent)** | Agent runtime with tool calling and state management |
-| **[@kushalbanda/athena](packages/coding-agent)** | Interactive coding agent CLI (Athena) |
-| **[@kushalbanda/tui](packages/tui)** | Terminal UI library with differential rendering |
+| **[athena](packages/coding-agent)** | Interactive coding agent CLI |
+| **[ai](packages/ai)** | Unified multi-provider LLM API (OpenAI, Anthropic, Google, etc.) |
+| **[agent-core](packages/agent)** | Agent runtime with tool calling and state management |
+| **[tui](packages/tui)** | Terminal UI library with differential rendering |
+| **[telemetry](packages/telemetry)** | Vendor-neutral telemetry contracts, reference adapter, conformance tests, and typed schemas |
 
-Packages are published under the `@kushalbanda` scope; the `athena` binary and `.athena` config directory are set via `packages/coding-agent/package.json`'s `athenaConfig`.
+All packages publish under the `@kushalbanda` npm scope.
 
 ## Permissions & Containerization
 
@@ -37,6 +36,8 @@ If you need stronger boundaries, containerize or sandbox Athena. See [packages/c
 - **Plain Docker**: run the whole `athena` process in a local container for simple isolation.
 - **OpenShell**: run the whole `athena` process in a policy-controlled sandbox.
 
+
+
 ## Development
 
 ```bash
@@ -46,6 +47,8 @@ npm run build:offline        # Rebuild using existing model data without network
 npm run check                # Lint, format, and type check
 npm run test                 # Run tests across all workspaces
 ```
+
+
 
 ## License
 
