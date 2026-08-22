@@ -1,6 +1,6 @@
 {
 	"name": "@kushalbanda/session-backend-sqlite-node",
-	"version": "1.0.0",
+	"version": "1.0.1",
 	"description": "Node sqlite session backend for @kushalbanda/agent-core sessions",
 	"type": "module",
 	"main": "./dist/index.js",
