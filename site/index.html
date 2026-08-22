@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Athena, an agent that knows your codebase, not just your prompt</title>
 <meta name="description" content="Athena is an open-source AI coding agent for the terminal that knows your codebase, not just your prompt.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
 <style>
   :root {
     --bg: #121214;
@@ -45,6 +46,25 @@
     display: flex;
     flex-direction: column;
     justify-content: center;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin: 0 0 2rem;
+  }
+  .brand img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    display: block;
+  }
+  .brand span {
+    font-size: 0.85rem;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--fg);
   }
 
   .kicker {
@@ -158,6 +178,10 @@
 <body>
   <canvas id="graph" aria-hidden="true"></canvas>
   <div class="wrap">
+    <div class="brand mono">
+      <img src="assets/logo.png" width="34" height="34" alt="" />
+      <span>Athena</span>
+    </div>
     <p class="kicker mono">Athena, an agent that knows your codebase, not just your prompt</p>
 
     <div class="terminal mono">
