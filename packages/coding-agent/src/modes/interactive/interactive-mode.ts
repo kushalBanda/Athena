@@ -5737,17 +5737,34 @@ export class InteractiveMode {
 		const exists = fs.existsSync(claudeMdPath);
 		const instruction = exists
 			? "Read the existing CLAUDE.md at the repo root, then re-explore the repository " +
-				"(stack, structure, build/test/lint commands, conventions). Merge any new or " +
-				"changed information into CLAUDE.md while keeping what is still accurate, " +
-				"update it, don't blindly overwrite it. Keep it concise and only include " +
-				"what isn't obvious from the code itself. Verify every fact against the " +
-				"actual project files; if something is unclear, omit it rather than guess. " +
-				"Never include secrets or credentials."
+				"(stack, structure, build/test/lint commands, conventions). Find any existing " +
+				"subdirectory CLAUDE.md files too, and re-explore those areas. Merge new or " +
+				"changed information into the right file, root or subdirectory, keeping what is " +
+				"still accurate, update it, don't blindly overwrite it. Decide again, based on " +
+				"the current repository, whether any subdirectory now deserves its own " +
+				"CLAUDE.md, or whether an existing subdirectory file should be removed because " +
+				"it no longer earns its place. Keep the root file's map of subdirectory files in " +
+				"sync with whatever you add or remove. Apply the same per-file rules as a fresh " +
+				"run: concise, verified, no duplication between root and subdirectory files."
 			: "Explore this repository (stack, structure, build/test/lint commands, " +
-				"conventions) and write a new CLAUDE.md at the repo root. Keep it concise, " +
-				"factual, organized by section, and only include what isn't obvious from " +
-				"the code itself. Verify every fact against the actual project files; if " +
-				"something is unclear, omit it rather than guess. Never include secrets or " +
+				"conventions) and write a new CLAUDE.md at the repo root. Before writing, decide " +
+				"whether any subdirectory is distinct and substantial enough to deserve its own " +
+				"CLAUDE.md, for example a frontend, a backend, or a service with its own stack " +
+				"or conventions different from the rest of the repository. Judge this from what " +
+				"you find, don't assume a layout; most repositories need none. For each " +
+				"subdirectory file, scan that directory and pull real patterns from the actual " +
+				"code there, not generic templates, and verify every command by checking it " +
+				"against the actual scripts or config rather than assuming. Keep the root " +
+				"CLAUDE.md as the high-level entry point: a short summary of the whole " +
+				"repository, plus one line per subdirectory file in the form " +
+				'"- path/CLAUDE.md - brief description of what it covers", so the map stays ' +
+				"readable. Keep each subdirectory file scoped to what's specific to that area, " +
+				"never repeating what the root file already says, and link to sibling " +
+				"directories another agent working there would need to know about. Keep every " +
+				"file concise, factual, organized by section, and only include what isn't " +
+				"obvious from the code itself; a subdirectory file that can't stay short usually " +
+				"means the scope is wrong. Verify every fact against the actual project files; " +
+				"if something is unclear, omit it rather than guess. Never include secrets or " +
 				"credentials.";
 		await this.session.prompt(instruction);
 	}
