@@ -43,6 +43,7 @@
 		"prepublishOnly": "npm run clean && npm run build"
 	},
 	"dependencies": {
+		"@modelcontextprotocol/sdk": "^1.25.2",
 		"@kushalbanda/agent-core": "^1.0.0",
 		"@kushalbanda/ai": "^1.0.0",
 		"@kushalbanda/client": "^1.0.0",
@@ -73,6 +74,7 @@
 		}
 	},
 	"optionalDependencies": {
+		"@colbymchenry/codegraph": "1.5.0",
 		"@mariozechner/clipboard": "0.3.9"
 	},
 	"devDependencies": {
