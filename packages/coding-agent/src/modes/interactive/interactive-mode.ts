@@ -3006,6 +3006,11 @@ export class InteractiveMode {
 				await this.handleReloadCommand();
 				return;
 			}
+			if (text === "/init") {
+				this.editor.setText("");
+				await this.handleInitCommand();
+				return;
+			}
 			if (text === "/debug") {
 				this.handleDebugCommand();
 				this.editor.setText("");
@@ -5726,6 +5731,26 @@ export class InteractiveMode {
 	// =========================================================================
 	// Command handlers
 	// =========================================================================
+
+	private async handleInitCommand(): Promise<void> {
+		const claudeMdPath = path.resolve(this.sessionManager.getCwd(), "CLAUDE.md");
+		const exists = fs.existsSync(claudeMdPath);
+		const instruction = exists
+			? "Read the existing CLAUDE.md at the repo root, then re-explore the repository " +
+				"(stack, structure, build/test/lint commands, conventions). Merge any new or " +
+				"changed information into CLAUDE.md while keeping what is still accurate, " +
+				"update it, don't blindly overwrite it. Keep it concise and only include " +
+				"what isn't obvious from the code itself. Verify every fact against the " +
+				"actual project files; if something is unclear, omit it rather than guess. " +
+				"Never include secrets or credentials."
+			: "Explore this repository (stack, structure, build/test/lint commands, " +
+				"conventions) and write a new CLAUDE.md at the repo root. Keep it concise, " +
+				"factual, organized by section, and only include what isn't obvious from " +
+				"the code itself. Verify every fact against the actual project files; if " +
+				"something is unclear, omit it rather than guess. Never include secrets or " +
+				"credentials.";
+		await this.session.prompt(instruction);
+	}
 
 	private async handleReloadCommand(): Promise<void> {
 		if (this.session.isStreaming) {
