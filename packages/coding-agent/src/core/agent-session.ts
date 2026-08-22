@@ -105,6 +105,7 @@ import type { SettingsManager } from "./settings-manager.ts";
 import type { SlashCommandInfo } from "./slash-commands.ts";
 import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.ts";
 import { type BuildSystemPromptOptions, buildSystemPrompt } from "./system-prompt.ts";
+import { McpRegistry } from "./mcp/registry.ts";
 import { type BashOperations, createLocalBashOperations } from "./tools/bash.ts";
 import { createAllToolDefinitions } from "./tools/index.ts";
 import { createToolDefinitionFromAgentTool } from "./tools/tool-definition-wrapper.ts";
@@ -353,6 +354,8 @@ export class AgentSession {
 	private _excludedToolNames?: Set<string>;
 	private _baseToolsOverride?: Record<string, AgentTool>;
 	private _sessionStartEvent: SessionStartEvent;
+	private _mcpRegistry: McpRegistry;
+	private _disposed = false;
 	private _extensionUIContext?: ExtensionUIContext;
 	private _extensionMode: ExtensionMode = "print";
 	private _extensionCommandContextActions?: ExtensionCommandContextActions;
@@ -389,6 +392,7 @@ export class AgentSession {
 		this._excludedToolNames = config.excludedToolNames ? new Set(config.excludedToolNames) : undefined;
 		this._baseToolsOverride = config.baseToolsOverride;
 		this._sessionStartEvent = config.sessionStartEvent ?? { type: "session_start", reason: "startup" };
+		this._mcpRegistry = new McpRegistry(this._cwd);
 
 		// Always subscribe to agent events for internal handling
 		// (session persistence, extensions, auto-compaction, retry logic)
@@ -399,6 +403,22 @@ export class AgentSession {
 		this._buildRuntime({
 			activeToolNames: this._initialActiveToolNames,
 			includeAllExtensionTools: true,
+		});
+
+		// MCP servers connect asynchronously and must never block session start
+		// (matches the daemon's own ~2-3s startup cost). Once connected, refresh
+		// the tool registry so newly-discovered tools become active without a
+		// second explicit build — the same pattern extension tool hot-reload uses.
+		// Skipped when no tools were discovered (no servers configured/reachable)
+		// so a session with MCP fully absent never pays a redundant rebuild.
+		void this._mcpRegistry.connect().then(() => {
+			if (this._disposed) return;
+			const mcpTools = this._mcpRegistry.getTools();
+			if (Object.keys(mcpTools).length === 0) return;
+			this._buildRuntime({
+				activeToolNames: [...this.getActiveToolNames(), ...Object.keys(mcpTools)],
+				includeAllExtensionTools: false,
+			});
 		});
 	}
 
@@ -837,12 +857,16 @@ export class AgentSession {
 	 * Call this when completely done with the session.
 	 */
 	dispose(): void {
+		this._disposed = true;
 		try {
 			this.abortRetry();
 			this.abortCompaction();
 			this.abortBranchSummary();
 			this.abortBash();
 			this.agent.abort();
+			// Closes our client connections only — does not kill CodeGraph's (or any
+			// other MCP server's) process, which is meant to persist across sessions.
+			void this._mcpRegistry.disconnectAll();
 		} catch {
 			// Dispose must succeed even if an abort hook throws.
 		}
@@ -2573,9 +2597,18 @@ export class AgentSession {
 					bash: { commandPrefix: shellCommandPrefix, shellPath },
 				});
 
-		this._baseToolDefinitions = new Map(
+		const resolvedBaseToolDefinitions = new Map<string, ToolDefinition>(
 			Object.entries(baseToolDefinitions).map(([name, tool]) => [name, tool as ToolDefinition]),
 		);
+
+		// MCP tools (e.g. CodeGraph's codegraph_explore/codegraph_node): whatever
+		// connected servers report via tools/list, folded in the same way builtin
+		// tools are. Empty until connect() resolves — never blocks this build.
+		for (const [name, tool] of Object.entries(this._mcpRegistry.getTools())) {
+			resolvedBaseToolDefinitions.set(name, tool);
+		}
+
+		this._baseToolDefinitions = resolvedBaseToolDefinitions;
 
 		const extensionsResult = this._resourceLoader.getExtensions();
 		if (options.flagValues) {
