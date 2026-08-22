@@ -488,7 +488,7 @@ const athenaConfigName: string | undefined = pkg.athenaConfig?.name;
 export const PACKAGE_NAME: string = pkg.name || "@kushalbanda/athena";
 export const APP_NAME: string = athenaConfigName || "athena";
 export const APP_TITLE: string = APP_NAME;
-export const CONFIG_DIR_NAME: string = pkg.athenaConfig?.configDir || ".athena";
+export const CONFIG_DIR_NAME: string = pkg.athenaConfig?.configDir || ".claude";
 export const VERSION: string = pkg.version || "0.0.0";
 
 // e.g., PI_CODING_AGENT_DIR or TAU_CODING_AGENT_DIR
