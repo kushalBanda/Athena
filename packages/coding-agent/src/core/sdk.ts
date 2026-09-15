@@ -26,7 +26,6 @@ import {
 	createReadOnlyTools,
 	createReadTool,
 	createWriteTool,
-	type ToolName,
 	withFileMutationQueue,
 } from "./tools/index.ts";
 
