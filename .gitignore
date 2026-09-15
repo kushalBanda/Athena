@@ -46,6 +46,7 @@ collect.sh
 .claude/
 .codegraph/
 docs/
+!packages/*/docs/
 scripts/private/
 skills-lock.json
 CLAUDE.md
