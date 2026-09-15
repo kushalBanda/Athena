@@ -1,0 +1,109 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  build-check:
+    name: Build and check
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build:offline
+
+      - name: Check
+        run: npm run check
+
+  test:
+    name: Test (${{ matrix.name }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: telemetry
+            package: packages/telemetry
+          - name: ai
+            package: packages/ai
+          - name: agent-core
+            package: packages/agent
+          - name: tui
+            package: packages/tui
+          - name: session-backend-sqlite-node
+            package: packages/session-backends/sqlite-node
+          - name: protocol
+            package: packages/protocol
+          - name: client
+            package: packages/client
+          - name: coding-agent
+            package: packages/coding-agent
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build:offline
+
+      - name: Test
+        working-directory: ${{ matrix.package }}
+        run: npm test
+        env:
+          ATHENA_OFFLINE: "1"
+          ATHENA_MCP_TEST_DISCOVERY_DISABLED: "1"
+
+  build-check-test:
+    name: build-check-test
+    if: always()
+    needs: [build-check, test]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify CI results
+        env:
+          BUILD_CHECK_RESULT: ${{ needs.build-check.result }}
+          TEST_RESULT: ${{ needs.test.result }}
+        run: |
+          test "$BUILD_CHECK_RESULT" = success
+          test "$TEST_RESULT" = success

@@ -1,0 +1,57 @@
+name: Bug report
+description: Report an issue that should be fixed (avoid pasting giant AI-generated summaries or your issue may be closed/ignored)
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe the bug you encountered
+      placeholder: What happened?
+    validations:
+      required: true
+
+  - type: input
+    id: athena-version
+    attributes:
+      label: Athena version
+      description: What version of Athena are you using? (`athena --version`)
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Steps to reproduce
+      description: How can we reproduce this issue?
+      placeholder: |
+        1.
+        2.
+        3.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant logs or output
+      description: Paste any relevant error output (short, not a full session dump)
+    validations:
+      required: false
+
+  - type: input
+    id: os
+    attributes:
+      label: Operating System
+      description: What OS are you using?
+      placeholder: e.g., macOS 26.0.1, Ubuntu 22.04, Windows 11
+    validations:
+      required: false
+
+  - type: input
+    id: terminal
+    attributes:
+      label: Terminal
+      description: What terminal are you using?
+      placeholder: e.g., iTerm2, Ghostty, Alacritty, Windows Terminal
+    validations:
+      required: false
