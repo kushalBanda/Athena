@@ -12,8 +12,6 @@ packages/*/dist-release/
 packages/ai/src/providers/data/
 packages/ai/src/providers/.model-generation-*/
 *.cpuprofile
-packages/*/test/
-packages/session-backends/*/test/
 
 # Environment
 .env
