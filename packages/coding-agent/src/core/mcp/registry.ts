@@ -160,7 +160,7 @@ export class McpRegistry {
 			const refreshed = await this.authStorage.modify(providerId, async (current) => {
 				if (!current || current.type !== "oauth") return current;
 				if (!isCredentialExpired(current)) return current;
-				return auth.refresh(current);
+				return auth.refresh(current, AbortSignal.timeout(30_000));
 			});
 			if (!refreshed || refreshed.type !== "oauth") {
 				throw new Error(`Failed to refresh credentials for ${config.name}`);

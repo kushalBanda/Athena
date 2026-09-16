@@ -3,7 +3,7 @@
 // AuthStorage used for model-provider credentials. Node-only (spawns a local callback
 // server to catch the browser redirect).
 
-import { createServer } from "node:http";
+import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import type { OAuthAuth, OAuthCredential, ProviderAuthInteraction } from "@kushalbanda/ai";
 import type { McpHttpServerConfig } from "./types.ts";
 
@@ -136,7 +136,7 @@ async function startCallbackServer(label: string): Promise<{
 		};
 	});
 
-	const handler: Parameters<typeof createServer>[0] = (req, res) => {
+	const handler = (req: IncomingMessage, res: ServerResponse) => {
 		const url = new URL(req.url || "", "http://localhost");
 		if (url.pathname !== CALLBACK_PATH) {
 			res.writeHead(404, { "Content-Type": "text/html; charset=utf-8" });
