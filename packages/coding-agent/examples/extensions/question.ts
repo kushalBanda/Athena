@@ -5,15 +5,7 @@
  */
 
 import type { ExtensionAPI } from "@kushalbanda/athena";
-import {
-	Editor,
-	type EditorTheme,
-	Key,
-	matchesKey,
-	Text,
-	visibleWidth,
-	wrapTextWithAnsi,
-} from "@kushalbanda/tui";
+import { Editor, type EditorTheme, Key, matchesKey, Text, visibleWidth, wrapTextWithAnsi } from "@kushalbanda/tui";
 import { Type } from "typebox";
 
 interface OptionWithDesc {

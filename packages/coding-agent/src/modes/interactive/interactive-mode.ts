@@ -58,6 +58,7 @@ import {
 } from "../../config.ts";
 import { type AgentSession, type AgentSessionEvent, parseSkillBlock } from "../../core/agent-session.ts";
 import { type AgentSessionRuntime, SessionImportFileNotFoundError } from "../../core/agent-session-runtime.ts";
+import type { McpRegistry } from "../../core/mcp/registry.ts";
 import {
 	CACHE_TTL_MS,
 	type CacheMiss,
@@ -99,13 +100,13 @@ import { isInstallTelemetryEnabled } from "../../core/telemetry.ts";
 import type { TruncationResult } from "../../core/tools/truncate.ts";
 import { hasTrustRequiringProjectResources, ProjectTrustStore } from "../../core/trust-manager.ts";
 import { getUsageCostBreakdown } from "../../core/usage-totals.ts";
+import { getAthenaUserAgent } from "../../utils/athena-user-agent.ts";
 import { getChangelogPath, getNewEntries, normalizeChangelogLinks, parseChangelog } from "../../utils/changelog.ts";
 import { copyToClipboard, readClipboardText } from "../../utils/clipboard.ts";
 import { extensionForImageMimeType, readClipboardImage } from "../../utils/clipboard-image.ts";
 import { parseGitUrl } from "../../utils/git.ts";
 import { openBrowser } from "../../utils/open-browser.ts";
 import { getCwdRelativePath } from "../../utils/paths.ts";
-import { getAthenaUserAgent } from "../../utils/athena-user-agent.ts";
 import { killTrackedDetachedChildren } from "../../utils/shell.ts";
 import { ensureTool, type ToolStatus } from "../../utils/tools-manager.ts";
 import { checkForNewAthenaVersion, type LatestAthenaRelease } from "../../utils/version-check.ts";
@@ -124,6 +125,7 @@ import { EarendilAnnouncementComponent } from "./components/earendil-announcemen
 import { ExtensionEditorComponent } from "./components/extension-editor.ts";
 import { ExtensionInputComponent } from "./components/extension-input.ts";
 import { ExtensionSelectorComponent } from "./components/extension-selector.ts";
+import { type McpServerPanelState, McpServerPanelComponent } from "./components/mcp-server-panel.ts";
 import { FooterComponent, formatTokens } from "./components/footer.ts";
 import { formatKeyText, keyDisplayText, keyHint, keyText, rawKeyHint } from "./components/keybinding-hints.ts";
 import { LoginDialogComponent } from "./components/login-dialog.ts";
@@ -168,6 +170,20 @@ import {
 	theme,
 } from "./theme/theme.ts";
 import { InteractiveThemeController } from "./theme/theme-controller.ts";
+
+type McpServerListEntry = ReturnType<McpRegistry["listServers"]>[number];
+
+const MCP_BUSY_VERBS: Record<string, string> = {
+	Reconnect: "Reconnecting",
+	Disable: "Disabling",
+	Enable: "Enabling",
+	Logout: "Logging out of",
+};
+
+function mcpBusyLabel(action: string, serverName: string): string {
+	const verb = MCP_BUSY_VERBS[action] ?? action;
+	return `${verb} "${serverName}"...`;
+}
 
 /** Interface for components that can be expanded/collapsed */
 interface Expandable {
@@ -2990,6 +3006,12 @@ export class InteractiveMode {
 				this.editor.setText("");
 				return;
 			}
+			if (text === "/mcp" || text.startsWith("/mcp ")) {
+				const args = text.startsWith("/mcp ") ? text.slice(5).trim() : "";
+				this.editor.setText("");
+				await this.handleMcpCommand(args);
+				return;
+			}
 			if (text === "/clear") {
 				this.editor.setText("");
 				await this.handleClearCommand();
@@ -5726,6 +5748,205 @@ export class InteractiveMode {
 				this.showError(`Failed to login to ${providerName}: ${errorMsg}`);
 			}
 		}
+	}
+
+	private mcpStatusLabel(entry: McpServerListEntry): string {
+		if (entry.status.status === "connected") return "connected";
+		if (entry.status.status === "disabled") return "disabled";
+		return `failed (${entry.status.error})`;
+	}
+
+	private mcpServerOptionLabel(entry: McpServerListEntry): string {
+		const oauthLabel = entry.usesOAuth ? " [oauth]" : "";
+		return `${entry.name} · ${entry.transport}${oauthLabel}: ${this.mcpStatusLabel(entry)}`;
+	}
+
+	private showMcpSelector(): void {
+		const servers = this.session.mcpRegistry.listServers();
+		if (servers.length === 0) {
+			this.showStatus("No MCP servers configured. Add one under \"mcpServers\" in settings.");
+			return;
+		}
+		this.showSelector((done) => {
+			const options = servers.map((entry) => this.mcpServerOptionLabel(entry));
+			const selector = new ExtensionSelectorComponent(
+				"MCP Servers",
+				options,
+				(option) => {
+					done();
+					const entry = servers[options.indexOf(option)];
+					if (entry) this.showMcpServerActionsSelector(entry);
+				},
+				() => done(),
+			);
+			return { component: selector, focus: selector };
+		});
+	}
+
+	private mcpActionsFor(entry: McpServerListEntry): string[] {
+		const enabled = entry.status.status !== "disabled";
+		const actions: string[] = ["Reconnect", enabled ? "Disable" : "Enable"];
+		if (entry.usesOAuth) actions.push("Login", "Logout");
+		actions.push("Back");
+		return actions;
+	}
+
+	private mcpPanelState(entry: McpServerListEntry): McpServerPanelState {
+		return {
+			header: `${entry.name} (${entry.transport}) · ${this.mcpStatusLabel(entry)}`,
+			actions: this.mcpActionsFor(entry),
+		};
+	}
+
+	private mcpLatestEntry(name: string, fallback: McpServerListEntry): McpServerListEntry {
+		return this.session.mcpRegistry.listServers().find((s) => s.name === name) ?? fallback;
+	}
+
+	/**
+	 * Shows one server's status + actions and stays open across Reconnect / Enable /
+	 * Disable / Logout — the panel updates itself in place afterward instead of
+	 * closing back to the chat editor, so the result is visible right where the
+	 * action was taken. Only "Login" hands off to its own full OAuth dialog.
+	 */
+	private showMcpServerActionsSelector(entry: McpServerListEntry): void {
+		this.showSelector((done) => {
+			const panel = new McpServerPanelComponent(this.mcpPanelState(entry), (action) => {
+				if (action === "Back") {
+					done();
+					this.showMcpSelector();
+					return;
+				}
+				if (action === "Login") {
+					done();
+					void (async () => {
+						await this.showLoginMcpDialog(entry.name);
+						this.showMcpServerActionsSelector(this.mcpLatestEntry(entry.name, entry));
+					})();
+					return;
+				}
+				void (async () => {
+					panel.setBusy(mcpBusyLabel(action, entry.name));
+					this.ui.requestRender();
+					await this.runMcpServerAction(entry, action);
+					const fresh = this.mcpLatestEntry(entry.name, entry);
+					panel.update(this.mcpPanelState(fresh));
+					this.ui.requestRender();
+				})();
+			}, () => done());
+			return { component: panel, focus: panel };
+		});
+	}
+
+	private async runMcpServerAction(entry: McpServerListEntry, action: string): Promise<void> {
+		const { name } = entry;
+		try {
+			if (action === "Reconnect") {
+				await this.session.refreshMcpTools();
+				const status = this.session.mcpRegistry.getStatus()[name];
+				if (status && status.status === "connected") this.showStatus(`"${name}" connected.`);
+				else if (status && status.status === "failed") this.showError(`"${name}" failed: ${status.error}`);
+				return;
+			}
+			if (action === "Disable" || action === "Enable") {
+				const wantEnabled = action === "Enable";
+				if (entry.origin === "user") {
+					const current = this.settingsManager.getMcpServers()?.[name];
+					if (!current) {
+						this.showError(`No settings entry found for "${name}".`);
+						return;
+					}
+					this.settingsManager.setMcpServerConfig(name, { ...current, enabled: wantEnabled });
+				} else {
+					this.settingsManager.setMcpBuiltinEnabled(name, wantEnabled);
+				}
+				await this.session.refreshMcpTools();
+				this.showStatus(`"${name}" ${wantEnabled ? "enabled" : "disabled"}.`);
+				return;
+			}
+			if (action === "Logout") {
+				await this.session.mcpRegistry.logout(name);
+				await this.session.refreshMcpTools();
+				this.showStatus(`Logged out of "${name}".`);
+			}
+		} catch (error: unknown) {
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			this.showError(`Failed to ${action.toLowerCase()} "${name}": ${errorMsg}`);
+		}
+	}
+
+	private async showLoginMcpDialog(server: string): Promise<void> {
+		const dialog = new LoginDialogComponent(this.ui, `mcp:${server}`, (_success, _message) => {}, server);
+		this.editorContainer.clear();
+		this.editorContainer.addChild(dialog);
+		this.ui.setFocus(dialog);
+		this.ui.requestRender();
+
+		const restoreEditor = () => {
+			this.editorContainer.clear();
+			this.editorContainer.addChild(this.editor);
+			this.ui.setFocus(this.editor);
+			this.ui.requestRender();
+		};
+
+		try {
+			await this.session.mcpRegistry.login(server, {
+				signal: dialog.signal,
+				prompt: (prompt) => this.showAuthPrompt(dialog, prompt),
+				notify: (event) => this.notifyAuthDialog(dialog, event),
+			});
+			restoreEditor();
+			this.showStatus(`Logged in to MCP server "${server}". Reconnecting...`);
+			await this.session.refreshMcpTools();
+			const status = this.session.mcpRegistry.getStatus()[server];
+			if (status && status.status === "connected") {
+				this.showStatus(`MCP server "${server}" connected.`);
+			} else if (status && status.status === "failed") {
+				this.showError(`MCP server "${server}" failed to connect: ${status.error}`);
+			}
+		} catch (error: unknown) {
+			restoreEditor();
+			const errorMsg = error instanceof Error ? error.message : String(error);
+			if (errorMsg !== "Login cancelled") {
+				this.showError(`Failed to login to MCP server "${server}": ${errorMsg}`);
+			}
+		}
+	}
+
+	private async handleMcpCommand(args: string): Promise<void> {
+		const [subcommand, ...rest] = args.split(/\s+/).filter(Boolean);
+		const server = rest.join(" ").trim();
+
+		if (!subcommand) {
+			this.showMcpSelector();
+			return;
+		}
+
+		if (subcommand === "login") {
+			if (!server) {
+				this.showError("Usage: /mcp login <server>");
+				return;
+			}
+			await this.showLoginMcpDialog(server);
+			return;
+		}
+
+		if (subcommand === "logout") {
+			if (!server) {
+				this.showError("Usage: /mcp logout <server>");
+				return;
+			}
+			try {
+				await this.session.mcpRegistry.logout(server);
+				this.showStatus(`Logged out of MCP server "${server}".`);
+				await this.session.refreshMcpTools();
+			} catch (error: unknown) {
+				const errorMsg = error instanceof Error ? error.message : String(error);
+				this.showError(`Failed to logout of MCP server "${server}": ${errorMsg}`);
+			}
+			return;
+		}
+
+		this.showError(`Unknown /mcp subcommand: ${subcommand}. Use /mcp, /mcp login <server>, or /mcp logout <server>.`);
 	}
 
 	// =========================================================================

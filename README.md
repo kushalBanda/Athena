@@ -4,6 +4,11 @@
   <img src="assets/logo.png" alt="Athena logo" width="160" />
 </p>
 
+<p align="center">
+  <a href="https://github.com/kushalBanda/Athena/actions/workflows/ci.yml"><img src="https://github.com/kushalBanda/Athena/actions/workflows/ci.yml/badge.svg" alt="CI status" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+</p>
+
 Athena, an agent that knows your codebase, not just your prompt.
 
 Athena is an open-source AI coding agent for the terminal. It runs interactively, in print/JSON mode, over RPC for process integration, or embedded via SDK, and is extensible through TypeScript extensions, skills, prompt templates, and themes.
@@ -52,6 +57,12 @@ npm run test                 # Run tests across all workspaces
 
 
 
+## Contributing
+
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for dev setup and PR guidelines, and our [Code of Conduct](CODE_OF_CONDUCT.md).
+
+Found a security issue? See [SECURITY.md](SECURITY.md) for how to report it.
+
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

@@ -1,6 +1,6 @@
 import { compare, valid } from "semver";
-import { fetchWithRetry } from "./management-http.ts";
 import { getAthenaUserAgent } from "./athena-user-agent.ts";
+import { fetchWithRetry } from "./management-http.ts";
 
 const LATEST_VERSION_URL = "https://pi.dev/api/latest-version";
 const DEFAULT_VERSION_CHECK_TIMEOUT_MS = 10000;

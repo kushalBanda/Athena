@@ -8,6 +8,7 @@ import lockfile from "proper-lockfile";
 import { CONFIG_DIR_NAME, getAgentDir } from "../config.ts";
 import { normalizePath, resolvePath } from "../utils/paths.ts";
 import { DEFAULT_HTTP_IDLE_TIMEOUT_MS, parseHttpIdleTimeoutMs } from "./http-dispatcher.ts";
+import type { McpUserServerConfig } from "./mcp/types.ts";
 
 export interface CompactionSettings {
 	enabled?: boolean; // default: true
@@ -137,6 +138,8 @@ export interface Settings {
 	tuiMode?: TuiMode; // default: "regular"
 	fullscreenExitOutput?: FullscreenExitOutput; // default: "transcript"; no effect in regular TUI mode
 	fullscreenScrollbar?: ScrollViewScrollbar; // default: "auto"; no effect in regular TUI mode
+	mcpServers?: Record<string, McpUserServerConfig>; // Custom MCP servers (name -> stdio or http/sse config), merged with built-ins
+	disabledMcpBuiltins?: string[]; // Names of built-in MCP servers (e.g. "codegraph") turned off from the /mcp UI
 }
 
 function isMergeableObject(value: unknown): value is Record<string, unknown> {
@@ -449,6 +452,40 @@ export class SettingsManager {
 
 	getGlobalSettings(): Settings {
 		return structuredClone(this.globalSettings);
+	}
+
+	getMcpServers(): Record<string, McpUserServerConfig> | undefined {
+		return this.settings.mcpServers;
+	}
+
+	/** Adds or replaces one user-declared MCP server, preserving the others. Global scope. */
+	setMcpServerConfig(name: string, config: McpUserServerConfig): void {
+		this.globalSettings.mcpServers = { ...(this.globalSettings.mcpServers ?? {}), [name]: config };
+		this.markModified("mcpServers");
+		this.save();
+	}
+
+	/** Removes a user-declared MCP server from settings entirely. Global scope. */
+	removeMcpServerConfig(name: string): void {
+		const next = { ...(this.globalSettings.mcpServers ?? {}) };
+		delete next[name];
+		this.globalSettings.mcpServers = next;
+		this.markModified("mcpServers");
+		this.save();
+	}
+
+	getDisabledMcpBuiltins(): string[] {
+		return [...(this.settings.disabledMcpBuiltins ?? [])];
+	}
+
+	/** Enables/disables a built-in MCP server (e.g. "codegraph") that has no settings entry of its own. Global scope. */
+	setMcpBuiltinEnabled(name: string, enabled: boolean): void {
+		const current = new Set(this.globalSettings.disabledMcpBuiltins ?? []);
+		if (enabled) current.delete(name);
+		else current.add(name);
+		this.globalSettings.disabledMcpBuiltins = Array.from(current);
+		this.markModified("disabledMcpBuiltins");
+		this.save();
 	}
 
 	getProjectSettings(): Settings {

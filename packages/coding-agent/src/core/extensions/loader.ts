@@ -26,10 +26,10 @@ import { CONFIG_DIR_NAME, getAgentDir, isBunBinary } from "../../config.ts";
 // avoiding a circular dependency. Extensions can import from @kushalbanda/athena.
 import * as _bundledAthenaCodingAgent from "../../index.ts";
 import { resolvePath } from "../../utils/paths.ts";
+import { readAthenaManifest } from "../athena-manifest.ts";
 import { createEventBus, type EventBus } from "../event-bus.ts";
 import type { ExecOptions } from "../exec.ts";
 import { execCommand } from "../exec.ts";
-import { readAthenaManifest } from "../athena-manifest.ts";
 import { createSyntheticSourceInfo } from "../source-info.ts";
 import { time } from "../timings.ts";
 import type {
@@ -110,10 +110,7 @@ function getAliases(): Record<string, string> {
 	// global API keep working at runtime until compat is removed.
 	const athenaAiCompatEntry = resolveWorkspaceOrImport("ai/dist/compat.js", "@kushalbanda/ai/compat");
 	const athenaAiOauthEntry = resolveWorkspaceOrImport("ai/dist/oauth.js", "@kushalbanda/ai/oauth");
-	const athenaAiProvidersEntry = resolveWorkspaceOrImport(
-		"ai/dist/providers/all.js",
-		"@kushalbanda/ai/providers/all",
-	);
+	const athenaAiProvidersEntry = resolveWorkspaceOrImport("ai/dist/providers/all.js", "@kushalbanda/ai/providers/all");
 
 	_aliases = {
 		"@kushalbanda/athena": athenaCodingAgentEntry,

@@ -59,7 +59,9 @@ export function createLlamaProvider(): LlamaProviderController {
 	let models: readonly Model<"openai-completions">[] = [];
 
 	const setCatalog = (catalog: readonly LlamaModelInfo[], serverUrl: string): void => {
-		models = catalog.filter((model) => model.status.value === "loaded").map((model) => toAthenaModel(model, serverUrl));
+		models = catalog
+			.filter((model) => model.status.value === "loaded")
+			.map((model) => toAthenaModel(model, serverUrl));
 	};
 
 	const provider: Provider<"openai-completions"> = {

@@ -29,10 +29,10 @@ import {
 } from "./session-handle.ts";
 import { ClientState } from "./state.ts";
 import type {
+	AthenaClientOptions,
 	ConnectionState,
 	ConnectionStateChange,
 	CreateSessionOptions,
-	AthenaClientOptions,
 	Unsubscribe,
 } from "./types.ts";
 

@@ -13,12 +13,7 @@
  *   export default function (athena: ExtensionAPI) { ... }
  */
 
-import {
-	createAgentSession,
-	DefaultResourceLoader,
-	getAgentDir,
-	SessionManager,
-} from "@kushalbanda/athena";
+import { createAgentSession, DefaultResourceLoader, getAgentDir, SessionManager } from "@kushalbanda/athena";
 
 // Extensions are discovered automatically from standard locations.
 // You can also add paths via settings.json or DefaultResourceLoader options.

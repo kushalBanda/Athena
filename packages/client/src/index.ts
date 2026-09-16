@@ -9,10 +9,10 @@ export {
 export type { AcquireSessionOptions, AthenaSessionHandle, SessionLease, SessionLeaseMode } from "./session-handle.ts";
 export type { ByteTransport, ByteTransportFactory, ByteTransportHandlers } from "./transport.ts";
 export type {
+	AthenaClientOptions,
 	ConnectionState,
 	ConnectionStateChange,
 	CreateSessionOptions,
 	ListenerErrorHandler,
-	AthenaClientOptions,
 	Unsubscribe,
 } from "./types.ts";

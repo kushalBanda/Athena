@@ -354,7 +354,12 @@ export const HARNESS_TELEMETRY_SCHEMA = {
 			description: "One durable retry attempt",
 			parents: {
 				kind: "spans",
-				spans: ["athena.harness.turn", "athena.harness.checkpoint", "athena.harness.compaction", "athena.harness.navigation"],
+				spans: [
+					"athena.harness.turn",
+					"athena.harness.checkpoint",
+					"athena.harness.compaction",
+					"athena.harness.navigation",
+				],
 			},
 			startAttributes: {
 				"athena.lane.name": {

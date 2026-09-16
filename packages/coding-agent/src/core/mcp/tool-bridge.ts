@@ -24,9 +24,9 @@ export function mcpToolName(serverName: string, toolName: string): string {
 /** MCP text/image content items are structurally identical to Athena's own —
  * other MCP content kinds (resource, audio, ...) have no Athena equivalent
  * yet, so they're dropped rather than mis-mapped. */
-function toAthenaContent(items: Array<{ type: string; text?: string; data?: string; mimeType?: string }>): Array<
-	TextContent | ImageContent
-> {
+function toAthenaContent(
+	items: Array<{ type: string; text?: string; data?: string; mimeType?: string }>,
+): Array<TextContent | ImageContent> {
 	const content: Array<TextContent | ImageContent> = [];
 	for (const item of items) {
 		if (item.type === "text" && typeof item.text === "string") {

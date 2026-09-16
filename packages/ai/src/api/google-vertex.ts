@@ -11,9 +11,9 @@ import { calculateCost, clampThinkingLevel } from "../models.ts";
 import type {
 	Api,
 	AssistantMessage,
+	ThinkingLevel as AthenaThinkingLevel,
 	Context,
 	Model,
-	ThinkingLevel as AthenaThinkingLevel,
 	ProviderEnv,
 	ProviderHeaders,
 	SimpleStreamOptions,

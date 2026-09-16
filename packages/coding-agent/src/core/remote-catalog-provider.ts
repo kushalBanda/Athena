@@ -1,7 +1,7 @@
 import type { Api, Model, ModelsStoreEntry, Provider } from "@kushalbanda/ai";
 import { VERSION } from "../config.ts";
-import { fetchWithRetry } from "../utils/management-http.ts";
 import { getAthenaUserAgent } from "../utils/athena-user-agent.ts";
+import { fetchWithRetry } from "../utils/management-http.ts";
 
 const DEFAULT_CATALOG_BASE_URL = "https://pi.dev";
 export const REMOTE_CATALOG_REFRESH_INTERVAL_MS = 4 * 60 * 60 * 1000;

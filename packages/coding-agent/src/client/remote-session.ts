@@ -1,7 +1,7 @@
 import type {
+	AthenaClient,
 	ConnectionState,
 	ConnectionStateChange,
-	AthenaClient,
 	SessionLease,
 	Unsubscribe,
 } from "@kushalbanda/client";
@@ -137,7 +137,11 @@ export class RemoteSession {
 		return this.#client.onConnectionStateChange(listener);
 	}
 
-	static async open(client: AthenaClient, sessionId: string, options: RemoteSessionOptions = {}): Promise<RemoteSession> {
+	static async open(
+		client: AthenaClient,
+		sessionId: string,
+		options: RemoteSessionOptions = {},
+	): Promise<RemoteSession> {
 		const session = new RemoteSession(client, options);
 		try {
 			await session.open(sessionId);

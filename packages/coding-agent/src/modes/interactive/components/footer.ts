@@ -111,7 +111,10 @@ export class FooterComponent implements Component {
 		const contextPercent = contextUsage?.percent !== null ? contextPercentValue.toFixed(1) : "?";
 
 		// Replace home directory with ~
-		const cwdText = formatCwdForFooter(this.session.sessionManager.getCwd(), process.env.HOME || process.env.USERPROFILE);
+		const cwdText = formatCwdForFooter(
+			this.session.sessionManager.getCwd(),
+			process.env.HOME || process.env.USERPROFILE,
+		);
 		let pwd = theme.fg("statusPath", cwdText);
 
 		// Add git branch if available

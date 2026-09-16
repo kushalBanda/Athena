@@ -174,12 +174,7 @@ export type ThemeBg =
 	| "toolSuccessBg"
 	| "toolErrorBg";
 
-type OptionalThemeColor =
-	| "thinkingMax"
-	| "searchMatchText"
-	| "statusModel"
-	| "statusPath"
-	| "statusBranch";
+type OptionalThemeColor = "thinkingMax" | "searchMatchText" | "statusModel" | "statusPath" | "statusBranch";
 type OptionalThemeBg = "scrollbarThumb" | "searchMatchBg";
 
 type ColorMode = "truecolor" | "256color";

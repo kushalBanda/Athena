@@ -144,7 +144,10 @@ export function renderDiff(diffText: string, _options: RenderDiffOptions = {}): 
 				}
 				for (const added of addedLines) {
 					result.push(
-						tintLine(theme.fg("toolDiffAdded", `+${added.lineNum} ${replaceTabs(added.content)}`), "toolSuccessBg"),
+						tintLine(
+							theme.fg("toolDiffAdded", `+${added.lineNum} ${replaceTabs(added.content)}`),
+							"toolSuccessBg",
+						),
 					);
 				}
 			}

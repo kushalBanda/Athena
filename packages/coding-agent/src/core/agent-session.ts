@@ -52,6 +52,7 @@ import { resolvePath } from "../utils/paths.ts";
 import { sleep } from "../utils/sleep.ts";
 import { normalizeToolResultImages } from "../utils/tool-result-images.ts";
 import { formatNoApiKeyFoundMessage, formatNoModelSelectedMessage } from "./auth-guidance.ts";
+import { AuthStorage } from "./auth-storage.ts";
 import { type BashResult, executeBashWithOperations } from "./bash-executor.ts";
 import {
 	type CompactionResult,
@@ -94,6 +95,7 @@ import {
 	wrapRegisteredTools,
 } from "./extensions/index.ts";
 import { emitSessionShutdownEvent } from "./extensions/runner.ts";
+import { McpRegistry } from "./mcp/registry.ts";
 import type { BashExecutionMessage, CustomMessage } from "./messages.ts";
 import { ModelRegistry } from "./model-registry.ts";
 import type { ModelRuntime } from "./model-runtime.ts";
@@ -105,7 +107,6 @@ import type { SettingsManager } from "./settings-manager.ts";
 import type { SlashCommandInfo } from "./slash-commands.ts";
 import { createSyntheticSourceInfo, type SourceInfo } from "./source-info.ts";
 import { type BuildSystemPromptOptions, buildSystemPrompt } from "./system-prompt.ts";
-import { McpRegistry } from "./mcp/registry.ts";
 import { type BashOperations, createLocalBashOperations } from "./tools/bash.ts";
 import { createAllToolDefinitions } from "./tools/index.ts";
 import { createToolDefinitionFromAgentTool } from "./tools/tool-definition-wrapper.ts";
@@ -392,7 +393,11 @@ export class AgentSession {
 		this._excludedToolNames = config.excludedToolNames ? new Set(config.excludedToolNames) : undefined;
 		this._baseToolsOverride = config.baseToolsOverride;
 		this._sessionStartEvent = config.sessionStartEvent ?? { type: "session_start", reason: "startup" };
-		this._mcpRegistry = new McpRegistry(this._cwd);
+		this._mcpRegistry = new McpRegistry(this._cwd, {
+			getUserServers: () => this.settingsManager.getMcpServers(),
+			getDisabledBuiltinServers: () => this.settingsManager.getDisabledMcpBuiltins(),
+			authStorage: AuthStorage.create(),
+		});
 
 		// Always subscribe to agent events for internal handling
 		// (session persistence, extensions, auto-compaction, retry logic)
@@ -424,6 +429,21 @@ export class AgentSession {
 
 	get modelRuntime(): ModelRuntime {
 		return this._modelRuntime;
+	}
+
+	get mcpRegistry(): McpRegistry {
+		return this._mcpRegistry;
+	}
+
+	/** Reconnects all MCP servers (e.g. after `/mcp login`) and activates any newly-discovered tools. */
+	async refreshMcpTools(): Promise<void> {
+		await this._mcpRegistry.refresh();
+		if (this._disposed) return;
+		const mcpTools = this._mcpRegistry.getTools();
+		this._buildRuntime({
+			activeToolNames: [...this.getActiveToolNames(), ...Object.keys(mcpTools)],
+			includeAllExtensionTools: false,
+		});
 	}
 
 	private async _getRequiredRequestAuth(model: Model<any>): Promise<{

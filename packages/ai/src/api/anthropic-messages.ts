@@ -29,11 +29,11 @@ import type {
 	ToolCall,
 	ToolResultMessage,
 } from "../types.ts";
+import { getAthenaUserAgent } from "../utils/athena-user-agent.ts";
 import { splitDeferredTools } from "../utils/deferred-tools.ts";
 import { AssistantMessageEventStream } from "../utils/event-stream.ts";
 import { headersToRecord } from "../utils/headers.ts";
 import { parseJsonWithRepair, parseStreamingJson } from "../utils/json-parse.ts";
-import { getAthenaUserAgent } from "../utils/athena-user-agent.ts";
 import { getProviderEnvValue } from "../utils/provider-env.ts";
 import { retryProviderRequest } from "../utils/provider-retry.ts";
 import { sanitizeSurrogates } from "../utils/sanitize-unicode.ts";

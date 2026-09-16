@@ -620,5 +620,24 @@ describe("SettingsManager", () => {
 			const manager = SettingsManager.create(projectDir, agentDir);
 			expect(manager.getMcpServers()).toBeUndefined();
 		});
+
+		it("setMcpServerConfig adds/patches one server without touching the others", () => {
+			const manager = SettingsManager.create(projectDir, agentDir);
+			manager.setMcpServerConfig("acme", { type: "http", url: "https://acme.example/mcp" });
+			manager.setMcpServerConfig("beta", { type: "stdio", command: ["beta-mcp"] });
+			manager.setMcpServerConfig("acme", { type: "http", url: "https://acme.example/mcp", enabled: false });
+			expect(manager.getMcpServers()).toEqual({
+				acme: { type: "http", url: "https://acme.example/mcp", enabled: false },
+				beta: { type: "stdio", command: ["beta-mcp"] },
+			});
+		});
+
+		it("setMcpBuiltinEnabled tracks disabled built-ins by name, toggle back removes it", () => {
+			const manager = SettingsManager.create(projectDir, agentDir);
+			manager.setMcpBuiltinEnabled("codegraph", false);
+			expect(manager.getDisabledMcpBuiltins()).toEqual(["codegraph"]);
+			manager.setMcpBuiltinEnabled("codegraph", true);
+			expect(manager.getDisabledMcpBuiltins()).toEqual([]);
+		});
 	});
 });

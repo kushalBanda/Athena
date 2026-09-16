@@ -7,6 +7,7 @@ export { Type } from "typebox";
 // "@kushalbanda/ai/api/*", the old global API under
 // "@kushalbanda/ai/compat".
 export type { AnthropicEffort, AnthropicOptions, AnthropicThinkingDisplay } from "./api/anthropic-messages.ts";
+export type { AthenaMessagesEvent, AthenaMessagesOptions, AthenaMessagesRewriteImpact } from "./api/athena-messages.ts";
 export type { AzureOpenAIResponsesOptions } from "./api/azure-openai-responses.ts";
 export type { BedrockOptions, BedrockThinkingDisplay } from "./api/bedrock-converse-stream.ts";
 export type { GoogleOptions } from "./api/google-generative-ai.ts";
@@ -17,7 +18,6 @@ export type { MistralOptions } from "./api/mistral-conversations.ts";
 export type { OpenAICodexResponsesOptions, OpenAICodexWebSocketDebugStats } from "./api/openai-codex-responses.ts";
 export type { OpenAICompletionsOptions } from "./api/openai-completions.ts";
 export type { OpenAIResponsesOptions } from "./api/openai-responses.ts";
-export type { AthenaMessagesEvent, AthenaMessagesOptions, AthenaMessagesRewriteImpact } from "./api/athena-messages.ts";
 export * from "./auth/context.ts";
 export * from "./auth/credential-store.ts";
 export * from "./auth/helpers.ts";
