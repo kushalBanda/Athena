@@ -12,6 +12,7 @@ import {
 	createGrepTool,
 	createLsTool,
 	createReadTool,
+	createWebSearchTool,
 	createWriteTool,
 } from "../src/index.ts";
 import * as shellModule from "../src/utils/shell.ts";
@@ -23,6 +24,7 @@ const bashTool = createBashTool(process.cwd());
 const grepTool = createGrepTool(process.cwd());
 const findTool = createFindTool(process.cwd());
 const lsTool = createLsTool(process.cwd());
+const webSearchTool = createWebSearchTool(process.cwd());
 
 // Helper to extract text from content blocks
 function getTextOutput(result: any): string {
@@ -1209,5 +1211,11 @@ describe("edit tool CRLF handling", () => {
 
 		const content = readFileSync(testFile, "utf-8");
 		expect(content).toBe("\uFEFFfirst\r\nSECOND\r\nthird\r\nFOURTH\r\n");
+	});
+});
+
+describe("websearch tool registration", () => {
+	it("is registered under the name 'websearch'", () => {
+		expect(webSearchTool.name).toBe("websearch");
 	});
 });

@@ -55,6 +55,29 @@ describe("defaultTools setting", () => {
 		).session;
 	}
 
+	it("includes websearch in the default active tools when no defaultTools setting is configured", async () => {
+		const settingsManager = SettingsManager.inMemory({});
+		const resourceLoader = new DefaultResourceLoader({
+			cwd: tempDir,
+			agentDir,
+			settingsManager,
+			extensionFactories: [],
+		});
+		await resourceLoader.reload();
+
+		const { session } = await createAgentSession({
+			cwd: tempDir,
+			agentDir,
+			model: getModel("anthropic", "claude-sonnet-4-5")!,
+			settingsManager,
+			sessionManager: SessionManager.inMemory(tempDir),
+			resourceLoader,
+		});
+
+		expect(session.getActiveToolNames()).toContain("websearch");
+		session.dispose();
+	});
+
 	it("uses the configured list as the initial built-in selection", async () => {
 		const session = await createSession(["grep", "find"]);
 
@@ -63,7 +86,7 @@ describe("defaultTools setting", () => {
 				.getAllTools()
 				.map((tool) => tool.name)
 				.sort(),
-		).toEqual(["bash", "edit", "find", "grep", "ls", "read", "write"]);
+		).toEqual(["bash", "edit", "find", "grep", "ls", "read", "websearch", "write"]);
 		expect(session.getActiveToolNames()).toEqual(["grep", "find"]);
 		expect(session.systemPrompt).toContain("- grep:");
 		expect(session.systemPrompt).not.toContain("- read:");
@@ -143,7 +166,7 @@ describe("defaultTools setting", () => {
 				.getAllTools()
 				.map((tool) => tool.name)
 				.sort(),
-		).toEqual(["bash", "edit", "find", "grep", "ls", "read", "write"]);
+		).toEqual(["bash", "edit", "find", "grep", "ls", "read", "websearch", "write"]);
 		expect(session.getActiveToolNames()).toEqual(["ls"]);
 		session.dispose();
 	});
