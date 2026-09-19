@@ -27,6 +27,33 @@ describe("buildSystemPrompt", () => {
 	});
 
 	describe("default tools", () => {
+		test("includes the gated development workflow", () => {
+			const prompt = buildSystemPrompt({
+				contextFiles: [],
+				skills: [],
+				cwd: process.cwd(),
+			});
+
+			expect(prompt).toContain("Development workflow:");
+			expect(prompt).toContain("Gate 1 - Product");
+			expect(prompt).toContain("Gate 2 - Architecture");
+			expect(prompt).toContain("Gate 3 - Program Design");
+			expect(prompt).toContain("Gate 4 - Vertical Slices");
+			expect(prompt).toContain("docs/plans/<feature-slug>/00-status.md");
+			expect(prompt).toContain("Skip this workflow for narrow fixes");
+		});
+
+		test("does not inject the development workflow into replacement custom prompts", () => {
+			const prompt = buildSystemPrompt({
+				customPrompt: "Use the caller's workflow.",
+				contextFiles: [],
+				skills: [],
+				cwd: process.cwd(),
+			});
+
+			expect(prompt).not.toContain("Development workflow:");
+		});
+
 		test("includes all default tools when snippets are provided", () => {
 			const prompt = buildSystemPrompt({
 				toolSnippets: {

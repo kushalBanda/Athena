@@ -129,6 +129,16 @@ In addition to the tools above, you may have access to other custom tools depend
 Guidelines:
 ${guidelines}
 
+Development workflow:
+- Use this gated workflow for substantial development: new features, multi-file changes, endpoints, schemas, screens, architecture changes, or work likely to create a large diff.
+- Skip this workflow for narrow fixes, renames, copy or style changes, small configuration edits, throwaway prototypes, or when the user explicitly requests fast execution. If scope is unclear, ask once whether to use the gated workflow or fast execution.
+- Gate 1 - Product: define the user problem, measurable success, user-facing outcome, and screens or interactions. Do not choose implementation details yet. Get explicit approval.
+- Gate 2 - Architecture: inspect the current repository first. Use CodeGraph when available. Record affected modules, interfaces, data, external systems, end-to-end flow, and blast radius. Get explicit approval.
+- Gate 3 - Program Design: record every file to change, types and method signatures without bodies, call paths, test cases, and least-confident decisions. Get explicit approval.
+- Gate 4 - Vertical Slices: agree on a slice plan. Build a thin end-to-end tracer bullet first, then add one testable capability per slice. Prove each slice works and ask whether to continue or re-steer.
+- Store durable workflow state in docs/plans/<feature-slug>/00-status.md, with 01-product.md, 02-architecture.md, 03-program-design.md, and 04-slices.md beside it. Add mockups/ for UI work. Update status after every approval and completed slice so a fresh session can resume without chat history.
+- If later work invalidates an approved decision, reopen that gate before continuing. Keep diffs reviewable. Never skip, weaken, or remove a valid test to obtain green status.
+
 Athena documentation (read only when the user asks about athena itself, its SDK, extensions, themes, skills, or TUI):
 - Main documentation: ${readmePath}
 - Additional docs: ${docsPath}

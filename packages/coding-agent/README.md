@@ -9,9 +9,9 @@
 
 ---
 
-Athena is a minimal terminal coding harness. Adapt Athena to your workflows, not the other way around, without having to fork and modify Athena internals. Extend it with TypeScript [Extensions](#extensions), [Skills](#skills), [Prompt Templates](#prompt-templates), and [Themes](#themes). Put your extensions, skills, prompt templates, and themes in [Athena Packages](#athena-packages) and share them with others via npm or git.
+Athena is a codebase-intelligent terminal coding agent. Built-in CodeGraph integration gives the model structural repository context, built-in web search adds current external knowledge, and Athena's gated development workflow keeps substantial changes reviewable from product intent through verified vertical slices.
 
-Athena ships with powerful defaults but skips features like sub agents and plan mode. Instead, you can ask Athena to build what you want or install a third party Athena package that matches your workflow.
+Adapt Athena to your workflows, not the other way around. Extend it with TypeScript [Extensions](#extensions), [Skills](#skills), [Prompt Templates](#prompt-templates), and [Themes](#themes). Put those resources in [Athena Packages](#athena-packages) and share them through npm or git without forking Athena internals.
 
 Athena runs in four modes: interactive, print or JSON, RPC for process integration, and an SDK for embedding in your own apps.
 
@@ -29,10 +29,12 @@ Athena runs in four modes: interactive, print or JSON, RPC for process integrati
   - [Compaction](#compaction)
 - [Settings](#settings)
 - [Context Files](#context-files)
+- [Development Workflow](#development-workflow)
 - [Customization](#customization)
   - [Prompt Templates](#prompt-templates)
   - [Skills](#skills)
   - [Extensions](#extensions)
+  - [MCP](#mcp)
   - [Themes](#themes)
   - [Athena Packages](#athena-packages)
 - [Programmatic Usage](#programmatic-usage)
@@ -74,7 +76,7 @@ athena
 /login  # Then select provider
 ```
 
-Then just talk to athena. By default, athena gives the model four tools: `read`, `write`, `edit`, and `bash`. The model uses these to fulfill your requests. Add capabilities via [skills](#skills), [prompt templates](#prompt-templates), [extensions](#extensions), or [Athena packages](#athena-packages).
+Then just talk to athena. By default, athena gives the model five tools: `read`, `write`, `edit`, `bash`, and `websearch`. The model uses these to fulfill your requests. Add capabilities via [skills](#skills), [prompt templates](#prompt-templates), [extensions](#extensions), [MCP servers](#mcp), or [Athena packages](#athena-packages).
 
 **Platform notes:** [Windows](docs/windows.md) | [Termux (Android)](docs/termux.md) | [tmux](docs/tmux.md) | [Terminal setup](docs/terminal-setup.md) | [Shell aliases](docs/shell-aliases.md)
 
@@ -313,6 +315,32 @@ Replace the default system prompt with `.athena/SYSTEM.md` (project) or `~/.athe
 
 ---
 
+## Development Workflow
+
+Athena's default prompt applies a four-gate workflow to substantial development tasks: new features, multi-file changes, endpoints, schemas, screens, architecture changes, or work likely to create a large diff.
+
+1. **Product** : Define the user problem, measurable success, user-facing outcome, and interactions before choosing implementation details.
+2. **Architecture** : Inspect the repository first, use CodeGraph when available, and record affected modules, interfaces, data, external systems, end-to-end flow, and blast radius.
+3. **Program Design** : Agree on files, types, method signatures, call paths, test cases, and least-confident decisions before implementation bodies exist.
+4. **Vertical Slices** : Approve a slice plan, build a thin end-to-end tracer bullet, then add one testable capability per slice.
+
+Each gate requires approval. Athena records durable state in `docs/plans/<feature-slug>/`:
+
+```text
+00-status.md
+01-product.md
+mockups/              # UI work only
+02-architecture.md
+03-program-design.md
+04-slices.md
+```
+
+Athena updates status after each approval and completed slice. Fresh sessions can resume from repository state instead of reconstructing decisions from chat history. Later discoveries reopen any invalidated gate.
+
+Narrow fixes, renames, copy or style changes, small configuration edits, throwaway prototypes, and explicit fast-execution requests skip the workflow. When scope is unclear, Athena asks once which path to use.
+
+---
+
 ## Customization
 
 ### Prompt Templates
@@ -374,6 +402,12 @@ The default export can also be `async`. athena waits for async extension factori
 - ...anything you can dream up
 
 Place in `~/.athena/agent/extensions/` or an [Athena package](#athena-packages) to share with others. See [docs/extensions.md](docs/extensions.md) and [examples/extensions/](examples/extensions/).
+
+### MCP
+
+Athena includes an MCP client for stdio, HTTP, and SSE servers. HTTP servers can use bearer-token environment variables or OAuth. Use `/mcp` to inspect servers, enable or disable built-ins, and authenticate configured servers.
+
+CodeGraph is Athena's built-in MCP server. When its optional package is installed, Athena starts it automatically and exposes its structural code tools to the model. Set `ATHENA_CODEGRAPH=off` to disable automatic discovery. User-configured MCP servers can be added through `mcpServers` settings.
 
 ### Themes
 
@@ -472,7 +506,7 @@ See [docs/rpc.md](docs/rpc.md) for the protocol.
 
 Athena is aggressively extensible so it doesn't have to dictate your workflow. Features that other tools bake in can be built with [extensions](#extensions), [skills](#skills), or installed from third-party [Athena packages](#athena-packages). This keeps the core minimal while letting you shape Athena to fit how you work.
 
-**No built-in MCP dependency.** Build CLI tools with READMEs (see [Skills](#skills)), or add MCP support through an extension.
+**CodeGraph-first, MCP-open.** Athena automatically discovers its built-in CodeGraph server and can connect to custom stdio, HTTP, and SSE MCP servers. Skills and ordinary CLI tools remain useful when a full MCP integration is unnecessary.
 
 **No sub-agents.** There's many ways to do this. Spawn athena instances via tmux, or build your own with [extensions](#extensions), or install a package that does it your way.
 
@@ -559,7 +593,7 @@ cat README.md | athena -p "Summarize this text"
 | `--no-builtin-tools`, `-nbt` | Disable built-in tools by default but keep extension/custom tools enabled |
 | `--no-tools`, `-nt` | Disable all tools by default |
 
-Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`
+Available built-in tools: `read`, `bash`, `edit`, `write`, `grep`, `find`, `ls`, `websearch`
 
 ### Resource Options
 
