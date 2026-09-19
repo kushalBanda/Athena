@@ -44,9 +44,11 @@ collect.sh
 .cursor/
 .agents/
 .claude/
+.codex/
 .codegraph/
 docs/
 !packages/*/docs/
 scripts/private/
 skills-lock.json
 CLAUDE.md
+AGENTS.md
