@@ -2,7 +2,7 @@ import { compare, valid } from "semver";
 import { getAthenaUserAgent } from "./athena-user-agent.ts";
 import { fetchWithRetry } from "./management-http.ts";
 
-const LATEST_VERSION_URL = "https://pi.dev/api/latest-version";
+const LATEST_VERSION_URL = "https://api.github.com/repos/kushalBanda/Athena/releases/latest";
 const DEFAULT_VERSION_CHECK_TIMEOUT_MS = 10000;
 
 export interface LatestAthenaRelease {
@@ -72,16 +72,20 @@ export async function getLatestAthenaRelease(
 	const data = (await response.json()) as {
 		packageName?: unknown;
 		version?: unknown;
+		tag_name?: unknown;
 		note?: unknown;
+		body?: unknown;
 	};
-	if (typeof data.version !== "string" || !data.version.trim()) {
+	const versionValue = typeof data.version === "string" ? data.version : data.tag_name;
+	if (typeof versionValue !== "string" || !versionValue.trim()) {
 		return undefined;
 	}
 	const packageName =
 		typeof data.packageName === "string" && data.packageName.trim() ? data.packageName.trim() : undefined;
-	const note = typeof data.note === "string" && data.note.trim() ? data.note.trim() : undefined;
+	const noteValue = typeof data.note === "string" ? data.note : data.body;
+	const note = typeof noteValue === "string" && noteValue.trim() ? noteValue.trim() : undefined;
 	return {
-		version: data.version.trim(),
+		version: versionValue.trim().replace(/^v/, ""),
 		packageName,
 		...(note ? { note } : {}),
 	};

@@ -571,7 +571,7 @@ describe("resolveCliModel", () => {
 		expect(result.model?.id).toBe("qwen/qwen3-coder:exacto");
 	});
 
-	describe("custom model fallback with :thinking suffix (#5552)", () => {
+	describe("custom model fallback with :thinking suffix", () => {
 		// Models for a provider that has registered models but the specific model ID
 		// is not in the registry (triggers buildFallbackModel path).
 		const neuralwattModel: Model<"anthropic-messages"> = {

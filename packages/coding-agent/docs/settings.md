@@ -79,9 +79,9 @@ For VS Code, include `--wait` so athena resumes after the editor exits:
 
 ### Telemetry and update checks
 
-`enableInstallTelemetry` only controls the anonymous install/update ping to `https://pi.dev/api/report-install`. Opting out of telemetry does not disable update checks; Pi can still fetch `https://pi.dev/api/latest-version` to look for the latest version.
+`enableInstallTelemetry` controls anonymous provider attribution headers. Opting out does not disable update checks; Athena can still query GitHub Releases for the latest version.
 
-Set `PI_SKIP_VERSION_CHECK=1` to disable the Athena version update check. Use `--offline` or `PI_OFFLINE=1` to disable all startup network operations described here, including update checks, package update checks, and install/update telemetry.
+Set `ATHENA_SKIP_VERSION_CHECK=1` to disable the Athena version update check. Use `--offline` or `ATHENA_OFFLINE=1` to disable startup network operations, including update and package checks.
 
 ### Network
 

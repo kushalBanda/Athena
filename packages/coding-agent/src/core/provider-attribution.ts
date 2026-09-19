@@ -43,7 +43,7 @@ function getDefaultAttributionHeaders(
 
 	if (isOpenRouterModel(model)) {
 		return {
-			"HTTP-Referer": "https://pi.dev",
+			"HTTP-Referer": "https://github.com/kushalBanda/Athena",
 			"X-OpenRouter-Title": "athena",
 			"X-OpenRouter-Categories": "cli-agent",
 		};

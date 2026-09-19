@@ -5,13 +5,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import { createHarness, type Harness } from "../harness.ts";
 
 /**
- * Regression for #6647: compaction runs a single non-retried summarization call, so a
+ * Compaction runs a single non-retried summarization call, so a
  * transient mid-stream socket death (`terminated`) failed the whole compaction.
  * Verifies that summarization now reuses `settings.retry` (bounded retries with
  * exponential backoff gated on isRetryableAssistantError), emits
  * `summarization_retry_*` events, and that aborts / non-retryable errors are not retried.
  */
-describe("#6647 compaction retries transient summarization failures", () => {
+describe("compaction retries transient summarization failures", () => {
 	const harnesses: Harness[] = [];
 
 	afterEach(() => {

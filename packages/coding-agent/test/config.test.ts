@@ -64,7 +64,7 @@ function createPnpmGlobalInstall(): { root: string; packageDir: string } {
 	const temp = mkdtempSync(join(tmpdir(), "athena-pnpm-"));
 	const binDir = join(temp, "bin");
 	const root = join(temp, "pnpm", "global", "5", "node_modules");
-	const packageDir = join(root, "@mariozechner", "coding-agent");
+	const packageDir = join(root, "@kushalbanda", "coding-agent");
 	mkdirSync(packageDir, { recursive: true });
 	mkdirSync(binDir, { recursive: true });
 	writeFileSync(join(binDir, process.platform === "win32" ? "pnpm.cmd" : "pnpm"), createFakePnpmScript(root));
@@ -76,9 +76,9 @@ function createPnpmGlobalInstall(): { root: string; packageDir: string } {
 		join(
 			root,
 			".pnpm",
-			"@mariozechner+pi-coding-agent@0.0.0",
+			"@kushalbanda+athena@0.0.0",
 			"node_modules",
-			"@mariozechner",
+			"@kushalbanda",
 			"coding-agent",
 			"dist",
 			"cli.js",
@@ -91,7 +91,7 @@ function createYarnGlobalInstall(): { globalDir: string; packageDir: string } {
 	const temp = mkdtempSync(join(tmpdir(), "athena-yarn-"));
 	const binDir = join(temp, "bin");
 	const globalDir = join(temp, "yarn", "global");
-	const packageDir = join(globalDir, "node_modules", "@mariozechner", "coding-agent");
+	const packageDir = join(globalDir, "node_modules", "@kushalbanda", "coding-agent");
 	mkdirSync(packageDir, { recursive: true });
 	mkdirSync(binDir, { recursive: true });
 	writeFileSync(join(binDir, process.platform === "win32" ? "yarn.cmd" : "yarn"), createFakeYarnScript(globalDir));
@@ -99,7 +99,7 @@ function createYarnGlobalInstall(): { globalDir: string; packageDir: string } {
 	tempDir = temp;
 	process.env.PATH = `${binDir}${delimiter}${originalPath ?? ""}`;
 	process.env.ATHENA_PACKAGE_DIR = packageDir;
-	setExecPath(join(globalDir, ".yarn", "@mariozechner", "coding-agent", "dist", "cli.js"));
+	setExecPath(join(globalDir, ".yarn", "@kushalbanda", "coding-agent", "dist", "cli.js"));
 	return { globalDir, packageDir };
 }
 
@@ -206,17 +206,17 @@ describe("detectInstallMethod", () => {
 	test("self-updates renamed packages from the current install prefix", () => {
 		const { prefix } = createNpmPrefixInstall();
 
-		const command = getSelfUpdateCommand("@mariozechner/pi-coding-agent", undefined, "@new-scope/athena");
+		const command = getSelfUpdateCommand("@kushalbanda/athena", undefined, "@new-scope/athena");
 
 		expect(command).toEqual({
 			command: "npm",
 			args: ["--prefix", prefix, "install", "-g", "--ignore-scripts", "--min-release-age=0", "@new-scope/athena"],
-			display: `npm --prefix ${prefix} uninstall -g @mariozechner/pi-coding-agent && npm --prefix ${prefix} install -g --ignore-scripts --min-release-age=0 @new-scope/athena`,
+			display: `npm --prefix ${prefix} uninstall -g @kushalbanda/athena && npm --prefix ${prefix} install -g --ignore-scripts --min-release-age=0 @new-scope/athena`,
 			steps: [
 				{
 					command: "npm",
-					args: ["--prefix", prefix, "uninstall", "-g", "@mariozechner/pi-coding-agent"],
-					display: `npm --prefix ${prefix} uninstall -g @mariozechner/pi-coding-agent`,
+					args: ["--prefix", prefix, "uninstall", "-g", "@kushalbanda/athena"],
+					display: `npm --prefix ${prefix} uninstall -g @kushalbanda/athena`,
 				},
 				{
 					command: "npm",
@@ -300,19 +300,19 @@ describe("detectInstallMethod", () => {
 	test("self-updates renamed pnpm global installs by removing the old package first", () => {
 		createPnpmGlobalInstall();
 
-		const command = getSelfUpdateCommand("@mariozechner/pi-coding-agent", undefined, "@new-scope/athena");
+		const command = getSelfUpdateCommand("@kushalbanda/athena", undefined, "@new-scope/athena");
 
 		expect(detectInstallMethod()).toBe("pnpm");
 		expect(command).toEqual({
 			command: "pnpm",
 			args: ["install", "-g", "--ignore-scripts", "--config.minimumReleaseAge=0", "@new-scope/athena"],
 			display:
-				"pnpm remove -g @mariozechner/pi-coding-agent && pnpm install -g --ignore-scripts --config.minimumReleaseAge=0 @new-scope/athena",
+				"pnpm remove -g @kushalbanda/athena && pnpm install -g --ignore-scripts --config.minimumReleaseAge=0 @new-scope/athena",
 			steps: [
 				{
 					command: "pnpm",
-					args: ["remove", "-g", "@mariozechner/pi-coding-agent"],
-					display: "pnpm remove -g @mariozechner/pi-coding-agent",
+					args: ["remove", "-g", "@kushalbanda/athena"],
+					display: "pnpm remove -g @kushalbanda/athena",
 				},
 				{
 					command: "pnpm",
@@ -369,19 +369,19 @@ describe("detectInstallMethod", () => {
 	test("self-updates renamed yarn global installs by removing the old package first", () => {
 		createYarnGlobalInstall();
 
-		const command = getSelfUpdateCommand("@mariozechner/pi-coding-agent", undefined, "@new-scope/athena");
+		const command = getSelfUpdateCommand("@kushalbanda/athena", undefined, "@new-scope/athena");
 
 		expect(detectInstallMethod()).toBe("yarn");
 		expect(command).toEqual({
 			command: "yarn",
 			args: ["global", "add", "--ignore-scripts", "@new-scope/athena"],
 			display:
-				"yarn global remove @mariozechner/pi-coding-agent && yarn global add --ignore-scripts @new-scope/athena",
+				"yarn global remove @kushalbanda/athena && yarn global add --ignore-scripts @new-scope/athena",
 			steps: [
 				{
 					command: "yarn",
-					args: ["global", "remove", "@mariozechner/pi-coding-agent"],
-					display: "yarn global remove @mariozechner/pi-coding-agent",
+					args: ["global", "remove", "@kushalbanda/athena"],
+					display: "yarn global remove @kushalbanda/athena",
 				},
 				{
 					command: "yarn",
@@ -395,19 +395,19 @@ describe("detectInstallMethod", () => {
 	test("self-updates renamed bun global installs by removing the old package first", () => {
 		createBunGlobalInstall();
 
-		const command = getSelfUpdateCommand("@mariozechner/pi-coding-agent", undefined, "@new-scope/athena");
+		const command = getSelfUpdateCommand("@kushalbanda/athena", undefined, "@new-scope/athena");
 
 		expect(detectInstallMethod()).toBe("bun");
 		expect(command).toEqual({
 			command: "bun",
 			args: ["install", "-g", "--ignore-scripts", "--minimum-release-age=0", "@new-scope/athena"],
 			display:
-				"bun uninstall -g @mariozechner/pi-coding-agent && bun install -g --ignore-scripts --minimum-release-age=0 @new-scope/athena",
+				"bun uninstall -g @kushalbanda/athena && bun install -g --ignore-scripts --minimum-release-age=0 @new-scope/athena",
 			steps: [
 				{
 					command: "bun",
-					args: ["uninstall", "-g", "@mariozechner/pi-coding-agent"],
-					display: "bun uninstall -g @mariozechner/pi-coding-agent",
+					args: ["uninstall", "-g", "@kushalbanda/athena"],
+					display: "bun uninstall -g @kushalbanda/athena",
 				},
 				{
 					command: "bun",

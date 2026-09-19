@@ -39,13 +39,13 @@ const RETRYABLE_PROVIDER_ERROR_PATTERN = buildProviderErrorPattern([
 	"internal.?error",
 
 	// Wrapper/provider text for transient upstream failures, including OpenRouter
-	// "Provider returned error" responses (#2264).
+	// "Provider returned error" responses.
 	"provider.?returned.?error",
 	"exceeded request buffer limit while retrying upstream",
 
 	// Network, proxy, and fetch transport failures. This includes OpenAI Codex
 	// raw-fetch failures such as "upstream connect", "connection refused", and
-	// "reset before headers" (#733), plus OpenRouter connection drops (#3317).
+	// "reset before headers", plus OpenRouter connection drops.
 	"network.?error",
 	"connection.?error",
 	"connection.?refused",
@@ -69,18 +69,18 @@ const RETRYABLE_PROVIDER_ERROR_PATTERN = buildProviderErrorPattern([
 
 	// Premature stream endings from SDKs and transports. Anthropic can throw
 	// "stream ended without ..." and "Anthropic stream ended before message_stop"
-	// (#4433); Bedrock/Smithy can throw an HTTP/2 no-response error (#3594).
+	// Bedrock/Smithy can throw an HTTP/2 no-response error.
 	"ended without",
 	"stream ended before message_stop",
 	"stream ended before a terminal response event",
 	"http2 request did not get a response",
 
 	// Provider-requested retry delay cap failures should flow through the outer
-	// retry policy so callers can surface/abort the backoff (#1123).
+	// retry policy so callers can surface/abort the backoff.
 	"retry delay",
 
 	// Explicit retry guidance emitted mid-stream by OpenAI Responses and Bedrock
-	// stream exceptions (#6019).
+	// stream exceptions.
 	"you can retry your request",
 	"try your request again",
 	"please retry your request",

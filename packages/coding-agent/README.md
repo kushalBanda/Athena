@@ -472,7 +472,7 @@ See [docs/rpc.md](docs/rpc.md) for the protocol.
 
 Athena is aggressively extensible so it doesn't have to dictate your workflow. Features that other tools bake in can be built with [extensions](#extensions), [skills](#skills), or installed from third-party [Athena packages](#athena-packages). This keeps the core minimal while letting you shape Athena to fit how you work.
 
-**No MCP.** Build CLI tools with READMEs (see [Skills](#skills)), or build an extension that adds MCP support. [Why?](https://mariozechner.at/posts/2025-11-02-what-if-you-dont-need-mcp/)
+**No built-in MCP dependency.** Build CLI tools with READMEs (see [Skills](#skills)), or add MCP support through an extension.
 
 **No sub-agents.** There's many ways to do this. Spawn athena instances via tmux, or build your own with [extensions](#extensions), or install a package that does it your way.
 

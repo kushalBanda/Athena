@@ -82,12 +82,13 @@ These variables are read by Athena itself:
 | `ATHENA_CODING_AGENT_SESSION_DIR` | Override session storage; overridden by `--session-dir` |
 | `ATHENA_PACKAGE_DIR` | Override the package directory, useful for Nix/Guix store paths |
 | `ATHENA_OFFLINE` | Disable startup network operations, including update checks, package updates, and install/update telemetry |
-| `ATHENA_SKIP_VERSION_CHECK` | Disable the `pi.dev` latest-version request |
+| `ATHENA_SKIP_VERSION_CHECK` | Disable the GitHub latest-release request |
+| `ATHENA_CATALOG_BASE_URL` | Optional base URL for remote model-catalog refreshes; disabled when unset |
 | `ATHENA_TELEMETRY` | Override install/update telemetry and provider attribution headers: `1`/`true`/`yes` or `0`/`false`/`no` |
 | `ATHENA_CACHE_RETENTION` | Set to `long` for extended provider prompt caching where supported |
 | `ATHENA_SHARE_VIEWER_URL` | Override the base URL used by `/share` |
-| `PI_HARDWARE_CURSOR` | Set to `1` to show the hardware cursor; see [Terminal setup](terminal-setup.md) |
-| `PI_TUI_ESC_TIMEOUT` | How long to wait after a lone ESC before treating it as Escape, in milliseconds; defaults to `100` over SSH and `10` otherwise. Increase if Alt-key input is misread as Escape |
+| `ATHENA_HARDWARE_CURSOR` | Set to `1` to show the hardware cursor; see [Terminal setup](terminal-setup.md) |
+| `ATHENA_TUI_ESC_TIMEOUT` | How long to wait after a lone ESC before treating it as Escape, in milliseconds; defaults to `100` over SSH and `10` otherwise. Increase if Alt-key input is misread as Escape |
 | `VISUAL`, `EDITOR` | External editor fallback when `externalEditor` is unset |
 | `HTTP_PROXY`, `HTTPS_PROXY` | Proxy outbound HTTP requests |
 

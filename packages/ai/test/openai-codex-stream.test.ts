@@ -1342,7 +1342,7 @@ describe("openai-codex streaming", () => {
 	});
 
 	it("scopes cached websockets to the authenticated account", async () => {
-		// Regression for #7284: rotating accounts must not reuse a socket authenticated by another account.
+		// Rotating accounts must not reuse a socket authenticated by another account.
 		const connectedHeaders: Record<string, string>[] = [];
 		let responseId = 0;
 

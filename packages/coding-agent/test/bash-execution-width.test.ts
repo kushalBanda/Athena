@@ -1,6 +1,6 @@
 /**
  * Test that BashExecutionComponent's collapsed output respects the render-time width,
- * not a stale captured width. Regression test for #2569.
+ * not a stale captured width.
  */
 import { visibleWidth } from "@kushalbanda/tui";
 import { beforeAll, describe, expect, it } from "vitest";
@@ -27,7 +27,7 @@ function createTuiStub(columns: number): { columns: number; stub: any } {
 	return { columns: state.columns, stub };
 }
 
-describe("BashExecutionComponent width handling (#2569)", () => {
+describe("BashExecutionComponent width handling", () => {
 	beforeAll(() => {
 		initTheme(undefined, false);
 	});

@@ -44,7 +44,7 @@ async function callShutdown(context: ShutdownThis, options?: { fromSignal?: bool
 	}
 }
 
-describe("InteractiveMode SIGTERM shutdown with signal-exit (#5724)", () => {
+describe("InteractiveMode SIGTERM shutdown with signal-exit", () => {
 	afterEach(() => {
 		vi.restoreAllMocks();
 	});

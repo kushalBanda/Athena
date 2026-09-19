@@ -293,10 +293,10 @@ describe("NodeExecutionEnv", () => {
 
 	it.each([
 		["a missing override preserves the base value", undefined, "x:/stale/parent.jsonl"],
-		["an empty override shadows the base value", { PI_SESSION_FILE: "" }, "x:"],
+		["an empty override shadows the base value", { TEST_SESSION_FILE: "" }, "x:"],
 		[
 			"a string override replaces the base value",
-			{ PI_SESSION_FILE: "/sessions/current.jsonl" },
+			{ TEST_SESSION_FILE: "/sessions/current.jsonl" },
 			"x:/sessions/current.jsonl",
 		],
 	] as const)(
@@ -306,14 +306,14 @@ describe("NodeExecutionEnv", () => {
 			const env = new NodeExecutionEnv({
 				cwd: root,
 				shellEnv: {
-					PI_SESSION_FILE: "/stale/parent.jsonl",
-					PI_CODING_AGENT: "true",
-					PI_NODE_ENV_PRESERVED_TEST: "preserved",
+					TEST_SESSION_FILE: "/stale/parent.jsonl",
+					TEST_CODING_AGENT: "true",
+					TEST_NODE_ENV_PRESERVED: "preserved",
 				},
 			});
 			const result = getOrThrow(
 				await env.exec(
-					`printf '%s:%s|%s|%s' "\${PI_SESSION_FILE+x}" "\${PI_SESSION_FILE-}" "$PI_CODING_AGENT" "$PI_NODE_ENV_PRESERVED_TEST"`,
+					`printf '%s:%s|%s|%s' "\${TEST_SESSION_FILE+x}" "\${TEST_SESSION_FILE-}" "$TEST_CODING_AGENT" "$TEST_NODE_ENV_PRESERVED"`,
 					{ env: overrides },
 				),
 			);

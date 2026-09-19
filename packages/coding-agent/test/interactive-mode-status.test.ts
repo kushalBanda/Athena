@@ -670,26 +670,26 @@ describe("InteractiveMode.showLoadedResources", () => {
 				),
 			},
 			{
-				path: "/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents/extensions/index.ts",
+				path: "/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents/extensions/index.ts",
 				sourceInfo: createSourceInfo(
-					"/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents/extensions/index.ts",
+					"/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents/extensions/index.ts",
 					{
-						source: "git:github.com/HazAT/pi-interactive-subagents",
+						source: "git:github.com/KushalBanda/athena-interactive-subagents",
 						scope: "project",
 						origin: "package",
-						baseDir: "/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents",
+						baseDir: "/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents",
 					},
 				),
 			},
 			{
-				path: "/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents/extensions/subagents/index.ts",
+				path: "/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents/extensions/subagents/index.ts",
 				sourceInfo: createSourceInfo(
-					"/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents/extensions/subagents/index.ts",
+					"/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents/extensions/subagents/index.ts",
 					{
-						source: "git:github.com/HazAT/pi-interactive-subagents",
+						source: "git:github.com/KushalBanda/athena-interactive-subagents",
 						scope: "project",
 						origin: "package",
-						baseDir: "/tmp/project/.pi/git/github.com/HazAT/pi-interactive-subagents",
+						baseDir: "/tmp/project/.athena/git/github.com/KushalBanda/athena-interactive-subagents",
 					},
 				),
 			},
@@ -785,7 +785,7 @@ describe("InteractiveMode.showLoadedResources", () => {
 
 		expect(normalizeRenderedOutput(fakeThis.loadedResourcesContainer)).toMatchInlineSnapshot(`
 "[Extensions]
-  @scope/athena-scoped, answer.ts, athena-markdown-preview, cli-extension.ts, HazAT/pi-interactive-subagents, HazAT/pi-interactive-subagents:subagents, local-index, user-index"`);
+  @scope/athena-scoped, answer.ts, athena-markdown-preview, cli-extension.ts, KushalBanda/athena-interactive-subagents, KushalBanda/athena-interactive-subagents:subagents, local-index, user-index"`);
 	});
 
 	test("adds more parent folders until local extension labels are unique", () => {
@@ -1154,7 +1154,7 @@ describe("InteractiveMode.showLoadedResources", () => {
   project
     /tmp/project/.athena/extensions/answer.ts
     /tmp/project/.athena/extensions/local-index
-    git:github.com/HazAT/pi-interactive-subagents
+    git:github.com/KushalBanda/athena-interactive-subagents
       extensions
       extensions/subagents
     npm:@scope/athena-scoped

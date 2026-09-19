@@ -80,7 +80,7 @@ function createRuntimeHost(harness: Harness): AgentSessionRuntime {
 	} as unknown as AgentSessionRuntime;
 }
 
-describe("RPC unknown command responses (#5868)", () => {
+describe("RPC unknown command responses", () => {
 	afterEach(() => {
 		rpcIo.outputLines = [];
 		rpcIo.lineHandler = undefined;

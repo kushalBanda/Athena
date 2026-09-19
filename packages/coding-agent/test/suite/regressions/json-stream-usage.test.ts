@@ -17,7 +17,7 @@ describe("JSON message updates retain usage", () => {
 
 		await harness.session.prompt("respond");
 
-		// #7290's delta-only wire projection dropped this fixed-size metadata with the snapshots.
+		// A delta-only wire projection previously dropped this fixed-size metadata with the snapshots.
 		const update = harness
 			.eventsOfType("message_update")
 			.find((event) => event.message.role === "assistant" && event.message.usage.totalTokens > 0);

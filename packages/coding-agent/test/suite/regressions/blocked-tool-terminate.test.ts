@@ -5,7 +5,7 @@ import { Type } from "typebox";
 import { afterEach, describe, expect, it } from "vitest";
 import { createHarness, getAssistantTexts, type Harness } from "../harness.ts";
 
-describe("#5998 blocked tool termination", () => {
+describe("blocked tool termination", () => {
 	const harnesses: Harness[] = [];
 
 	afterEach(() => {

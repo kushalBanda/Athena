@@ -151,7 +151,7 @@ export const stream: StreamFunction<"bedrock-converse-stream", BedrockOptions> =
 		);
 
 		// Only pin standard AWS Bedrock runtime endpoints when no region or ambient AWS_PROFILE is configured.
-		// This preserves custom endpoints (VPC/proxy) from #3402 without forcing built-in
+		// Preserve custom endpoints (VPC/proxy) without forcing built-in
 		// catalog defaults such as us-east-1 to override AWS_REGION/AWS_PROFILE.
 		if (useExplicitEndpoint) {
 			config.endpoint = model.baseUrl;

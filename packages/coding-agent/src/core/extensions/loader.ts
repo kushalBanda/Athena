@@ -64,13 +64,6 @@ const VIRTUAL_MODULES: Record<string, unknown> = {
 	"@kushalbanda/ai/oauth": _bundledAthenaAiOauth,
 	"@kushalbanda/ai/providers/all": _bundledAthenaAiProviders,
 	"@kushalbanda/athena": _bundledAthenaCodingAgent,
-	"@mariozechner/pi-agent-core": _bundledAthenaAgentCore,
-	"@mariozechner/pi-tui": _bundledAthenaTui,
-	"@mariozechner/pi-ai": _bundledAthenaAiCompat,
-	"@mariozechner/pi-ai/compat": _bundledAthenaAiCompat,
-	"@mariozechner/pi-ai/oauth": _bundledAthenaAiOauth,
-	"@mariozechner/pi-ai/providers/all": _bundledAthenaAiProviders,
-	"@mariozechner/pi-coding-agent": _bundledAthenaCodingAgent,
 };
 
 const require = createRequire(import.meta.url);
@@ -120,13 +113,6 @@ function getAliases(): Record<string, string> {
 		"@kushalbanda/ai/compat": athenaAiCompatEntry,
 		"@kushalbanda/ai/oauth": athenaAiOauthEntry,
 		"@kushalbanda/ai": athenaAiCompatEntry,
-		"@mariozechner/pi-coding-agent": athenaCodingAgentEntry,
-		"@mariozechner/pi-agent-core": athenaAgentCoreEntry,
-		"@mariozechner/pi-tui": athenaTuiEntry,
-		"@mariozechner/pi-ai/providers/all": athenaAiProvidersEntry,
-		"@mariozechner/pi-ai/compat": athenaAiCompatEntry,
-		"@mariozechner/pi-ai/oauth": athenaAiOauthEntry,
-		"@mariozechner/pi-ai": athenaAiCompatEntry,
 		typebox: typeboxEntry,
 		"typebox/compile": typeboxCompileEntry,
 		"typebox/value": typeboxValueEntry,

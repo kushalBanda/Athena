@@ -98,7 +98,7 @@ async function callShutdown(context: ShutdownThis, options?: { fromSignal?: bool
 	}
 }
 
-describe("InteractiveMode.shutdown ordering (#5080)", () => {
+describe("InteractiveMode.shutdown ordering", () => {
 	afterEach(() => {
 		vi.restoreAllMocks();
 		restoreStdoutIsTTY();

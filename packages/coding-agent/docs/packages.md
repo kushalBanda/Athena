@@ -134,7 +134,7 @@ Paths are relative to the package root. Arrays support glob patterns and `!exclu
 
 ### Gallery Metadata
 
-The [package gallery](https://pi.dev/packages) displays packages tagged with `athena-package`. Add `video` or `image` fields to show a preview:
+Use the `athena-package` topic to make packages discoverable. Add `video` or `image` fields to show a preview:
 
 ```json
 {

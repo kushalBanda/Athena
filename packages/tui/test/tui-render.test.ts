@@ -296,7 +296,7 @@ describe("TUI Kitty image cleanup", () => {
 			assert.ok(writes.includes(imageSequence), "image placement should be drawn");
 			assert.ok(
 				!writes.includes(`\x1b[${imageLines.length - 1}A${imageSequence}`),
-				"taller-than-viewport images must keep the #4461 first-row placement path",
+				"taller-than-viewport images must keep the first-row placement path",
 			);
 
 			tui.stop();

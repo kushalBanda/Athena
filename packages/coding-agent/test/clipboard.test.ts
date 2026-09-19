@@ -101,7 +101,7 @@ describe("readClipboardText", () => {
 	});
 
 	test("reads the Wayland clipboard before the stale native X11 clipboard", async () => {
-		// Regression test for #7248.
+		// Preserve clipboard content when no image is available.
 		mockedPlatform.mockReturnValue("linux");
 		mocks.isWaylandSession.mockReturnValue(true);
 		vi.stubEnv("WAYLAND_DISPLAY", "wayland-0");

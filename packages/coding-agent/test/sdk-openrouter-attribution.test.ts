@@ -146,7 +146,7 @@ describe("createAgentSession provider attribution headers", () => {
 	it("adds default attribution headers for OpenRouter models", async () => {
 		const headers = await captureHeaders(createModel("openrouter", "https://openrouter.ai/api/v1"));
 
-		expect(headers?.["HTTP-Referer"]).toBe("https://pi.dev");
+		expect(headers?.["HTTP-Referer"]).toBe("https://github.com/kushalBanda/Athena");
 		expect(headers?.["X-OpenRouter-Title"]).toBe("athena");
 		expect(headers?.["X-OpenRouter-Categories"]).toBe("cli-agent");
 	});
@@ -164,7 +164,7 @@ describe("createAgentSession provider attribution headers", () => {
 	it("adds attribution headers for custom providers routed through OpenRouter", async () => {
 		const headers = await captureHeaders(createModel("custom-openrouter", "https://openrouter.ai/api/v1"));
 
-		expect(headers?.["HTTP-Referer"]).toBe("https://pi.dev");
+		expect(headers?.["HTTP-Referer"]).toBe("https://github.com/kushalBanda/Athena");
 		expect(headers?.["X-OpenRouter-Title"]).toBe("athena");
 		expect(headers?.["X-OpenRouter-Categories"]).toBe("cli-agent");
 	});
@@ -172,7 +172,7 @@ describe("createAgentSession provider attribution headers", () => {
 	it("preserves legacy OpenRouter base URL substring attribution matching", async () => {
 		const headers = await captureHeaders(createModel("custom-openrouter", "not-a-url-openrouter.ai"));
 
-		expect(headers?.["HTTP-Referer"]).toBe("https://pi.dev");
+		expect(headers?.["HTTP-Referer"]).toBe("https://github.com/kushalBanda/Athena");
 		expect(headers?.["X-OpenRouter-Title"]).toBe("athena");
 		expect(headers?.["X-OpenRouter-Categories"]).toBe("cli-agent");
 	});
@@ -231,7 +231,7 @@ describe("createAgentSession provider attribution headers", () => {
 			createModel("openrouter", "https://openrouter.ai/api/v1", "nvidia/nemotron-3-super-120b-a12b"),
 		);
 
-		expect(headers?.["HTTP-Referer"]).toBe("https://pi.dev");
+		expect(headers?.["HTTP-Referer"]).toBe("https://github.com/kushalBanda/Athena");
 		expect(headers?.["X-BILLING-INVOKE-ORIGIN"]).toBeUndefined();
 	});
 
