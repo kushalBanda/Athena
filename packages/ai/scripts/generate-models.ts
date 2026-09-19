@@ -1626,6 +1626,23 @@ async function loadModelsDevData(): Promise<Model<any>[]> {
 				recordModelsDevReasoningOptions("cloudflare-ai-gateway", id, m);
 			}
 		}
+		// Keep the Workers AI Kimi route available while models.dev does not publish it.
+		// This route is used by Cloudflare Gateway's OpenAI-compatible /compat endpoint.
+		if (!models.some((model) => model.provider === "cloudflare-ai-gateway" && model.id === "workers-ai/@cf/moonshotai/kimi-k2.6")) {
+			models.push({
+				id: "workers-ai/@cf/moonshotai/kimi-k2.6",
+				name: "Kimi K2.6",
+				api: "openai-completions",
+				provider: "cloudflare-ai-gateway",
+				baseUrl: CLOUDFLARE_AI_GATEWAY_COMPAT_BASE_URL,
+				reasoning: true,
+				input: ["text", "image"],
+				cost: { input: 0, output: 0, cacheRead: 0, cacheWrite: 0 },
+				contextWindow: 262144,
+				maxTokens: 8192,
+				compat: { sendSessionAffinityHeaders: true },
+			});
+		}
 
 		// Process xAi models
 		if (data.xai?.models) {
