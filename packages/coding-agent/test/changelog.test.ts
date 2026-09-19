@@ -29,7 +29,7 @@ describe("normalizeChangelogLinks", () => {
 
 	test("canonicalizes old repository URLs without changing external links", () => {
 		const markdown = [
-			"[#5167](https://github.com/earendil-works/pi-mono/pull/5167)",
+			"[#5167](https://github.com/badlogic/pi-mono/pull/5167)",
 			"[#4163](https://github.com/badlogic/pi-mono/issues/4163)",
 			"[Agent README](https://github.com/badlogic/pi-mono/blob/main/packages/agent/README.md)",
 			"[External](https://example.com/docs)",

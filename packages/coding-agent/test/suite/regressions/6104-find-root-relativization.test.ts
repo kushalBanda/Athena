@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { createFindToolDefinition, relativizeFindResultPath } from "../../../src/core/tools/find.ts";
 
 /**
- * Regression test for https://github.com/earendil-works/pi/issues/6104
  *
  * path.resolve() preserves a trailing separator when resolving to a root path,
  * such as POSIX / or Windows I:\\. The find tool used to slice absolute
