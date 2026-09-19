@@ -375,8 +375,7 @@ describe("detectInstallMethod", () => {
 		expect(command).toEqual({
 			command: "yarn",
 			args: ["global", "add", "--ignore-scripts", "@new-scope/athena"],
-			display:
-				"yarn global remove @kushalbanda/athena && yarn global add --ignore-scripts @new-scope/athena",
+			display: "yarn global remove @kushalbanda/athena && yarn global add --ignore-scripts @new-scope/athena",
 			steps: [
 				{
 					command: "yarn",

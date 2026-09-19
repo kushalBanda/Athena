@@ -45,7 +45,10 @@ export class McpServerPanelComponent extends Container {
 		this.addChild(new Spacer(1));
 		this.addChild(
 			new Text(
-				rawKeyHint("↑↓", "navigate") + "  " + keyHint("tui.select.confirm", "select") + "  " +
+				rawKeyHint("↑↓", "navigate") +
+					"  " +
+					keyHint("tui.select.confirm", "select") +
+					"  " +
 					keyHint("tui.select.cancel", "back"),
 				1,
 				0,

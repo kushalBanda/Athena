@@ -58,7 +58,6 @@ import {
 } from "../../config.ts";
 import { type AgentSession, type AgentSessionEvent, parseSkillBlock } from "../../core/agent-session.ts";
 import { type AgentSessionRuntime, SessionImportFileNotFoundError } from "../../core/agent-session-runtime.ts";
-import type { McpRegistry } from "../../core/mcp/registry.ts";
 import {
 	CACHE_TTL_MS,
 	type CacheMiss,
@@ -82,6 +81,7 @@ import type {
 import { FooterDataProvider, type ReadonlyFooterDataProvider } from "../../core/footer-data-provider.ts";
 import { configureHttpDispatcher, formatHttpIdleTimeoutMs } from "../../core/http-dispatcher.ts";
 import { type AppKeybinding, KeybindingsManager } from "../../core/keybindings.ts";
+import type { McpRegistry } from "../../core/mcp/registry.ts";
 import { createCompactionSummaryMessage } from "../../core/messages.ts";
 import {
 	defaultModelPerProvider,
@@ -122,10 +122,10 @@ import { DynamicBorder } from "./components/dynamic-border.ts";
 import { ExtensionEditorComponent } from "./components/extension-editor.ts";
 import { ExtensionInputComponent } from "./components/extension-input.ts";
 import { ExtensionSelectorComponent } from "./components/extension-selector.ts";
-import { type McpServerPanelState, McpServerPanelComponent } from "./components/mcp-server-panel.ts";
 import { FooterComponent, formatTokens } from "./components/footer.ts";
 import { formatKeyText, keyDisplayText, keyHint, keyText, rawKeyHint } from "./components/keybinding-hints.ts";
 import { LoginDialogComponent } from "./components/login-dialog.ts";
+import { McpServerPanelComponent, type McpServerPanelState } from "./components/mcp-server-panel.ts";
 import { createMermaidMarkdownTransformer } from "./components/mermaid.ts";
 import { ModelSelectorComponent } from "./components/model-selector.ts";
 import {
@@ -5735,7 +5735,7 @@ export class InteractiveMode {
 	private showMcpSelector(): void {
 		const servers = this.session.mcpRegistry.listServers();
 		if (servers.length === 0) {
-			this.showStatus("No MCP servers configured. Add one under \"mcpServers\" in settings.");
+			this.showStatus('No MCP servers configured. Add one under "mcpServers" in settings.');
 			return;
 		}
 		this.showSelector((done) => {
@@ -5781,29 +5781,33 @@ export class InteractiveMode {
 	 */
 	private showMcpServerActionsSelector(entry: McpServerListEntry): void {
 		this.showSelector((done) => {
-			const panel = new McpServerPanelComponent(this.mcpPanelState(entry), (action) => {
-				if (action === "Back") {
-					done();
-					this.showMcpSelector();
-					return;
-				}
-				if (action === "Login") {
-					done();
+			const panel = new McpServerPanelComponent(
+				this.mcpPanelState(entry),
+				(action) => {
+					if (action === "Back") {
+						done();
+						this.showMcpSelector();
+						return;
+					}
+					if (action === "Login") {
+						done();
+						void (async () => {
+							await this.showLoginMcpDialog(entry.name);
+							this.showMcpServerActionsSelector(this.mcpLatestEntry(entry.name, entry));
+						})();
+						return;
+					}
 					void (async () => {
-						await this.showLoginMcpDialog(entry.name);
-						this.showMcpServerActionsSelector(this.mcpLatestEntry(entry.name, entry));
+						panel.setBusy(mcpBusyLabel(action, entry.name));
+						this.ui.requestRender();
+						await this.runMcpServerAction(entry, action);
+						const fresh = this.mcpLatestEntry(entry.name, entry);
+						panel.update(this.mcpPanelState(fresh));
+						this.ui.requestRender();
 					})();
-					return;
-				}
-				void (async () => {
-					panel.setBusy(mcpBusyLabel(action, entry.name));
-					this.ui.requestRender();
-					await this.runMcpServerAction(entry, action);
-					const fresh = this.mcpLatestEntry(entry.name, entry);
-					panel.update(this.mcpPanelState(fresh));
-					this.ui.requestRender();
-				})();
-			}, () => done());
+				},
+				() => done(),
+			);
 			return { component: panel, focus: panel };
 		});
 	}
