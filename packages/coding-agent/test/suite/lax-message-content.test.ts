@@ -4,7 +4,7 @@
  * can violate that contract. We are intentionally lax at the ingestion
  * boundaries and normalize null/missing content to an empty array so it never
  * reaches rendering, compaction, or provider request conversion
- * (issues #6259, #6276).
+ *.
  */
 
 import type { AgentMessage, AgentToolResult } from "@kushalbanda/agent-core";

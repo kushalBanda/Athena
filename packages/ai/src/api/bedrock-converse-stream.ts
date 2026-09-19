@@ -136,7 +136,7 @@ export const stream: StreamFunction<"bedrock-converse-stream", BedrockOptions> =
 		// option or scoped `AWS_PROFILE` on the stored credential's env) must win
 		// over ambient AWS_ACCESS_KEY_ID/AWS_SECRET_ACCESS_KEY. The SDK default
 		// chain already prefers a configured profile over env keys, but only when
-		// `credentials` is not set on the client config. See #6957.
+		// `credentials` is not set on the client config.
 		const optionsProfile = options.profile || options.env?.AWS_PROFILE;
 		const config: BedrockRuntimeClientConfig = {
 			profile: optionsProfile || getProviderEnvValue("AWS_PROFILE", options.env),

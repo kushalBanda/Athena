@@ -2093,7 +2093,7 @@ Content`,
 		});
 	});
 
-	describe("multi-file extension discovery (issue #1102)", () => {
+	describe("multi-file extension discovery", () => {
 		it("should only load index.ts from subdirectories, not helper modules", async () => {
 			// Regression test: packages with multi-file extensions in subdirectories
 			// should only load the index.ts entry point, not helper modules like agents.ts

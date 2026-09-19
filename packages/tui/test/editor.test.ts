@@ -623,7 +623,7 @@ describe("Editor component", () => {
 			assert.deepStrictEqual(editor.getCursor(), { line: 0, col: 7 });
 		});
 
-		it("stops at fullwidth Chinese punctuation (issue #4972)", () => {
+		it("stops at fullwidth Chinese punctuation", () => {
 			const editor = new Editor(createTestTUI(), defaultEditorTheme);
 
 			// 你好，世界 = 你好(0-2) ，(2-3) 世界(3-5)
@@ -701,7 +701,7 @@ describe("Editor component", () => {
 	});
 
 	describe("Scroll indicators", () => {
-		it("keeps truncated scroll indicators within width and preserves their color (issue #6962)", () => {
+		it("keeps truncated scroll indicators within width and preserves their color", () => {
 			const width = 10;
 			const borderColor = (text: string) => `\x1b[35m${text}\x1b[39m`;
 			const editor = new Editor(createTestTUI(width), { ...defaultEditorTheme, borderColor });
@@ -1826,7 +1826,7 @@ describe("Editor component", () => {
 
 			// tmux popups with extended-keys-format=csi-u re-encode \n in pastes as
 			// \x1b[106;5u (Ctrl+J). Without decoding, the per-char filter strips ESC
-			// and leaks "[106;5u" between lines. See issue #3599.
+			// and leaks "[106;5u" between lines.
 			editor.handleInput("\x1b[200~line1\x1b[106;5uline2\x1b[106;5uline3\x1b[201~");
 			assert.strictEqual(editor.getText(), "line1\nline2\nline3");
 		});

@@ -3,7 +3,7 @@
  * callers (custom tools, hand-built histories, old session files) can violate
  * that contract. `transformMessages` is the choke point before every provider
  * request and is intentionally lax: it normalizes null/missing content to an
- * empty array (issues #6259, #6276).
+ * empty array.
  */
 
 import { describe, expect, it } from "vitest";

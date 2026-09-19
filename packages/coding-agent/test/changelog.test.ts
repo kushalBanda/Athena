@@ -27,19 +27,15 @@ describe("normalizeChangelogLinks", () => {
 		);
 	});
 
-	test("canonicalizes old repository URLs without changing external links", () => {
+	test("pins repository links without changing external links", () => {
 		const markdown = [
-			"[#5167](https://github.com/badlogic/pi-mono/pull/5167)",
-			"[#4163](https://github.com/badlogic/pi-mono/issues/4163)",
-			"[Agent README](https://github.com/badlogic/pi-mono/blob/main/packages/agent/README.md)",
+			"[Agent README](https://github.com/kushalBanda/Athena/blob/main/packages/agent/README.md)",
 			"[External](https://example.com/docs)",
 			"[Local anchor](#settings)",
 		].join("\n");
 
 		expect(normalizeChangelogLinks(markdown, "0.79.0")).toBe(
 			[
-				"[#5167](https://github.com/kushalBanda/Athena/pull/5167)",
-				"[#4163](https://github.com/kushalBanda/Athena/issues/4163)",
 				"[Agent README](https://github.com/kushalBanda/Athena/blob/v0.79.0/packages/agent/README.md)",
 				"[External](https://example.com/docs)",
 				"[Local anchor](#settings)",

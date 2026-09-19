@@ -174,13 +174,13 @@ describe("Tool Call ID Normalization - Live Handoff", () => {
 });
 
 /**
- * Test 2: Prefilled context with exact failing IDs from issue #1022
+ * Test 2: Prefilled context with exact failing IDs from the original report
  *
  * Uses the exact tool call ID format that caused the error:
  * "call_xxx|very_long_base64_with_special_chars+/="
  */
 describe("Tool Call ID Normalization - Prefilled Context", () => {
-	// Exact tool call ID from issue #1022 JSONL
+	// Exact tool call ID from the original report JSONL
 	const FAILING_TOOL_CALL_ID =
 		"call_pAYbIr76hXIjncD9UE4eGfnS|t5nnb2qYMFWGSsr13fhCd1CaCu3t3qONEPuOudu4HSVEtA8YJSL6FAZUxvoOoD792VIJWl91g87EdqsCWp9krVsdBysQoDaf9lMCLb8BS4EYi4gQd5kBQBYLlgD71PYwvf+TbMD9J9/5OMD42oxSRj8H+vRf78/l2Xla33LWz4nOgsddBlbvabICRs8GHt5C9PK5keFtzyi3lsyVKNlfduK3iphsZqs4MLv4zyGJnvZo/+QzShyk5xnMSQX/f98+aEoNflEApCdEOXipipgeiNWnpFSHbcwmMkZoJhURNu+JEz3xCh1mrXeYoN5o+trLL3IXJacSsLYXDrYTipZZbJFRPAucgbnjYBC+/ZzJOfkwCs+Gkw7EoZR7ZQgJ8ma+9586n4tT4cI8DEhBSZsWMjrCt8dxKg==";
 

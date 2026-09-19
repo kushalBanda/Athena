@@ -659,7 +659,7 @@ Extra content`,
 		});
 
 		// Regression: extension discovery used to drop package scope/source, collapsing every
-		// autocomplete source tag to [t]. See issue #6968.
+		// autocomplete source tag to [t].
 		it("should keep package metadata for skills, prompts, and themes", async () => {
 			const packageRoot = join(agentDir, "npm", "node_modules", "metadata-pkg");
 			const packageSkillDir = join(packageRoot, "skills", "package-skill");

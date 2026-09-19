@@ -23,7 +23,7 @@
 		"coverage": "vitest --run --coverage",
 		"prepublishOnly": "npm run clean && npm run build"
 	},
-	"author": "Earendil Works",
+	"author": "Kushal Banda",
 	"license": "MIT",
 	"repository": {
 		"type": "git",
