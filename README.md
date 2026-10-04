@@ -9,6 +9,10 @@
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
 </p>
 
+<p align="center">
+  <a href="https://kushalbanda.com/athena/">Website</a>
+</p>
+
 Athena knows how your code connects, not just what your files contain.
 
 Athena is an open-source, codebase-intelligent coding agent. Built-in CodeGraph integration gives Athena structural context across symbols, dependencies, call paths, and blast radius. Live web search adds current external knowledge. A gated development workflow turns substantial changes into explicit product, architecture, program-design, and vertical-slice decisions before large diffs exist.
